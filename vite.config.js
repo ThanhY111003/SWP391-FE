@@ -10,8 +10,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
-    // Optimize source maps: 'hidden' for production (generates but doesn't reference in bundle)
-    // This allows debugging in production without exposing source maps to users
+
     sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
     target: 'es2022',
     rollupOptions: {
