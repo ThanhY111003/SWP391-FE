@@ -62,11 +62,66 @@ export async function injectLayout() {
       children.forEach(node => content.appendChild(node));
     }
   }
+
+  // After all parts are injected, (re)bind interactions
+  bindLayoutInteractions();
 }
 
-// Auto-run after DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+function bindLayoutInteractions() {
+  // Sidebar width toggle (nav-md <-> nav-sm)
+  const menuToggle = document.getElementById('menu_toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', function (e) {
+      e.preventDefault();
+      const body = document.body;
+      if (body.classList.contains('nav-md')) {
+        body.classList.remove('nav-md');
+        body.classList.add('nav-sm');
+      } else {
+        body.classList.remove('nav-sm');
+        body.classList.add('nav-md');
+      }
+    });
+  }
+
+  // Sidebar submenu expand/collapse
+  const sidebar = document.getElementById('sidebar-menu');
+  if (sidebar) {
+    sidebar.addEventListener('click', function (e) {
+      const link = e.target.closest('a');
+      if (!link) { return; }
+      const nextUl = link.nextElementSibling;
+      if (nextUl && nextUl.classList && nextUl.classList.contains('child_menu')) {
+        e.preventDefault();
+        const isOpen = nextUl.style.display === 'block';
+        nextUl.style.display = isOpen ? 'none' : 'block';
+      }
+    });
+    // Ensure child menus are hidden by default for nav-sm
+    if (document.body.classList.contains('nav-sm')) {
+      sidebar.querySelectorAll('.child_menu').forEach(ul => ul.style.display = 'none');
+    }
+  }
+
+  // Initialize Bootstrap dropdowns and tooltips on injected header
+  if (window.bootstrap) {
+    document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(el => {
+      try { new window.bootstrap.Dropdown(el); } catch (_) {}
+    });
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+      try { new window.bootstrap.Tooltip(el); } catch (_) {}
+    });
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
+      try { new window.bootstrap.Popover(el); } catch (_) {}
+    });
+  }
+}
+
+// Auto-run when ready (immediately if DOM already loaded)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => injectLayout());
+} else {
   injectLayout();
-});
+}
 
 
