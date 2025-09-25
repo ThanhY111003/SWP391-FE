@@ -110,11 +110,13 @@ export default defineConfig({
         page_500: 'production/page_500.html',
         plain_page: 'production/plain_page.html',
         login: 'production/login.html',
+        Login: 'production/Login.html',
         pricing_tables: 'production/pricing_tables.html',
         
         level2: 'production/level2.html',
         map: 'production/map.html',
-        landing: 'production/landing.html'
+        landing: 'production/landing.html',
+        'test-login': 'production/test-login.html'
       }
     },
     minify: 'terser',

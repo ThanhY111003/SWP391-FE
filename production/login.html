@@ -10,7 +10,7 @@
     <title>Login - Gentelella</title>    
     
     <!-- Vite Entry Point - will bundle all styles -->
-    <script type="module" src="/src/main-minimal-modern.js"></script>
+    <script type="module" src="/src/main-core.js"></script>
     
     <style>
       .login-bg {
@@ -55,6 +55,13 @@
         border-color: rgb(222, 226, 230) !important;
         color: rgb(222, 226, 230) !important;
       }
+      .alert {
+        border-radius: 0.375rem;
+      }
+      .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+      }
     </style>
   </head>
 
@@ -75,6 +82,9 @@
                 <p class="text-muted">Please sign in to your account</p>
               </div>
 
+              <!-- Alert Messages -->
+              <div id="alertContainer"></div>
+
               <!-- Login Form -->
               <form id="loginForm">
                 <div class="mb-3">
@@ -85,6 +95,7 @@
                     </span>
                     <input type="text" class="form-control border-start-0 ps-0" id="username" placeholder="Enter your username" required>
                   </div>
+                  <div class="invalid-feedback" id="usernameError"></div>
                 </div>
 
                 <div class="mb-3">
@@ -98,6 +109,7 @@
                       <i class="fas fa-eye" id="eyeIcon"></i>
                     </button>
                   </div>
+                  <div class="invalid-feedback" id="passwordError"></div>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -111,97 +123,29 @@
                 </div>
 
                 <div class="d-grid mb-3">
-                  <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                  <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
+                    <span id="loginBtnText">
+                      <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </span>
+                    <span id="loginBtnSpinner" class="d-none">
+                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Signing in...
+                    </span>
                   </button>
                 </div>
               </form>
 
-              <!-- Divider -->
-              <div class="text-center mb-3">
-                <span class="text-muted">Don't have an account?</span>
-                <a href="#" class="text-decoration-none ms-1" id="showRegisterForm">Create Account</a>
+              <!-- Footer -->
+              <div class="text-center mt-4">
+                <p class="text-muted mb-2">
+                  &copy; 2025 All Rights Reserved. Gentelella is a Bootstrap 5 template.
+                </p>
+                <div>
+                  <a href="#" class="text-muted text-decoration-none me-3">Privacy</a>
+                  <a href="#" class="text-muted text-decoration-none me-3">Terms</a>
+                  <a href="#" class="text-muted text-decoration-none">Support</a>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Registration Form Card (Hidden by default) -->
-          <div class="card shadow-lg border-0 d-none" id="registerCard">
-            <div class="card-body p-5">
-              <!-- Brand Header -->
-              <div class="text-center mb-4">
-                <div class="d-flex align-items-center justify-content-center mb-3">
-                  <img src="images/logo.svg" alt="Gentelella" style="height: 35px; width: auto;">
-                  <h3 class="mb-0 fw-bold text-dark">Gentelella</h3>
-                </div>
-                <p class="text-muted">Create your new account</p>
-              </div>
-
-              <!-- Registration Form -->
-              <form id="registerForm">
-                <div class="mb-3">
-                  <label for="regUsername" class="form-label text-muted">Username</label>
-                  <div class="input-group login-input-group">
-                    <span class="input-group-text bg-light border-end-0">
-                      <i class="fas fa-user text-muted"></i>
-                    </span>
-                    <input type="text" class="form-control border-start-0 ps-0" id="regUsername" placeholder="Choose a username" required>
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="regEmail" class="form-label text-muted">Email Address</label>
-                  <div class="input-group login-input-group">
-                    <span class="input-group-text bg-light border-end-0">
-                      <i class="fas fa-envelope text-muted"></i>
-                    </span>
-                    <input type="email" class="form-control border-start-0 ps-0" id="regEmail" placeholder="Enter your email" required>
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="regPassword" class="form-label text-muted">Password</label>
-                  <div class="input-group login-input-group">
-                    <span class="input-group-text bg-light border-end-0">
-                      <i class="fas fa-lock text-muted"></i>
-                    </span>
-                    <input type="password" class="form-control border-start-0 ps-0" id="regPassword" placeholder="Create a password" required>
-                  </div>
-                </div>
-
-                <div class="mb-4">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
-                    <label class="form-check-label text-muted" for="agreeTerms">
-                      I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="d-grid mb-3">
-                  <button type="submit" class="btn btn-success btn-lg">
-                    <i class="fas fa-user-plus me-2"></i>Create Account
-                  </button>
-                </div>
-              </form>
-
-              <!-- Divider -->
-              <div class="text-center mb-3">
-                <span class="text-muted">Already have an account?</span>
-                <a href="#" class="text-decoration-none ms-1" id="showLoginForm">Sign In</a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="text-center mt-4">
-            <p class="text-light opacity-75 mb-2">
-              &copy; 2025 All Rights Reserved. Gentelella is a Bootstrap 5 template.
-            </p>
-            <div>
-              <a href="#" class="text-light text-decoration-none opacity-75 me-3">Privacy</a>
-              <a href="#" class="text-light text-decoration-none opacity-75 me-3">Terms</a>
-              <a href="#" class="text-light text-decoration-none opacity-75">Support</a>
             </div>
           </div>
 
@@ -209,31 +153,27 @@
       </div>
     </div>
 
-    <!-- JavaScript for form switching and password toggle -->
-    <script>
+    <!-- JavaScript for login functionality -->
+    <script type="module">
+      import { AuthService } from '/src/services/auth-service.js';
+      import { CookieManager } from '/src/utils/cookie-manager.js';
+
       document.addEventListener('DOMContentLoaded', function() {
-        const loginCard = document.getElementById('loginCard');
-        const registerCard = document.getElementById('registerCard');
-        const showRegisterForm = document.getElementById('showRegisterForm');
-        const showLoginForm = document.getElementById('showLoginForm');
+        console.log('[Login] DOMContentLoaded');
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginBtnSpinner = document.getElementById('loginBtnSpinner');
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
         const eyeIcon = document.getElementById('eyeIcon');
+        const alertContainer = document.getElementById('alertContainer');
 
-        // Form switching
-        showRegisterForm.addEventListener('click', function(e) {
-          e.preventDefault();
-          loginCard.classList.add('d-none');
-          registerCard.classList.remove('d-none');
-        });
+        // Initialize services
+        const authService = new AuthService();
+        const cookieManager = new CookieManager();
 
-        showLoginForm.addEventListener('click', function(e) {
-          e.preventDefault();
-          registerCard.classList.add('d-none');
-          loginCard.classList.remove('d-none');
-        });
-
-        // Password toggle
+        // Password toggle functionality
         togglePassword.addEventListener('click', function() {
           const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
           passwordInput.setAttribute('type', type);
@@ -241,16 +181,120 @@
           eyeIcon.classList.toggle('fa-eye-slash');
         });
 
-        // Form submissions (redirect to dashboard)
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Form validation
+        function validateForm() {
+          const username = document.getElementById('username').value.trim();
+          const password = document.getElementById('password').value.trim();
+          let isValid = true;
+
+          // Clear previous errors
+          clearErrors();
+
+          if (!username) {
+            showFieldError('username', 'Username không được để trống');
+            isValid = false;
+          }
+
+          if (!password) {
+            showFieldError('password', 'Password không được để trống');
+            isValid = false;
+          }
+
+          return isValid;
+        }
+
+        function showFieldError(fieldId, message) {
+          const field = document.getElementById(fieldId);
+          const errorDiv = document.getElementById(fieldId + 'Error');
+          
+          field.classList.add('is-invalid');
+          errorDiv.textContent = message;
+        }
+
+        function clearErrors() {
+          const fields = ['username', 'password'];
+          fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + 'Error');
+            
+            field.classList.remove('is-invalid');
+            errorDiv.textContent = '';
+          });
+        }
+
+        function showAlert(message, type = 'danger') {
+          alertContainer.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+              <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+              ${message}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+
+        function setLoadingState(loading) {
+          if (loading) {
+            loginBtn.disabled = true;
+            loginBtnText.classList.add('d-none');
+            loginBtnSpinner.classList.remove('d-none');
+          } else {
+            loginBtn.disabled = false;
+            loginBtnText.classList.remove('d-none');
+            loginBtnSpinner.classList.add('d-none');
+          }
+        }
+
+        // Form submission
+        loginForm.addEventListener('submit', async function(e) {
           e.preventDefault();
-          window.location.href = 'index.html';
+          console.log('[Login] Submit clicked');
+
+          if (!validateForm()) {
+            return;
+          }
+
+          const username = document.getElementById('username').value.trim();
+          const password = document.getElementById('password').value.trim();
+          const rememberMe = document.getElementById('rememberMe').checked;
+
+          setLoadingState(true);
+          clearErrors();
+
+          try {
+            console.log('[Login] Calling API /api/auth/login');
+            const response = await authService.login(username, password);
+            console.log('[Login] API response:', response);
+
+            if (response.message === 'Đăng nhập thành công') {
+              // Save tokens to cookies
+              const tokenExpiry = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // 7 days or 1 day
+              cookieManager.setCookie('token', response.token, tokenExpiry);
+              cookieManager.setCookie('refreshToken', response.refreshToken, tokenExpiry);
+
+              showAlert('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+              
+              // Redirect to dashboard after 1.5 seconds
+              setTimeout(() => {
+                window.location.href = '/index.html';
+              }, 1500);
+            } else {
+              showAlert(response.message || 'Đăng nhập thất bại', 'danger');
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            showAlert('Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.', 'danger');
+          } finally {
+            setLoadingState(false);
+          }
         });
 
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-          e.preventDefault();
-          window.location.href = 'index.html';
-        });
+        // Check if user is already logged in
+        if (cookieManager.getCookie('token')) {
+          showAlert('Bạn đã đăng nhập. Đang chuyển hướng...', 'info');
+          setTimeout(() => {
+            window.location.href = '/index.html';
+          }, 1500);
+        }
       });
     </script>
   </body>

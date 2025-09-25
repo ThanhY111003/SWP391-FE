@@ -91,6 +91,18 @@ import './js/helpers/smartresize-modern.js';
 import './js/sidebar-modern.js';
 import './js/init-modern.js';
 
+// Authentication middleware (only for non-login pages)
+if (!window.location.pathname.includes('Login.html')) {
+  import('./utils/auth-middleware.js').then(({ authMiddleware }) => {
+    authMiddleware.init();
+  });
+}
+
+// Inject shared layout (header/footer) on all non-login pages
+if (!window.location.pathname.toLowerCase().includes('login.html')) {
+  import('./utils/layout-loader.js');
+}
+
 // Module loading cache to prevent duplicate loads
 window.moduleCache = new Map();
 
