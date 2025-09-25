@@ -38,7 +38,7 @@ export class AuthMiddleware {
    */
   redirectToLogin(redirectTo = null) {
     const currentPath = window.location.pathname;
-    const loginUrl = '/Login.html';
+    const loginUrl = '/login.html';
     
     if (redirectTo) {
       this.cookieManager.setCookie('redirectAfterLogin', redirectTo, 24 * 60 * 60 * 1000); // 24 hours
@@ -56,7 +56,7 @@ export class AuthMiddleware {
     const redirectPath = this.cookieManager.getCookie('redirectAfterLogin');
     const defaultPath = '/index.html';
     
-    if (redirectPath && redirectPath !== '/Login.html') {
+    if (redirectPath && redirectPath !== '/login.html') {
       this.cookieManager.deleteCookie('redirectAfterLogin');
       window.location.href = redirectPath;
     } else {
@@ -95,7 +95,7 @@ export class AuthMiddleware {
       this.cookieManager.deleteCookie('redirectAfterLogin');
       
       // Redirect to login page
-      window.location.href = '/Login.html';
+      window.location.href = '/login.html';
     }
   }
 

@@ -92,7 +92,7 @@ import './js/sidebar-modern.js';
 import './js/init-modern.js';
 
 // Authentication middleware (only for non-login pages)
-if (!window.location.pathname.includes('Login.html')) {
+if (!window.location.pathname.includes('login.html')) {
   import('./utils/auth-middleware.js').then(({ authMiddleware }) => {
     authMiddleware.init();
   });

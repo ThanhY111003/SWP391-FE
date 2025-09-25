@@ -110,7 +110,7 @@ export default defineConfig({
         page_500: 'production/page_500.html',
         plain_page: 'production/plain_page.html',
         login: 'production/login.html',
-        Login: 'production/Login.html',
+        Login: 'production/login.html',
         pricing_tables: 'production/pricing_tables.html',
         
         level2: 'production/level2.html',
