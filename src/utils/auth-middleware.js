@@ -71,7 +71,7 @@ export class AuthMiddleware {
    */
   protectRoute(redirectTo = null) {
     if (!this.isAuthenticated()) {
-      this.redirectToLogin(redirectTo);
+     // this.redirectToLogin(redirectTo);
       return false;
     }
     return true;
