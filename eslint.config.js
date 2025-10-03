@@ -1,85 +1,38 @@
-import js from '@eslint/js';
-import tsPlugin from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
+import js from '@eslint/js'
+import globals from 'globals'
+import react from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  js.configs.recommended,
-  prettierConfig,
+  { ignores: ['dist'] },
   {
-    files: ['**/*.js', '**/*.mjs', '**/*.jsx'],
+    files: ['**/*.{js,jsx}'],
     languageOptions: {
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      globals: {
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
-        globalThis: 'readonly',
-        $: 'readonly',
-        jQuery: 'readonly',
-        bootstrap: 'readonly',
-        Chart: 'readonly',
-        echarts: 'readonly',
-        NProgress: 'readonly',
-        dayjs: 'readonly'
-      }
-    },
-    rules: {
-      // Code Quality
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'no-console': 'warn',
-      'no-debugger': 'error',
-      'no-alert': 'warn',
-      
-      // Best Practices
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-      'no-new-func': 'error',
-      
-      // Security
-      'no-script-url': 'error',
-      'no-void': 'error',
-      
-      // Style (basic)
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
-      'indent': ['warn', 2, { SwitchCase: 1 }],
-      'comma-dangle': ['error', 'never'],
-      'no-trailing-spaces': 'error',
-      'eol-last': 'error'
-    }
-  },
-  {
-    files: ['**/*.ts', '**/*.tsx'],
-    languageOptions: {
-      parser: tsParser,
+      ecmaVersion: 2020,
+      globals: globals.browser,
       parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: 'module'
-      }
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
     },
+    settings: { react: { version: '18.3' } },
     plugins: {
-      '@typescript-eslint': tsPlugin
+      react,
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
     },
     rules: {
-      ...tsPlugin.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off'
-    }
+      ...js.configs.recommended.rules,
+      ...react.configs.recommended.rules,
+      ...react.configs['jsx-runtime'].rules,
+      ...reactHooks.configs.recommended.rules,
+      'react/jsx-no-target-blank': 'off',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
   },
-  {
-    ignores: [
-      'node_modules/**',
-      'dist/**',
-      'docs/_site/**',
-      'production/images/**',
-      '**/*.min.js',
-      'vite.config.js'
-    ]
-  }
-];
+]

@@ -1,0 +1,555 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+
+/* Căn chỉnh hero */
+.hero {
+background: url('https://images.unsplash.com/photo-1633681926053-9074b76e21a7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;
+position: relative;
+height: 100vh;
+background-color: #f2f2f2; /* Bạn có thể thay thế bằng màu hoặc hình nền */
+display: flex;
+justify-content: center;
+align-items: center;
+text-align: center;
+}
+
+.hero-content {
+z-index: 1;
+color: white;
+}
+
+.overlay {
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: rgba(0, 0, 0, 0.5); /* Màu overlay */
+}
+
+.hero-buttons {
+margin-top: 20px;
+}
+
+.btn-primary, .btn-secondary {
+  margin: 0 10px;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: white;
+  border-radius: 5px; /* Bo góc cho nút */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Hiệu ứng chuyển động */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng đổ */
+}
+
+.btn-primary {
+  background-color: #007bff; /* Màu xanh cho nút chính */
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* Màu đậm hơn khi hover */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Bóng đổ lớn hơn khi hover */
+}
+
+.btn-secondary {
+  background-color: #6c757d; /* Màu xám cho nút phụ */
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268; /* Màu đậm hơn khi hover */
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Bóng đổ lớn hơn khi hover */
+}
+
+
+/* Căn chỉnh nút login ở góc phải trên */
+.navbar-contact {
+position: absolute;
+top: 20px; /* Cách phía trên một khoảng */
+right: 20px; /* Cách bên phải một khoảng */
+}
+
+.contact-btn {
+padding: 10px 20px;
+background-color: #007bff;
+color: white;
+text-decoration: none;
+border-radius: 5px;
+}
+
+/* Logo và thương hiệu */
+.navbar {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+display: flex;
+align-items: center;
+padding: 10px 20px;
+background-color: transparent; /* Đặt nền trong suốt để thấy phần hero */
+z-index: 1000; /* Nổi trên header */
+}
+
+/* Căn chỉnh logo ở góc trái */
+.navbar-brand {
+position: absolute;
+top: -40px; /* Có thể điều chỉnh để logo gần hơn với nút Login */
+left: -20px; /* Đặt logo sát trái */
+display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: 10px;
+z-index: 1001; /* Nổi lên trên header */
+}
+
+.navbar-brand img {
+width: 200px; /* Tăng kích thước logo */
+height: 250px;
+max-width: 250px; /* Giới hạn kích thước tối đa nếu cần */
+max-height: 250px; /* Giới hạn chiều cao nếu cần */
+}
+
+.salon-name {
+position: absolute;
+top: 20px;
+width: 100%;
+text-align: center;
+font-size: 48px; /* Kích thước lớn cho tên salon */
+font-weight: bold;
+color: white;
+margin: 0;
+line-height: 1;
+}
+
+
+/* Contact Info Section */
+
+.contact-link {
+  text-decoration: none; /* Removes underline */
+  color: inherit; /* Inherits text color */
+}
+
+.contact-link:hover {
+  color: blue; /* Change color on hover */
+}
+
+
+.contact-info {
+  padding: 60px 0;
+  background-color: #DEC7A6;
+  text-align: center;
+}
+
+.contact-box {
+  background-color: bisque;
+  padding: 40px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.contact-info img {
+  width: 50px;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.col {
+  flex: 1;
+  text-align: center;
+}
+
+/* Services Section */
+.services {
+  padding: 60px 0;
+  background-color: #DEC7A6;
+}
+
+.services h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.services p {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.services .row {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.services .col {
+  background-color: bisque;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.services .col img {
+  width: 80px;
+  margin-bottom: 15px;
+}
+
+.services .col h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.services .col p {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.services .btn {
+  padding: 10px 20px;
+  background-color: #0074d9;
+  color: #DEC7A6;
+  border-radius: 30px;
+  text-decoration: none;
+}
+
+.services .btn:hover {
+  background-color: #005bb5;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Why Choose Us Section */
+.why-choose-us {
+  padding: 60px 0;
+  text-align: center;
+  background-color: bisque;
+}
+
+.why-choose-us img {
+  width: 50px;
+  margin-bottom: 15px;
+}
+
+.why-choose-us h4 {
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.rating {
+  border: 1px solid #ccc; /* Hoặc màu bạn muốn */
+  padding: 20px;
+  margin: 10px;
+  border-radius: 5px;
+}
+
+.rating h1 {
+  font-size: 48px; /* Kích thước chữ lớn hơn */
+  color: #ffcc00; /* Màu vàng cho đánh giá */
+}
+
+.rating h4 {
+  margin-bottom: 5px; /* Khoảng cách giữa tiêu đề và số điểm */
+}
+
+.rating p {
+  margin: 5px 0; /* Khoảng cách giữa các phần tử trong đánh giá */
+}
+
+.image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px; /* Adjust as needed */
+}
+
+.image-wrapper img {
+  width: 100px; /* Set width to your desired size */
+  height: 100px; /* Set height to your desired size */
+  border-radius: 50%; /* Makes the image circular */
+  object-fit: cover; /* Ensures the image covers the entire area */
+}
+
+
+/* Appointment Section */
+.appointment {
+  padding: 60px 0;
+  background-color: #DEC7A6;
+}
+
+.appointment-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px; /* Space between description and form */
+}
+
+.description {
+  flex: 1; /* Takes 50% of the width */
+  padding-right: 20px;
+  text-align: left;
+}
+
+.description h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.description p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.description ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.description ul li {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+/* Form Container */
+.form-container {
+  flex: 1; /* Takes the remaining 50% */
+}
+
+.form-container h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Form Styling */
+.appointment-wrapper {
+display: flex;
+justify-content: space-between;
+gap: 30px; /* khoảng cách giữa mô tả và form */
+padding: 20px;
+}
+
+.description {
+flex: 1; /* mô tả chiếm 1 phần */
+}
+
+.form-container {
+flex: 1; /* form chiếm 1 phần */
+}
+
+.form {
+display: flex;
+flex-direction: column;
+gap: 15px; /* khoảng cách giữa các thành phần form */
+}
+
+.form input,
+.form select,
+.form textarea {
+width: 100%; /* Đảm bảo tất cả các phần tử form chiếm toàn bộ chiều rộng */
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 5px;
+font-size: 16px;
+}
+
+.form textarea {
+resize: vertical; /* Chỉ cho phép thay đổi kích thước theo chiều dọc */
+min-height: 100px; /* Chiều cao tối thiểu của textarea */
+}
+
+.btn {
+padding: 10px 20px;
+background-color: #333; /* Màu nền nút */
+color: #fff;
+border: none;
+cursor: pointer;
+border-radius: 5px;
+font-size: 16px;
+transition: background-color 0.3s;
+}
+
+.btn:hover {
+background-color: gold; /* Màu nền khi hover */
+}
+
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .appointment-wrapper {
+    flex-direction: column;
+  }
+
+  .description, .form-container {
+    flex: 1;
+    padding-right: 0;
+  }
+}
+
+/* Footer */
+.footer {
+  background-color: #333;
+  color: #DEC7A6;
+  text-align: left; /* Align text to the left for a more formal look */
+  padding: 40px 0; /* Increased padding for more space */
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Ensure items wrap on smaller screens */
+  padding: 0 15px; /* Adds some padding to the sides */
+}
+
+.footer-info,
+.footer-links,
+.footer-social {
+  flex: 1; /* Take equal space */
+  min-width: 250px; /* Minimum width for better layout */
+  margin-bottom: 20px; /* Space below each section */
+}
+
+.footer-info h4,
+.footer-links h4,
+.footer-social h4 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #ffc107; /* Highlighted color for headings */
+}
+
+.footer-link {
+  color: #DEC7A6;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: block; /* Make links block elements for easier clicking */
+  margin-bottom: 5px; /* Space between links */
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #ffc107; /* Change color on hover */
+}
+
+.footer-social {
+  text-align: center; /* Center the social icons */
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center; /* Center the icons */
+  gap: 15px; /* Space between icons */
+}
+
+.footer-bottom {
+  text-align: center; /* Center the copyright text */
+  padding: 15px 0;
+  border-top: 1px solid #444; /* Top border for separation */
+}
+
+.footer-bottom p {
+  margin: 0; /* Remove margin for copyright */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column; /* Stack items on smaller screens */
+    align-items: center; /* Center items */
+  }
+}
+
+
+/* Container for the entire section */
+.services-container{
+  background-color: #DEC7A6 ;
+}
+.contact-box1 {
+  display: flex; /* Use flexbox for layout */
+  justify-content: space-between; /* Space out text and image */
+  align-items: center; /* Center align items vertically */
+  max-width: 1200px; /* Max width of the container */
+  margin: 0 auto; /* Center the container on the page */
+  padding: 40px; /* Spacing around the content */
+  background-color: bisque; /* Background color */
+  border-radius: 10px; /* Rounded corners for better aesthetics */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+/* Text section styling */
+.text-section {
+  flex: 1; /* Take remaining space */
+  padding-right: 20px; /* Spacing between text and image */
+}
+
+/* Heading styling */
+.text-section h1 {
+  font-size: 2.5rem; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  margin-bottom: 20px; /* Space below the heading */
+}
+
+/* Paragraph styling */
+.text-section p {
+  font-size: 1.2rem; /* Standard paragraph size */
+  color: #4a4a4a; /* Darker text color for readability */
+  margin-bottom: 30px; /* Space below paragraph */
+}
+
+/* Statistics section */
+.stats {
+  display: flex; /* Align stats horizontally */
+  gap: 40px; /* Space between stat items */
+}
+
+/* Individual stat item styling */
+.stat-item {
+  text-align: center; /* Center align text */
+}
+
+.stat-value {
+  font-size: 2rem; /* Larger value size */
+  font-weight: bold; /* Bold text */
+  color: #2c3e50; /* Dark blue-gray color */
+}
+
+.stat-label {
+  font-size: 1rem; /* Standard label size */
+  color: #4a4a4a; /* Darker text color */
+}
+
+/* Image section styling */
+.image-section {
+  flex: 1; /* Take remaining space */
+  display: flex; /* Flex container for image */
+  justify-content: center; /* Center the image */
+  align-items: center; /* Vertically center the image */
+}
+
+.image-section img {
+  width: 100%; /* Responsive image */
+  max-width: 500px; /* Max width for the image */
+  border-radius: 10px; /* Rounded corners for the image */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}

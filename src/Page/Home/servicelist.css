@@ -1,0 +1,63 @@
+/* General Styling */
+.services-list {
+  padding: 20px;
+  text-align: center;
+}
+
+.services-list h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+/* Grid Layout */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Service Card Styling */
+.service-card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 16px;
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.service-card:hover {
+  transform: scale(1.05);
+}
+
+/* Service Image */
+.service-image {
+  max-width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+/* Service Text Styling */
+.service-name {
+  font-size: 1.5em;
+  margin: 10px 0;
+}
+
+.service-description {
+  font-size: 1em;
+  margin: 10px 0;
+}
+
+.service-price, .service-duration {
+  font-size: 1.2em;
+  margin: 5px 0;
+}
+
+/* Loading and Error States */
+.loading, .error {
+  font-size: 1.5em;
+  color: #888;
+  margin-top: 20px;
+}
