@@ -17,38 +17,39 @@ body {
   padding: 0 15px;
 }
 
-
 /* Căn chỉnh hero */
 .hero {
-background: url('https://images.unsplash.com/photo-1633681926053-9074b76e21a7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;
-position: relative;
-height: 100vh;
-background-color: #f2f2f2; /* Bạn có thể thay thế bằng màu hoặc hình nền */
-display: flex;
-justify-content: center;
-align-items: center;
-text-align: center;
+  background: url("https://images.openai.com/thumbnails/url/HbH1q3icu5meUVJSUGylr5-al1xUWVCSmqJbkpRnoJdeXJJYkpmsl5yfq5-Zm5ieWmxfaAuUsXL0S7F0Tw7Ozc4xrUh39ckJyMkxzHfKCssryXXzcDXzKwl3t8gN9iw2Dq7yTS-syIp3VCu2NTQAACEHJac")
+    no-repeat center center/cover;
+  position: relative;
+  height: 100vh;
+  background-color: #f2f2f2; /* Bạn có thể thay thế bằng màu hoặc hình nền */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .hero-content {
-z-index: 1;
-color: white;
+  z-index: 1;
+  color: white;
 }
 
 .overlay {
-position: absolute;
-top: 0;
-left: 0;
-right: 0;
-bottom: 0;
-background: rgba(0, 0, 0, 0.5); /* Màu overlay */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Màu overlay */
 }
 
 .hero-buttons {
-margin-top: 20px;
+  margin-top: 20px;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   margin: 0 10px;
   padding: 10px 20px;
   text-decoration: none;
@@ -76,66 +77,64 @@ margin-top: 20px;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Bóng đổ lớn hơn khi hover */
 }
 
-
 /* Căn chỉnh nút login ở góc phải trên */
 .navbar-contact {
-position: absolute;
-top: 20px; /* Cách phía trên một khoảng */
-right: 20px; /* Cách bên phải một khoảng */
+  position: absolute;
+  top: 20px; /* Cách phía trên một khoảng */
+  right: 20px; /* Cách bên phải một khoảng */
 }
 
 .contact-btn {
-padding: 10px 20px;
-background-color: #007bff;
-color: white;
-text-decoration: none;
-border-radius: 5px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
 }
 
 /* Logo và thương hiệu */
 .navbar {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-display: flex;
-align-items: center;
-padding: 10px 20px;
-background-color: transparent; /* Đặt nền trong suốt để thấy phần hero */
-z-index: 1000; /* Nổi trên header */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: transparent; /* Đặt nền trong suốt để thấy phần hero */
+  z-index: 1000; /* Nổi trên header */
 }
 
 /* Căn chỉnh logo ở góc trái */
 .navbar-brand {
-position: absolute;
-top: -40px; /* Có thể điều chỉnh để logo gần hơn với nút Login */
-left: -20px; /* Đặt logo sát trái */
-display: flex;
-align-items: center;
-justify-content: flex-start;
-gap: 10px;
-z-index: 1001; /* Nổi lên trên header */
+  position: absolute;
+  top: -40px; /* Có thể điều chỉnh để logo gần hơn với nút Login */
+  left: -20px; /* Đặt logo sát trái */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  z-index: 1001; /* Nổi lên trên header */
 }
 
 .navbar-brand img {
-width: 200px; /* Tăng kích thước logo */
-height: 250px;
-max-width: 250px; /* Giới hạn kích thước tối đa nếu cần */
-max-height: 250px; /* Giới hạn chiều cao nếu cần */
+  width: 200px; /* Tăng kích thước logo */
+  height: 250px;
+  max-width: 250px; /* Giới hạn kích thước tối đa nếu cần */
+  max-height: 250px; /* Giới hạn chiều cao nếu cần */
 }
 
 .salon-name {
-position: absolute;
-top: 20px;
-width: 100%;
-text-align: center;
-font-size: 48px; /* Kích thước lớn cho tên salon */
-font-weight: bold;
-color: white;
-margin: 0;
-line-height: 1;
+  position: absolute;
+  top: 20px;
+  width: 100%;
+  text-align: center;
+  font-size: 48px; /* Kích thước lớn cho tên salon */
+  font-weight: bold;
+  color: white;
+  margin: 0;
+  line-height: 1;
 }
-
 
 /* Contact Info Section */
 
@@ -148,10 +147,9 @@ line-height: 1;
   color: blue; /* Change color on hover */
 }
 
-
 .contact-info {
   padding: 60px 0;
-  background-color: #DEC7A6;
+  background-color: #dec7a6;
   text-align: center;
 }
 
@@ -181,7 +179,7 @@ line-height: 1;
 /* Services Section */
 .services {
   padding: 60px 0;
-  background-color: #DEC7A6;
+  background-color: #dec7a6;
 }
 
 .services h2 {
@@ -226,7 +224,7 @@ line-height: 1;
 .services .btn {
   padding: 10px 20px;
   background-color: #0074d9;
-  color: #DEC7A6;
+  color: #dec7a6;
   border-radius: 30px;
   text-decoration: none;
 }
@@ -291,11 +289,10 @@ line-height: 1;
   object-fit: cover; /* Ensures the image covers the entire area */
 }
 
-
 /* Appointment Section */
 .appointment {
   padding: 60px 0;
-  background-color: #DEC7A6;
+  background-color: #dec7a6;
 }
 
 .appointment-wrapper {
@@ -345,56 +342,55 @@ line-height: 1;
 
 /* Form Styling */
 .appointment-wrapper {
-display: flex;
-justify-content: space-between;
-gap: 30px; /* khoảng cách giữa mô tả và form */
-padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 30px; /* khoảng cách giữa mô tả và form */
+  padding: 20px;
 }
 
 .description {
-flex: 1; /* mô tả chiếm 1 phần */
+  flex: 1; /* mô tả chiếm 1 phần */
 }
 
 .form-container {
-flex: 1; /* form chiếm 1 phần */
+  flex: 1; /* form chiếm 1 phần */
 }
 
 .form {
-display: flex;
-flex-direction: column;
-gap: 15px; /* khoảng cách giữa các thành phần form */
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* khoảng cách giữa các thành phần form */
 }
 
 .form input,
 .form select,
 .form textarea {
-width: 100%; /* Đảm bảo tất cả các phần tử form chiếm toàn bộ chiều rộng */
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 5px;
-font-size: 16px;
+  width: 100%; /* Đảm bảo tất cả các phần tử form chiếm toàn bộ chiều rộng */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
 }
 
 .form textarea {
-resize: vertical; /* Chỉ cho phép thay đổi kích thước theo chiều dọc */
-min-height: 100px; /* Chiều cao tối thiểu của textarea */
+  resize: vertical; /* Chỉ cho phép thay đổi kích thước theo chiều dọc */
+  min-height: 100px; /* Chiều cao tối thiểu của textarea */
 }
 
 .btn {
-padding: 10px 20px;
-background-color: #333; /* Màu nền nút */
-color: #fff;
-border: none;
-cursor: pointer;
-border-radius: 5px;
-font-size: 16px;
-transition: background-color 0.3s;
+  padding: 10px 20px;
+  background-color: #333; /* Màu nền nút */
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: background-color 0.3s;
 }
 
 .btn:hover {
-background-color: gold; /* Màu nền khi hover */
+  background-color: gold; /* Màu nền khi hover */
 }
-
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
@@ -402,7 +398,8 @@ background-color: gold; /* Màu nền khi hover */
     flex-direction: column;
   }
 
-  .description, .form-container {
+  .description,
+  .form-container {
     flex: 1;
     padding-right: 0;
   }
@@ -411,7 +408,7 @@ background-color: gold; /* Màu nền khi hover */
 /* Footer */
 .footer {
   background-color: #333;
-  color: #DEC7A6;
+  color: #dec7a6;
   text-align: left; /* Align text to the left for a more formal look */
   padding: 40px 0; /* Increased padding for more space */
 }
@@ -440,7 +437,7 @@ background-color: gold; /* Màu nền khi hover */
 }
 
 .footer-link {
-  color: #DEC7A6;
+  color: #dec7a6;
   text-decoration: none;
   font-size: 0.9rem;
   display: block; /* Make links block elements for easier clicking */
@@ -480,10 +477,9 @@ background-color: gold; /* Màu nền khi hover */
   }
 }
 
-
 /* Container for the entire section */
-.services-container{
-  background-color: #DEC7A6 ;
+.services-container {
+  background-color: #dec7a6;
 }
 .contact-box1 {
   display: flex; /* Use flexbox for layout */

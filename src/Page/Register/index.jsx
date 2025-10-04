@@ -3,7 +3,13 @@ import { Button, Form, Input, Typography, Divider } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../config/axios";
-import { MailOutlined, PhoneOutlined, UserOutlined, LockOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import {
+  MailOutlined,
+  PhoneOutlined,
+  UserOutlined,
+  LockOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -24,10 +30,7 @@ function RegisterPage() {
     // submit xuống backend
     try {
       values.role = "CUSTOMER";
-      const response = await api.post(
-        "http://localhost:8080/api/register",
-        registerData
-      );
+      const response = await api.post("", registerData);
 
       toast.success("Successfully registier new account!");
       navigate("/login");
@@ -46,7 +49,9 @@ function RegisterPage() {
         onFinish={handleRegister}
         layout="vertical"
       >
-        <Typography.Title level={3} style={{ marginBottom: 8 }}>Create account</Typography.Title>
+        <Typography.Title level={3} style={{ marginBottom: 8 }}>
+          Create account
+        </Typography.Title>
         <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>
           Join us and start using our services
         </Typography.Paragraph>
@@ -73,7 +78,11 @@ function RegisterPage() {
           ]}
           hasFeedback
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" />
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="••••••••"
+            size="large"
+          />
         </Form.Item>
 
         <Form.Item
@@ -95,7 +104,11 @@ function RegisterPage() {
             }),
           ]}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="Repeat password" size="large" />
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Repeat password"
+            size="large"
+          />
         </Form.Item>
 
         <Form.Item
@@ -109,7 +122,11 @@ function RegisterPage() {
             },
           ]}
         >
-          <Input prefix={<PhoneOutlined />} placeholder="0901234567" size="large" />
+          <Input
+            prefix={<PhoneOutlined />}
+            placeholder="0901234567"
+            size="large"
+          />
         </Form.Item>
 
         <Form.Item
@@ -123,7 +140,11 @@ function RegisterPage() {
             },
           ]}
         >
-          <Input prefix={<MailOutlined />} placeholder="you@example.com" size="large" />
+          <Input
+            prefix={<MailOutlined />}
+            placeholder="you@example.com"
+            size="large"
+          />
         </Form.Item>
         <Form.Item style={{ marginTop: 8 }}>
           <Button type="primary" htmlType="submit" size="large" block>

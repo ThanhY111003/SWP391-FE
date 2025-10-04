@@ -3,7 +3,12 @@ import { Button, Form, Input, Divider, Typography } from "antd";
 import { getAuth, signInWithPopup } from "firebase/auth";
 import { googleProvider } from "../../config/firebase";
 import { GoogleAuthProvider } from "firebase/auth/web-extension";
-import { GoogleOutlined, LockOutlined, MailOutlined, ArrowRightOutlined } from "@ant-design/icons";
+import {
+  GoogleOutlined,
+  LockOutlined,
+  MailOutlined,
+  ArrowRightOutlined,
+} from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../../config/axios";
@@ -37,10 +42,7 @@ function LoginPage() {
 
   const handleLogin = async (values) => {
     try {
-      const response = await api.post(
-        "http://localhost:8080/api/login",
-        values
-      );
+      const response = await api.post("", values);
       console.log("response", response);
 
       const { role, token } = response.data;
@@ -62,7 +64,9 @@ function LoginPage() {
   return (
     <AuthenTemplate>
       <Form labelCol={{ span: 24 }} onFinish={handleLogin} layout="vertical">
-        <Typography.Title level={3} style={{ marginBottom: 8 }}>Welcome back</Typography.Title>
+        <Typography.Title level={3} style={{ marginBottom: 8 }}>
+          Welcome back
+        </Typography.Title>
         <Typography.Paragraph type="secondary" style={{ marginBottom: 24 }}>
           Sign in to continue to your account
         </Typography.Paragraph>
@@ -77,14 +81,22 @@ function LoginPage() {
             },
           ]}
         >
-          <Input prefix={<MailOutlined />} placeholder="you@example.com" size="large" />
+          <Input
+            prefix={<MailOutlined />}
+            placeholder="you@example.com"
+            size="large"
+          />
         </Form.Item>
         <Form.Item
           label="Password"
           name="password"
           rules={[{ required: true, message: "Please input your password!" }]}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" />
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="••••••••"
+            size="large"
+          />
         </Form.Item>
         <Form.Item style={{ marginTop: 8 }}>
           <Button type="primary" htmlType="submit" size="large" block>
@@ -92,7 +104,12 @@ function LoginPage() {
           </Button>
         </Form.Item>
         <Divider plain>or</Divider>
-        <Button icon={<GoogleOutlined />} onClick={handleLoginGoogle} size="large" block>
+        <Button
+          icon={<GoogleOutlined />}
+          onClick={handleLoginGoogle}
+          size="large"
+          block
+        >
           Continue with Google
         </Button>
         <div style={{ marginTop: 16 }}>
