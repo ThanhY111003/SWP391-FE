@@ -11,7 +11,7 @@ import {
   message,
   Typography,
 } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
 
@@ -28,8 +28,8 @@ export default function Login() {
     setLoading(true);
     try {
       // 🔹 Khi dùng thật: bật dòng dưới, tắt dòng mock
-      // const res = await axios.post("http://localhost:8080/api/auth/login", values);
-      const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
+       const res = await axios.post("http://localhost:8080/api/auth/login", values);
+      //const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
 
       const { role, token } = res.data;
 
@@ -160,6 +160,16 @@ export default function Login() {
             </motion.div>
 
             <Divider className="border-gray-400 my-5" />
+
+            <div className="text-center">
+              <span className="text-white">Chưa có tài khoản? </span>
+              <Link
+                to="/register"
+                className="text-purple-300 hover:text-purple-200 transition font-medium"
+              >
+                Đăng ký ngay
+              </Link>
+            </div>
           </Form>
         </Card>
       </motion.div>
