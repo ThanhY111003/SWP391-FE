@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/login/login";
+import Register from "./pages/login/Register";
 import DealerDashboard from "./pages/dealer/dashboard";
 import ManageStaff from "./pages/dealer/manageStaff";
 import ManageUsers from "./pages/admin/ManageUsers";
@@ -13,8 +14,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login */}
+        {/* Auth */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Dealer */}
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />

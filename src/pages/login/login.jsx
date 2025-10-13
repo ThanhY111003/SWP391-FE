@@ -12,7 +12,7 @@ import {
   message,
   Typography,
 } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
 
@@ -29,8 +29,8 @@ export default function Login() {
     setLoading(true);
     try {
       // 🔹 Khi dùng thật: bật dòng dưới, tắt dòng mock
-      // const res = await axios.post("http://localhost:8080/api/auth/login", values);
-      const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
+       const res = await axios.post("http://localhost:8080/api/auth/login", values);
+      //const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
 
       const { role, token } = res.data;
 
