@@ -17,7 +17,7 @@ export default function ManageDealers() {
     // BE API: POST /api/users
     // Request: { username, email, role: DEALER_MANAGER or DEALER_STAFF }
     //await axios.post("http://localhost:8080/api/users", values);
-    message.success("Đã tạo tài khoản đại lý!");
+    message.success("Created dealer account successfully!");
     setOpen(false);
     fetchDealers();
   };
@@ -27,8 +27,8 @@ export default function ManageDealers() {
   return (
     <div className="p-6">
       <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">Quản lý tài khoản Đại lý</h2>
-        <Button type="primary" onClick={() => setOpen(true)}>+ Tạo tài khoản</Button>
+        <h2 className="text-xl font-bold">Dealer Account Management</h2>
+        <Button type="primary" onClick={() => setOpen(true)}>+ Create account</Button>
       </div>
       <Table dataSource={dealers} columns={[
         { title: "Username", dataIndex: "username" },
@@ -39,7 +39,7 @@ export default function ManageDealers() {
       <Modal
         open={open}
         onCancel={() => setOpen(false)}
-        title="Tạo tài khoản Đại lý"
+        title="Create Dealer Account"
         footer={null}
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>

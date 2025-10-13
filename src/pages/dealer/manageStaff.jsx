@@ -1,6 +1,15 @@
 // src/pages/dealer/manageStaff.jsx
 import { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from "antd";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
+  Popconfirm,
+} from "antd";
 import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
 
@@ -23,8 +32,18 @@ export default function ManageStaff() {
       console.error(err);
       // Mock data nếu chưa có API
       setStaffs([
-        { id: 1, username: "dealer_staff_1", email: "staff1@dealer.com", role: "DEALER_STAFF" },
-        { id: 2, username: "dealer_staff_2", email: "staff2@dealer.com", role: "DEALER_STAFF" },
+        {
+          id: 1,
+          username: "dealer_staff_1",
+          email: "staff1@dealer.com",
+          role: "DEALER_STAFF",
+        },
+        {
+          id: 2,
+          username: "dealer_staff_2",
+          email: "staff2@dealer.com",
+          role: "DEALER_STAFF",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -50,19 +69,22 @@ export default function ManageStaff() {
 
       if (editingStaff) {
         // update
-        await axios.put(`http://localhost:8080/api/dealer/staff/${editingStaff.id}`, values);
-        message.success("Cập nhật nhân viên thành công!");
+        await axios.put(
+          `http://localhost:8080/api/dealer/staff/${editingStaff.id}`,
+          values
+        );
+        message.success("Update staff successfully!");
       } else {
         // create
         await axios.post("http://localhost:8080/api/dealer/staff", values);
-        message.success("Tạo nhân viên mới thành công!");
+        message.success("Create staff successfully!");
       }
 
       setOpen(false);
       fetchStaffs();
     } catch (err) {
       console.error(err);
-      message.error("Có lỗi xảy ra, vui lòng thử lại!");
+      message.error("Error occurred, please try again!");
     }
   };
 
@@ -70,11 +92,11 @@ export default function ManageStaff() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:8080/api/dealer/staff/${id}`);
-      message.success("Xóa nhân viên thành công!");
+      message.success("Delete staff successfully!");
       fetchStaffs();
     } catch (err) {
       console.error(err);
-      message.error("Không thể xóa nhân viên!");
+      message.error("Cannot delete staff!");
     }
   };
 
@@ -84,16 +106,16 @@ export default function ManageStaff() {
     { title: "Email", dataIndex: "email", key: "email" },
     { title: "Role", dataIndex: "role", key: "role" },
     {
-      title: "Thao tác",
+      title: "Actions",
       key: "actions",
       render: (_, record) => (
         <div className="space-x-2">
-          <Button onClick={() => openModal(record)}>Sửa</Button>
+          <Button onClick={() => openModal(record)}>Edit</Button>
           <Popconfirm
-            title="Bạn có chắc muốn xóa nhân viên này không?"
+            title="Are you sure you want to delete this staff?"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Button danger>Xóa</Button>
+            <Button danger>Delete</Button>
           </Popconfirm>
         </div>
       ),
@@ -104,9 +126,9 @@ export default function ManageStaff() {
     <DealerLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Quản lý nhân viên đại lý</h2>
+          <h2 className="text-2xl font-bold">Manage Dealer Staff</h2>
           <Button type="primary" onClick={() => openModal()}>
-            + Thêm nhân viên
+            + Add Staff
           </Button>
         </div>
 
@@ -121,15 +143,15 @@ export default function ManageStaff() {
         <Modal
           open={open}
           onCancel={() => setOpen(false)}
-          title={editingStaff ? "Cập nhật nhân viên" : "Thêm nhân viên mới"}
+          title={editingStaff ? "Update Staff" : "Add New Staff"}
           onOk={handleSubmit}
-          okText="Lưu"
+          okText="Save"
         >
           <Form form={form} layout="vertical">
             <Form.Item
               label="Username"
               name="username"
-              rules={[{ required: true, message: "Nhập username!" }]}
+              rules={[{ required: true, message: "Please enter username!" }]}
             >
               <Input disabled={!!editingStaff} />
             </Form.Item>
@@ -138,8 +160,8 @@ export default function ManageStaff() {
               label="Email"
               name="email"
               rules={[
-                { required: true, message: "Nhập email!" },
-                { type: "email", message: "Email không hợp lệ!" },
+                { required: true, message: "Please enter email!" },
+                { type: "email", message: "Invalid email!" },
               ]}
             >
               <Input />
@@ -148,7 +170,7 @@ export default function ManageStaff() {
             <Form.Item
               label="Role"
               name="role"
-              rules={[{ required: true, message: "Chọn role!" }]}
+              rules={[{ required: true, message: "Please select role!" }]}
             >
               <Select>
                 <Option value="DEALER_STAFF">DEALER_STAFF</Option>

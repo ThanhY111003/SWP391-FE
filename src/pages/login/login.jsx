@@ -1,4 +1,5 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import {
   Form,
   Input,
@@ -37,6 +38,21 @@ export default function Login() {
       localStorage.setItem("role", role);
       localStorage.setItem("username", res.data.username);
 
+      toast.success(`Welcome back, ${username}!`, {
+        duration: 2500,
+        style: {
+          background: "linear-gradient(to right, #a855f7, #6366f1)",
+          color: "white",
+          borderRadius: "10px",
+          fontWeight: "500",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        },
+        iconTheme: {
+          primary: "white",
+          secondary: "#7c3aed",
+        },
+      });
+
       // 🔹 Điều hướng chính xác theo role (đúng với App.jsx)
       switch (role) {
         case "ADMIN":
@@ -52,9 +68,9 @@ export default function Login() {
           navigate("/dealer/dashboard");
       }
 
-      message.success("Đăng nhập thành công!");
+      message.success("Login successfully!");
     } catch (err) {
-      message.error("Sai tên đăng nhập hoặc mật khẩu!");
+      message.error("Invalid username or password!");
     } finally {
       setLoading(false);
     }
@@ -71,6 +87,16 @@ export default function Login() {
         }}
       />
 
+      {/* 🔹 ELECTRIC VEHICLES Title */}
+      <motion.h1
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="absolute top-17 text-6xl font-extrabold text-white tracking-wide drop-shadow-lg"
+      >
+        ELECTRIC VEHICLES
+      </motion.h1>
+
       {/* 🔹 Login Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -86,7 +112,7 @@ export default function Login() {
             level={2}
             className="text-center text-white mb-6 font-semibold tracking-wide"
           >
-            Login
+            Welcome Back
           </Title>
 
           <Form
@@ -158,18 +184,6 @@ export default function Login() {
                 Login
               </Button>
             </motion.div>
-
-            <Divider className="border-gray-400 my-5" />
-
-            <div className="text-center">
-              <span className="text-white">Chưa có tài khoản? </span>
-              <Link
-                to="/register"
-                className="text-purple-300 hover:text-purple-200 transition font-medium"
-              >
-                Đăng ký ngay
-              </Link>
-            </div>
           </Form>
         </Card>
       </motion.div>

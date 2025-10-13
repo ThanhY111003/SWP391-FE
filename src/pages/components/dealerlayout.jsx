@@ -17,11 +17,11 @@ export default function DealerLayout({ children }) {
 
   const menuItems = [
     { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard", path: "/dealer/dashboard" },
-    { key: "orders", icon: <ShoppingCartOutlined />, label: "Đơn hàng", path: "/dealer/orders" },
-    { key: "inventory", icon: <CarOutlined />, label: "Kho xe", path: "/dealer/inventory" },
-    { key: "customers", icon: <TeamOutlined />, label: "Khách hàng", path: "/dealer/customers" },
-    { key: "reports", icon: <BarChartOutlined />, label: "Báo cáo", path: "/dealer/reports" },
-    { key: "logout", icon: <LogoutOutlined />, label: "Đăng xuất", path: "/login" },
+    { key: "orders", icon: <ShoppingCartOutlined />, label: "Orders", path: "/dealer/orders" },
+    { key: "inventory", icon: <CarOutlined />, label: "Inventory", path: "/dealer/inventory" },
+    { key: "customers", icon: <TeamOutlined />, label: "Customers", path: "/dealer/customers" },
+    { key: "reports", icon: <BarChartOutlined />, label: "Reports", path: "/dealer/reports" },
+    { key: "logout", icon: <LogoutOutlined />, label: "Logout", path: "/login" },
   ];
 
   const handleClick = (e) => {
@@ -46,7 +46,7 @@ export default function DealerLayout({ children }) {
       </Sider>
       <Layout>
         <Header className="bg-white shadow px-6 text-lg font-semibold flex items-center">
-          Cổng quản lý đại lý
+          Agent management portal
         </Header>
         <Content className="p-6 bg-gray-50">{children}</Content>
       </Layout>

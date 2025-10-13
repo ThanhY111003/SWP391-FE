@@ -11,6 +11,7 @@ import {
   Tag,
   message,
   Popconfirm,
+  Card,
 } from "antd";
 import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
@@ -24,7 +25,10 @@ export default function ManageOrders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [form] = Form.useForm();
 
-  // 🧩 1. Fetch danh sách đơn hàng
+  //  Thêm: lưu bảng giá hiệu lực hiện tại
+  const [priceTable, setPriceTable] = useState(null);
+
+  //  1. Fetch danh sách đơn hàng
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -40,7 +44,9 @@ export default function ManageOrders() {
           status: "Pending Approval",
           model: "Model A",
           quantity: 5,
-          priceTable: "2025-Q1",
+          priceTable: "2025-Q4",
+          unitPrice: 50000,
+          totalPrice: 250000,
         },
         {
           id: 2,
@@ -48,7 +54,9 @@ export default function ManageOrders() {
           status: "Delivered",
           model: "Model B",
           quantity: 3,
-          priceTable: "2025-Q1",
+          priceTable: "2025-Q4",
+          unitPrice: 70000,
+          totalPrice: 210000,
         },
       ]);
     } finally {
@@ -56,11 +64,35 @@ export default function ManageOrders() {
     }
   };
 
+  //  2. Fetch bảng giá hiệu lực từ Manufacturer
+  const fetchPriceTable = async () => {
+    try {
+      // 🔹 Gọi API thật sau này: /api/manufacturer/pricetables/active
+      const res = {
+        data: {
+          name: "Bảng giá Q4-2025",
+          effectiveFrom: "2025-10-01",
+          effectiveTo: "2025-12-31",
+          items: [
+            { model: "Model A", price: 50000 },
+            { model: "Model B", price: 70000 },
+            { model: "Model C", price: 90000 },
+          ],
+        },
+      };
+      setPriceTable(res.data);
+    } catch (err) {
+      console.error(err);
+      message.error("Không thể tải bảng giá hiện hành!");
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchPriceTable(); // ✅ Gọi thêm API bảng giá
   }, []);
 
-  // 🧩 2. Modal mở để thêm/sửa đơn
+  //  3. Modal mở để thêm/sửa đơn
   const openModal = (record = null) => {
     setEditingOrder(record);
     if (record) form.setFieldsValue(record);
@@ -68,41 +100,57 @@ export default function ManageOrders() {
     setOpen(true);
   };
 
-  // 🧩 3. Submit form tạo / sửa đơn
+  //  4. Submit form tạo / sửa đơn
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+
+      // ✅ Nếu là tạo mới thì tự động áp dụng giá theo bảng giá hiện hành
+      if (!editingOrder && priceTable) {
+        const selected = priceTable.items.find(
+          (i) => i.model === values.model
+        );
+        if (!selected) {
+          message.error("Không tìm thấy model trong bảng giá!");
+          return;
+        }
+        values.unitPrice = selected.price;
+        values.totalPrice = values.quantity * selected.price;
+        values.priceTable = priceTable.name;
+        values.status = "Pending Approval";
+      }
+
       if (editingOrder) {
         await axios.put(
           `http://localhost:8080/api/dealer/orders/${editingOrder.id}`,
           values
         );
-        message.success("Cập nhật đơn hàng thành công!");
+        message.success("Update order successfully!");
       } else {
         await axios.post("http://localhost:8080/api/dealer/orders", values);
-        message.success("Tạo đơn hàng thành công!");
+        message.success("Create order successfully!");
       }
       setOpen(false);
       fetchOrders();
     } catch (err) {
       console.error(err);
-      message.error("Lỗi khi lưu đơn hàng!");
+      message.error("Error saving order!");
     }
   };
 
-  // 🧩 4. Xóa đơn
+  //  5. Xóa đơn
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:8080/api/dealer/orders/${id}`);
-      message.success("Xóa đơn hàng thành công!");
+      message.success("Delete order successfully!");
       fetchOrders();
     } catch (err) {
       console.error(err);
-      message.error("Không thể xóa đơn hàng!");
+      message.error("Cannot delete order!");
     }
   };
 
-  // 🧩 5. Render trạng thái đơn
+  //  6. Render trạng thái đơn
   const renderStatus = (status) => {
     const colorMap = {
       New: "blue",
@@ -115,29 +163,31 @@ export default function ManageOrders() {
     return <Tag color={colorMap[status] || "default"}>{status}</Tag>;
   };
 
-  // 🧩 6. Cấu hình bảng
+  //  7. Cấu hình bảng
   const columns = [
-    { title: "Mã đơn", dataIndex: "orderCode", key: "orderCode" },
+    { title: "Order Code", dataIndex: "orderCode", key: "orderCode" },
     { title: "Model", dataIndex: "model", key: "model" },
-    { title: "Số lượng", dataIndex: "quantity", key: "quantity" },
-    { title: "Bảng giá", dataIndex: "priceTable", key: "priceTable" },
+    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    { title: "Unit Price ($)", dataIndex: "unitPrice", key: "unitPrice" }, // ✅ thêm đơn giá
+    { title: "Total ($)", dataIndex: "totalPrice", key: "totalPrice" }, // ✅ thêm tổng tiền
+    { title: "Price Table", dataIndex: "priceTable", key: "priceTable" },
     {
-      title: "Trạng thái",
+      title: "Status",
       dataIndex: "status",
       key: "status",
       render: renderStatus,
     },
     {
-      title: "Thao tác",
+      title: "Actions",
       key: "actions",
       render: (_, record) => (
         <div className="space-x-2">
-          <Button onClick={() => openModal(record)}>Sửa</Button>
+          <Button onClick={() => openModal(record)}>Edit</Button>
           <Popconfirm
-            title="Xóa đơn hàng này?"
+            title="Delete this order?"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Button danger>Xóa</Button>
+            <Button danger>Delete</Button>
           </Popconfirm>
         </div>
       ),
@@ -148,11 +198,27 @@ export default function ManageOrders() {
     <DealerLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Quản lý đơn hàng</h2>
+          <h2 className="text-2xl font-bold">Manage Orders</h2>
           <Button type="primary" onClick={() => openModal()}>
-            + Tạo đơn hàng
+            + Create Order
           </Button>
         </div>
+
+        {/* ✅ Hiển thị bảng giá đang hiệu lực */}
+        {priceTable && (
+          <Card className="mb-6" title={`📊 ${priceTable.name}`}>
+            <p>
+              Hiệu lực: {priceTable.effectiveFrom} → {priceTable.effectiveTo}
+            </p>
+            <ul className="list-disc ml-5">
+              {priceTable.items.map((item, i) => (
+                <li key={i}>
+                  {item.model}: <strong>${item.price.toLocaleString()}</strong>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         <Table
           rowKey="id"
@@ -165,48 +231,40 @@ export default function ManageOrders() {
         <Modal
           open={open}
           onCancel={() => setOpen(false)}
-          title={editingOrder ? "Cập nhật đơn hàng" : "Tạo đơn hàng mới"}
+          title={editingOrder ? "Update Order" : "Create Order"}
           onOk={handleSubmit}
-          okText="Lưu"
+          okText="Save"
         >
           <Form form={form} layout="vertical">
             <Form.Item
-              label="Mã đơn hàng"
+              label="Order Code"
               name="orderCode"
-              rules={[{ required: true, message: "Nhập mã đơn hàng!" }]}
+              rules={[{ required: true, message: "Please enter order code!" }]}
             >
               <Input disabled={!!editingOrder} />
             </Form.Item>
 
             <Form.Item
-              label="Model xe"
+              label="Car Model"
               name="model"
-              rules={[{ required: true, message: "Chọn model!" }]}
+              rules={[{ required: true, message: "Please select a model!" }]}
             >
-              <Select>
-                <Option value="Model A">Model A</Option>
-                <Option value="Model B">Model B</Option>
-                <Option value="Model C">Model C</Option>
+              {/* ✅ Danh sách model lấy từ bảng giá hiệu lực */}
+              <Select placeholder="Select car model">
+                {priceTable?.items.map((item) => (
+                  <Option key={item.model} value={item.model}>
+                    {item.model} (${item.price.toLocaleString()})
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
 
             <Form.Item
-              label="Số lượng"
+              label="Quantity"
               name="quantity"
-              rules={[{ required: true, message: "Nhập số lượng!" }]}
+              rules={[{ required: true, message: "Please enter quantity!" }]}
             >
               <InputNumber min={1} max={50} className="w-full" />
-            </Form.Item>
-
-            <Form.Item
-              label="Bảng giá"
-              name="priceTable"
-              rules={[{ required: true, message: "Chọn bảng giá!" }]}
-            >
-              <Select>
-                <Option value="2025-Q1">2025-Q1</Option>
-                <Option value="2025-Q2">2025-Q2</Option>
-              </Select>
             </Form.Item>
           </Form>
         </Modal>

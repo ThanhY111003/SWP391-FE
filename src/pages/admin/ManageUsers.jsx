@@ -17,7 +17,7 @@ export default function ManageUsers() {
     // BE API: POST /api/users
     // Request: { username, email, role } → backend generate password, send email
     //await axios.post("http://localhost:8080/api/users", values);
-    message.success("Tạo tài khoản thành công, email đã được gửi!");
+    message.success("Account created successfully, email sent!");
     setOpen(false);
     fetchUsers();
   };
@@ -33,15 +33,15 @@ export default function ManageUsers() {
   return (
     <div className="p-6">
       <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">Quản lý tài khoản người dùng</h2>
-        <Button type="primary" onClick={() => setOpen(true)}>+ Tạo mới</Button>
+        <h2 className="text-xl font-bold">User Management</h2>
+        <Button type="primary" onClick={() => setOpen(true)}>+ Create New</Button>
       </div>
 
       <Table dataSource={users} columns={columns} rowKey="username" />
 
       <Modal
         open={open}
-        title="Tạo tài khoản mới"
+        title="Create New Account"
         onCancel={() => setOpen(false)}
         footer={null}
       >
@@ -52,7 +52,7 @@ export default function ManageUsers() {
           <Form.Item name="email" label="Email" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="role" label="Vai trò" rules={[{ required: true }]}>
+          <Form.Item name="role" label="Role" rules={[{ required: true }]}>
             <Select
               options={[
                 { label: "EVM Staff", value: "EVM_STAFF" },
@@ -62,7 +62,7 @@ export default function ManageUsers() {
             />
           </Form.Item>
           <Button type="primary" htmlType="submit" className="w-full">
-            Tạo tài khoản
+            Create Account
           </Button>
         </Form>
       </Modal>

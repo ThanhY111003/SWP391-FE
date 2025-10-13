@@ -56,23 +56,23 @@ export default function DealerDashboard() {
             <Row gutter={[16, 16]}>
               <Col span={6}>
                 <Card className="shadow-md">
-                  <Statistic title="Tổng nhân viên" value={stats.totalStaff} />
+                  <Statistic title="Total number of employees" value={stats.totalStaff} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card className="shadow-md">
-                  <Statistic title="Tổng đơn hàng" value={stats.totalOrders} />
+                  <Statistic title="Total orders" value={stats.totalOrders} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card className="shadow-md">
-                  <Statistic title="Xe đang hoạt động" value={stats.activeVehicles} />
+                  <Statistic title="Active vehicles" value={stats.activeVehicles} />
                 </Card>
               </Col>
               <Col span={6}>
                 <Card className="shadow-md">
                   <Statistic
-                    title="Doanh thu (VND)"
+                    title="Revenue (VND)"
                     value={stats.revenue}
                     precision={0}
                   />
