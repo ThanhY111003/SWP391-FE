@@ -16,12 +16,42 @@ export default function DealerLayout({ children }) {
   const navigate = useNavigate();
 
   const menuItems = [
-    { key: "dashboard", icon: <HomeOutlined />, label: "Dashboard", path: "/dealer/dashboard" },
-    { key: "orders", icon: <ShoppingCartOutlined />, label: "Orders", path: "/dealer/orders" },
-    { key: "inventory", icon: <CarOutlined />, label: "Inventory", path: "/dealer/inventory" },
-    { key: "customers", icon: <TeamOutlined />, label: "Customers", path: "/dealer/customers" },
-    { key: "reports", icon: <BarChartOutlined />, label: "Reports", path: "/dealer/reports" },
-    { key: "logout", icon: <LogoutOutlined />, label: "Logout", path: "/login" },
+    {
+      key: "dashboard",
+      icon: <HomeOutlined />,
+      label: "Dashboard",
+      path: "/dealer/dashboard",
+    },
+    {
+      key: "orders",
+      icon: <ShoppingCartOutlined />,
+      label: "Orders",
+      path: "/dealer/orders",
+    },
+    {
+      key: "inventory",
+      icon: <CarOutlined />,
+      label: "Inventory",
+      path: "/dealer/inventory",
+    },
+    {
+      key: "customers",
+      icon: <TeamOutlined />,
+      label: "Customers",
+      path: "/dealer/customers",
+    },
+    {
+      key: "staff",
+      icon: <TeamOutlined />,
+      label: "Staff",
+      path: "/dealer/staff",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Logout",
+      path: "/login",
+    },
   ];
 
   const handleClick = (e) => {
@@ -35,7 +65,9 @@ export default function DealerLayout({ children }) {
   return (
     <Layout className="min-h-screen">
       <Sider theme="dark">
-        <div className="text-white text-center py-4 font-bold text-xl">Dealer Portal</div>
+        <div className="text-white text-center py-4 font-bold text-xl">
+          Dealer Portal
+        </div>
         <Menu
           theme="dark"
           mode="inline"
