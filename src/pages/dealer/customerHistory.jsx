@@ -1,6 +1,7 @@
 // src/pages/dealer/CustomerHistory.jsx
 import { useEffect, useState } from "react";
 import { Table, Card, Tag, Button, Modal, Timeline, message } from "antd";
+import DealerLayout from "../components/dealerlayout";
 
 const CustomerHistory = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -146,12 +147,14 @@ const CustomerHistory = () => {
     } else if (role === "Manufacturer") {
       message.success("Vehicle transfer approved.");
     } else {
-      message.warning("Only dealer managers or manufacturer can perform this action.");
+      message.warning(
+        "Only dealer managers or manufacturer can perform this action."
+      );
     }
   };
 
   return (
-    <div className="p-6">
+    <DealerLayout>
       <Card title="Customer Ownership History">
         <Table
           loading={loading}
@@ -172,7 +175,11 @@ const CustomerHistory = () => {
             Close
           </Button>,
           role === "Dealer_Manage" && (
-            <Button key="transfer" type="primary" onClick={handleTransferRequest}>
+            <Button
+              key="transfer"
+              type="primary"
+              onClick={handleTransferRequest}
+            >
               Request Transfer
             </Button>
           ),
@@ -192,7 +199,7 @@ const CustomerHistory = () => {
           </>
         )}
       </Modal>
-    </div>
+    </DealerLayout>
   );
 };
 
