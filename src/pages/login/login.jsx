@@ -13,8 +13,8 @@ import {
   Typography,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { motion } from "framer-motion";
+import api from "../../config/axios";
 
 const { Title } = Typography;
 
@@ -24,53 +24,66 @@ export default function Login() {
   const [form] = Form.useForm();
 
   const handleLogin = async (values) => {
-    const { username, password } = values;
+    const { username } = values;
 
     setLoading(true);
     try {
-      // 🔹 Khi dùng thật: bật dòng dưới, tắt dòng mock
-      // const res = await axios.post("http://localhost:8080/api/auth/login", values);
-      const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
+      // Gọi API login thật
+      const res = await api.post("auth/login", values);
 
-      const { role, token } = res.data;
+      // Kiểm tra response structure theo API mới
+      if (res.data.success && res.data.code === "OK") {
+        const { token, refreshToken, roleName, username: responseUsername } = res.data.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("username", res.data.username);
+        // Lưu thông tin vào localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("role", roleName);
+        localStorage.setItem("username", responseUsername || username);
 
-      toast.success(`Welcome back, ${username}!`, {
-        duration: 2500,
-        style: {
-          background: "linear-gradient(to right, #a855f7, #6366f1)",
-          color: "white",
-          borderRadius: "10px",
-          fontWeight: "500",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        },
-        iconTheme: {
-          primary: "white",
-          secondary: "#7c3aed",
-        },
-      });
+        toast.success(`Welcome back, ${responseUsername || username}!`, {
+          duration: 2500,
+          style: {
+            background: "linear-gradient(to right, #a855f7, #6366f1)",
+            color: "white",
+            borderRadius: "10px",
+            fontWeight: "500",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          },
+          iconTheme: {
+            primary: "white",
+            secondary: "#7c3aed",
+          },
+        });
 
-      // 🔹 Điều hướng chính xác theo role (đúng với App.jsx)
-      switch (role) {
-        case "ADMIN":
-          navigate("/admin/ManageUsers");
-          break;
-        case "EVM_STAFF":
-          navigate("/evm/ManageDealers");
-          break;
-        case "DEALER_MANAGER":
-          navigate("/dealer/dashboard");
-          break;
-        default:
-          navigate("/dealer/dashboard");
+        // 🔹 Điều hướng chính xác theo roleName từ API
+        switch (roleName) {
+          case "ADMIN":
+            navigate("/admin/ManageUsers");
+            break;
+          case "EVM_STAFF":
+            navigate("/evm/ManageDealers");
+            break;
+          case "DEALER_MANAGER":
+            navigate("/dealer/dashboard");
+            break;
+          case "MANUFACTURER":
+            navigate("/manufacturer/dealerManagement");
+            break;
+          default:
+            message.warning("Unknown role, redirecting to default page");
+            navigate("/dealer/dashboard");
+        }
+
+        message.success(res.data.message || "Login successfully!");
+      } else {
+        message.error(res.data.message || "Login failed!");
       }
-
-      message.success("Login successfully!");
     } catch (err) {
-      message.error("Invalid username or password!");
+      // Xử lý lỗi từ API
+      const errorMessage = err.response?.data?.message || "Invalid username or password!";
+      message.error(errorMessage);
+      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }

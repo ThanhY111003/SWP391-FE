@@ -16,16 +16,16 @@ function App() {
         {/* Login */}
         <Route path="/login" element={<Login />} />
 
+        {/* Admin */}
+        <Route path="/admin/ManageUsers" element={<ManageUsers />} />
+
         {/* Dealer */}
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />
         <Route path="/dealer/manageStaff" element={<ManageStaff />} />
-        <Route path="/dealer/manageOrders" element={<ManageOrders />} />
+        <Route path="/dealer/orders" element={<ManageOrders />} />
 
         {/* EVM */}
         <Route path="/evm/ManageDealers" element={<ManageDealers />} />
-
-        {/* Admin */}
-        <Route path="/admin/ManageUsers" element={<ManageUsers />} />
 
         {/* Manufacturer */}
         <Route
@@ -33,6 +33,9 @@ function App() {
           element={<DealerManagement />}
         />
         <Route path="/manufacturer/priceTable" element={<PriceTable />} />
+        
+        {/* Redirect manufacturer root to dealerManagement */}
+        <Route path="/manufacturer" element={<Navigate to="/manufacturer/dealerManagement" replace />} />
 
         {/* Default route (fallback) */}
         <Route path="*" element={<Navigate to="/login" replace />} />
