@@ -12,6 +12,7 @@ import {
 } from "antd";
 import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
+import apiClient from "../../utils/axiosConfig";
 
 const { Option } = Select;
 
@@ -26,8 +27,10 @@ export default function ManageStaff() {
   const fetchStaffs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/dealer/staff");
-      setStaffs(res.data);
+      const res = await apiClient.get("/api/dealer/staff");
+      if (res.data.success) {
+        setStaffs(res.data.data);
+      }
     } catch (err) {
       console.error(err);
       // Mock data nếu chưa có API
@@ -69,14 +72,14 @@ export default function ManageStaff() {
 
       if (editingStaff) {
         // update
-        await axios.put(
-          `http://localhost:8080/api/dealer/staff/${editingStaff.id}`,
+        await apiClient.put(
+          `/api/dealer/staff/${editingStaff.id}`,
           values
         );
         message.success("Update staff successfully!");
       } else {
         // create
-        await axios.post("http://localhost:8080/api/dealer/staff", values);
+        await apiClient.post("/api/dealer/staff", values);
         message.success("Create staff successfully!");
       }
 
@@ -91,7 +94,7 @@ export default function ManageStaff() {
   // 🧩 4. Xóa nhân viên
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/api/dealer/staff/${id}`);
+      await apiClient.delete(`/api/dealer/staff/${id}`);
       message.success("Delete staff successfully!");
       fetchStaffs();
     } catch (err) {
