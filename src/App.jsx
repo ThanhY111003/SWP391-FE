@@ -24,31 +24,26 @@ function App() {
         {/* Auth */}
         <Route path="/login" element={<Login />} />
 
+        {/* Admin */}
+        <Route path="/admin/ManageUsers" element={<ManageUsers />} />
+
         {/* Dealer */}
-        <Route path="/dealer/dashboard" element={<AuthGuard><DealerDashboard /></AuthGuard>} />
-        <Route path="/dealer/staff" element={<AuthGuard><ManageStaff /></AuthGuard>} />
-        <Route path="/dealer/orders" element={<AuthGuard><ManageOrders /></AuthGuard>} />
-        <Route path="/dealer/orders/:id" element={<AuthGuard><OrderDetail /></AuthGuard>} />
-        <Route path="/dealer/inventory" element={<AuthGuard><Inventory /></AuthGuard>} />
-        <Route path="/dealer/customers" element={<AuthGuard><CustomerHistory /></AuthGuard>} />
-                <Route path="/dealer/catalog" element={<AuthGuard><VehicleCatalog /></AuthGuard>} />
-                <Route path="/dealer/comparison" element={<AuthGuard><VehicleComparison /></AuthGuard>} />
-                <Route path="/dealer/sales-report" element={<AuthGuard><SalesReport /></AuthGuard>} />
-                <Route path="/dealer/debt-report" element={<AuthGuard><DebtReport /></AuthGuard>} />
-                <Route path="/dealer/colors" element={<AuthGuard><ColorManagement /></AuthGuard>} />
+        <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+        <Route path="/dealer/manageStaff" element={<ManageStaff />} />
+        <Route path="/dealer/orders" element={<ManageOrders />} />
 
         {/* EVM */}
         <Route path="/evm/ManageDealers" element={<AuthGuard><ManageDealers /></AuthGuard>} />
-
-        {/* Admin */}
-        <Route path="/admin/ManageUsers" element={<AuthGuard><ManageUsers /></AuthGuard>} />
 
         {/* Manufacturer */}
         <Route
           path="/manufacturer/dealerManagement"
           element={<AuthGuard><DealerManagement /></AuthGuard>}
         />
-        <Route path="/manufacturer/priceTable" element={<AuthGuard><PriceTable /></AuthGuard>} />
+        <Route path="/manufacturer/priceTable" element={<PriceTable />} />
+        
+        {/* Redirect manufacturer root to dealerManagement */}
+        <Route path="/manufacturer" element={<Navigate to="/manufacturer/dealerManagement" replace />} />
 
         {/* Default route (fallback) */}
         <Route path="*" element={<Navigate to="/login" replace />} />

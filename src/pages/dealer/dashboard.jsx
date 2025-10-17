@@ -1,7 +1,6 @@
 // src/pages/dealer/dashboard.jsx
 import { Card, Statistic, Row, Col, Skeleton } from "antd";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -16,31 +15,24 @@ export default function DealerDashboard() {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    // 👉 Gọi API thật khi backend sẵn sàng
-    axios
-      .get("http://localhost:8080/api/dealer/dashboard")
-      .then((res) => {
-        setStats(res.data.stats);
-        setChartData(res.data.salesByMonth);
-      })
-      .catch(() => {
-        // 🧪 Mock data tạm nếu BE chưa sẵn
-        setStats({
-          totalStaff: 8,
-          totalOrders: 25,
-          activeVehicles: 40,
-          revenue: 120000000,
-        });
-        setChartData([
-          { month: "Jan", sales: 8 },
-          { month: "Feb", sales: 12 },
-          { month: "Mar", sales: 10 },
-          { month: "Apr", sales: 16 },
-          { month: "May", sales: 20 },
-          { month: "Jun", sales: 15 },
-        ]);
-      })
-      .finally(() => setLoading(false));
+    // 🧪 Sử dụng mock data trực tiếp (không gọi API)
+    setTimeout(() => {
+      setStats({
+        totalStaff: 8,
+        totalOrders: 25,
+        activeVehicles: 40,
+        revenue: 120000000,
+      });
+      setChartData([
+        { month: "Jan", sales: 8 },
+        { month: "Feb", sales: 12 },
+        { month: "Mar", sales: 10 },
+        { month: "Apr", sales: 16 },
+        { month: "May", sales: 20 },
+        { month: "Jun", sales: 15 },
+      ]);
+      setLoading(false);
+    }, 1000); // Giả lập loading 1 giây
   }, []);
 
   return (

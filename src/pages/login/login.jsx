@@ -12,9 +12,9 @@ import {
   message,
   Typography,
 } from "antd";
-import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import api from "../../config/axios";
 
 const { Title } = Typography;
 
@@ -24,24 +24,24 @@ export default function Login() {
   const [form] = Form.useForm();
 
   const handleLogin = async (values) => {
-    const { username, password } = values;
+    const { username } = values;
 
     setLoading(true);
     try {
-      // Call the login API
-      const res = await axios.post("http://localhost:8080/api/auth/login", values);
-      
-      // Handle the API response structure
-      if (res.data.success && res.data.data) {
-        const { token, refreshToken, roleName, message } = res.data.data;
-        
-        // Store authentication data in localStorage
+      // Gọi API login thật
+      const res = await api.post("auth/login", values);
+
+      // Kiểm tra response structure theo API mới
+      if (res.data.success && res.data.code === "OK") {
+        const { token, refreshToken, roleName, username: responseUsername } = res.data.data;
+
+        // Lưu thông tin vào localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("role", roleName);
-        localStorage.setItem("username", username);
+        localStorage.setItem("username", responseUsername || username);
 
-        toast.success(`Welcome back, ${username}!`, {
+        toast.success(`Welcome back, ${responseUsername || username}!`, {
           duration: 2500,
           style: {
             background: "linear-gradient(to right, #a855f7, #6366f1)",
@@ -56,7 +56,7 @@ export default function Login() {
           },
         });
 
-        // Navigate based on role
+        // 🔹 Điều hướng chính xác theo roleName từ API
         switch (roleName) {
           case "ADMIN":
             navigate("/admin/ManageUsers");
@@ -65,24 +65,25 @@ export default function Login() {
             navigate("/evm/ManageDealers");
             break;
           case "DEALER_MANAGER":
-          case "DEALER_STAFF":
             navigate("/dealer/dashboard");
             break;
+          case "MANUFACTURER":
+            navigate("/manufacturer/dealerManagement");
+            break;
           default:
+            message.warning("Unknown role, redirecting to default page");
             navigate("/dealer/dashboard");
         }
 
-        message.success("Login successfully!");
+        message.success(res.data.message || "Login successfully!");
       } else {
         message.error(res.data.message || "Login failed!");
       }
     } catch (err) {
+      // Xử lý lỗi từ API
+      const errorMessage = err.response?.data?.message || "Invalid username or password!";
+      message.error(errorMessage);
       console.error("Login error:", err);
-      if (err.response?.data?.message) {
-        message.error(err.response.data.message);
-      } else {
-        message.error("Invalid username or password!");
-      }
     } finally {
       setLoading(false);
     }
