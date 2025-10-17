@@ -61,16 +61,16 @@ export default function ManageUsers() {
   };
 
   const fetchDealers = async () => {
-    try {
-      const res = await api.get("evm/dealers");
-      if (res.data && Array.isArray(res.data)) {
-        setDealers(res.data);
-      } else if (res.data?.data) {
-        setDealers(res.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching dealers:", error);
-    }
+    // try {
+    //   const res = await api.get("evm/dealers");
+    //   if (res.data && Array.isArray(res.data)) {
+    //     setDealers(res.data);
+    //   } else if (res.data?.data) {
+    //     setDealers(res.data.data);
+    //   }
+    // } catch (error) {
+    //   console.error("Error fetching dealers:", error);
+    // }
   };
 
   const handleCreateUser = async (values) => {
