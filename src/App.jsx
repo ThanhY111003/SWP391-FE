@@ -1,14 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/login/login";
-import Register from "./pages/login/Register";
 import DealerDashboard from "./pages/dealer/dashboard";
 import ManageStaff from "./pages/dealer/manageStaff";
+import ManageOrders from "./pages/dealer/manageOrders";
+import Inventory from "./pages/dealer/inventory";
+import CustomerHistory from "./pages/dealer/customerHistory";
+import OrderDetail from "./pages/dealer/orderDetail";
+import VehicleCatalog from "./pages/dealer/vehicleCatalog";
+import VehicleComparison from "./pages/dealer/vehicleComparison";
+import SalesReport from "./pages/dealer/salesReport";
+import DebtReport from "./pages/dealer/debtReport";
+import ColorManagement from "./pages/dealer/colorManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageDealers from "./pages/evm/ManageDealers";
-import ManageOrders from "./pages/dealer/manageOrders";
 import PriceTable from "./pages/manufacturer/priceTable";
 import DealerManagement from "./pages/manufacturer/dealerManagement";
-
+import AuthGuard from "./components/AuthGuard";
 
 function App() {
   return (
@@ -16,7 +23,6 @@ function App() {
       <Routes>
         {/* Auth */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* Admin */}
         <Route path="/admin/ManageUsers" element={<ManageUsers />} />
@@ -27,12 +33,12 @@ function App() {
         <Route path="/dealer/orders" element={<ManageOrders />} />
 
         {/* EVM */}
-        <Route path="/evm/ManageDealers" element={<ManageDealers />} />
+        <Route path="/evm/ManageDealers" element={<AuthGuard><ManageDealers /></AuthGuard>} />
 
         {/* Manufacturer */}
         <Route
           path="/manufacturer/dealerManagement"
-          element={<DealerManagement />}
+          element={<AuthGuard><DealerManagement /></AuthGuard>}
         />
         <Route path="/manufacturer/priceTable" element={<PriceTable />} />
         

@@ -1,6 +1,7 @@
 // src/pages/dealer/Inventory.jsx
 import { useEffect, useState } from "react";
 import { Table, Tag, Card, Select, Input } from "antd";
+import DealerLayout from "../components/dealerlayout";
 
 const Inventory = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -104,7 +105,7 @@ const Inventory = () => {
   ];
 
   return (
-    <div className="p-6">
+    <DealerLayout>
       <Card
         title="Vehicle Inventory"
         extra={
@@ -140,7 +141,7 @@ const Inventory = () => {
           pagination={{ pageSize: 5 }}
         />
       </Card>
-    </div>
+    </DealerLayout>
   );
 };
 

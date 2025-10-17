@@ -15,6 +15,7 @@ import {
 } from "antd";
 import api from "../../config/axios";
 import DealerLayout from "../components/dealerlayout";
+import apiClient from "../../utils/axiosConfig";
 
 const { Option } = Select;
 

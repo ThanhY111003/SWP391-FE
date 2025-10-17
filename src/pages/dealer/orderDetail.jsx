@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Table, Tag, Button, Descriptions, message, Steps } from "antd";
+import DealerLayout from "../components/dealerlayout";
 
 const OrderDetail = () => {
   const { orderId } = useParams();
@@ -38,7 +39,14 @@ const OrderDetail = () => {
   }, [orderId]);
 
   //Khai báo danh sách các bước trạng thái đơn hàng
-  const statusSteps = ["New", "Pending Approval", "Processing", "In Transit", "Delivered", "Completed"];
+  const statusSteps = [
+    "New",
+    "Pending Approval",
+    "Processing",
+    "In Transit",
+    "Delivered",
+    "Completed",
+  ];
   //Xác định bước hiện tại (dựa trên trạng thái của đơn hàng)
   const currentStep = order ? statusSteps.indexOf(order.status) : 0;
 
@@ -80,69 +88,71 @@ const OrderDetail = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <Card title={`Chi tiết đơn hàng #${order.orderNumber}`}>
-        <Descriptions bordered column={2}>
-          <Descriptions.Item label="Đại lý">
-            {order.dealerName}
-          </Descriptions.Item>
-          <Descriptions.Item label="Bảng giá">
-            {order.priceTable}
-          </Descriptions.Item>
-          <Descriptions.Item label="Ngày tạo">
-            {order.createdAt}
-          </Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">
-            <Tag color="blue">{order.status}</Tag>
-          </Descriptions.Item>
-        </Descriptions>
-      </Card>
+    <DealerLayout>
+      <div className="space-y-6">
+        <Card title={`Chi tiết đơn hàng #${order.orderNumber}`}>
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="Đại lý">
+              {order.dealerName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Bảng giá">
+              {order.priceTable}
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày tạo">
+              {order.createdAt}
+            </Descriptions.Item>
+            <Descriptions.Item label="Trạng thái">
+              <Tag color="blue">{order.status}</Tag>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
 
-      <Card title="Tiến trình xử lý đơn hàng">
-        <Steps
-          current={currentStep}
-          items={statusSteps.map((s) => ({
-            title: s,
-          }))}
-        />
-      </Card>
+        <Card title="Tiến trình xử lý đơn hàng">
+          <Steps
+            current={currentStep}
+            items={statusSteps.map((s) => ({
+              title: s,
+            }))}
+          />
+        </Card>
 
-      <Card title="Chi tiết sản phẩm">
-        <Table
-          columns={columnsDetails}
-          dataSource={order.details}
-          rowKey={(r) => r.model}
-          pagination={false}
-        />
-      </Card>
+        <Card title="Chi tiết sản phẩm">
+          <Table
+            columns={columnsDetails}
+            dataSource={order.details}
+            rowKey={(r) => r.model}
+            pagination={false}
+          />
+        </Card>
 
-      <Card title="Danh sách xe được phân bổ">
-        <Table
-          columns={columnsVehicles}
-          dataSource={order.vehicles}
-          rowKey={(r) => r.chassis}
-          pagination={false}
-        />
-      </Card>
+        <Card title="Danh sách xe được phân bổ">
+          <Table
+            columns={columnsVehicles}
+            dataSource={order.vehicles}
+            rowKey={(r) => r.chassis}
+            pagination={false}
+          />
+        </Card>
 
-      <Card title="Thanh toán">
-        <Table
-          columns={columnsPayments}
-          dataSource={order.payments}
-          rowKey={(r, i) => i}
-          pagination={false}
-        />
-      </Card>
+        <Card title="Thanh toán">
+          <Table
+            columns={columnsPayments}
+            dataSource={order.payments}
+            rowKey={(r, i) => i}
+            pagination={false}
+          />
+        </Card>
 
-      {/* Nút hành động cho Dealer Manager */}
-      {userRole === "DEALER_MANAGER" && order.status === "In Transit" && (
-        <div className="text-right">
-          <Button type="primary" onClick={handleConfirmReceived}>
-            Xác nhận đã nhận xe
-          </Button>
-        </div>
-      )}
-    </div>
+        {/* Nút hành động cho Dealer Manager */}
+        {userRole === "DEALER_MANAGER" && order.status === "In Transit" && (
+          <div className="text-right">
+            <Button type="primary" onClick={handleConfirmReceived}>
+              Xác nhận đã nhận xe
+            </Button>
+          </div>
+        )}
+      </div>
+    </DealerLayout>
   );
 };
 
