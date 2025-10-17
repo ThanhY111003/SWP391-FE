@@ -8,6 +8,11 @@ import {
   TeamOutlined,
   BarChartOutlined,
   LogoutOutlined,
+  AppstoreOutlined,
+  SwapOutlined,
+  UserOutlined,
+  ExclamationCircleOutlined,
+  BgColorsOutlined,  // New icon for colors
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -21,6 +26,18 @@ export default function DealerLayout({ children }) {
       icon: <HomeOutlined />,
       label: "Dashboard",
       path: "/dealer/dashboard",
+    },
+    {
+      key: "catalog",
+      icon: <AppstoreOutlined />,
+      label: "Vehicle Catalog",
+      path: "/dealer/catalog",
+    },
+    {
+      key: "comparison",
+      icon: <SwapOutlined />,
+      label: "Vehicle Comparison",
+      path: "/dealer/comparison",
     },
     {
       key: "orders",
@@ -41,8 +58,26 @@ export default function DealerLayout({ children }) {
       path: "/dealer/customers",
     },
     {
+      key: "sales-report",
+      icon: <BarChartOutlined />,
+      label: "Sales Report",
+      path: "/dealer/sales-report",
+    },
+    {
+      key: "debt-report",
+      icon: <ExclamationCircleOutlined />,
+      label: "Debt Report",
+      path: "/dealer/debt-report",
+    },
+    {
+      key: "colors",
+      icon: <BgColorsOutlined />,
+      label: "Color Management",
+      path: "/dealer/colors",
+    },
+    {
       key: "staff",
-      icon: <TeamOutlined />,
+      icon: <UserOutlined />,
       label: "Staff",
       path: "/dealer/staff",
     },
@@ -58,8 +93,10 @@ export default function DealerLayout({ children }) {
     const item = menuItems.find((m) => m.key === e.key);
     if (item.path === "/login") {
       localStorage.clear();
+      navigate("/login");
+    } else {
+      navigate(item.path);
     }
-    navigate(item.path);
   };
 
   return (

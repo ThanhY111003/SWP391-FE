@@ -15,6 +15,7 @@ import {
 } from "antd";
 import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
+import apiClient from "../../utils/axiosConfig";
 
 const { Option } = Select;
 
@@ -32,8 +33,10 @@ export default function ManageOrders() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/dealer/orders");
-      setOrders(res.data);
+      const res = await apiClient.get("/api/dealer/orders");
+      if (res.data.success) {
+        setOrders(res.data.data);
+      }
     } catch (err) {
       console.error(err);
       // Mock data khi BE chưa có
@@ -121,13 +124,13 @@ export default function ManageOrders() {
       }
 
       if (editingOrder) {
-        await axios.put(
-          `http://localhost:8080/api/dealer/orders/${editingOrder.id}`,
+        await apiClient.put(
+          `/api/dealer/orders/${editingOrder.id}`,
           values
         );
         message.success("Update order successfully!");
       } else {
-        await axios.post("http://localhost:8080/api/dealer/orders", values);
+        await apiClient.post("/api/dealer/orders/create", values);
         message.success("Create order successfully!");
       }
       setOpen(false);
@@ -141,7 +144,7 @@ export default function ManageOrders() {
   //  5. Xóa đơn
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/api/dealer/orders/${id}`);
+      await apiClient.delete(`/api/dealer/orders/${id}`);
       message.success("Delete order successfully!");
       fetchOrders();
     } catch (err) {
