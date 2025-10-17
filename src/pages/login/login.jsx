@@ -28,49 +28,61 @@ export default function Login() {
 
     setLoading(true);
     try {
-      // 🔹 Khi dùng thật: bật dòng dưới, tắt dòng mock
-       const res = await axios.post("http://localhost:8080/api/auth/login", values);
-      //const res = { data: { token: "fakeToken", role: "ADMIN", username } }; // mock để test
+      // Call the login API
+      const res = await axios.post("http://localhost:8080/api/auth/login", values);
+      
+      // Handle the API response structure
+      if (res.data.success && res.data.data) {
+        const { token, refreshToken, roleName, message } = res.data.data;
+        
+        // Store authentication data in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("role", roleName);
+        localStorage.setItem("username", username);
 
-      const { role, token } = res.data;
+        toast.success(`Welcome back, ${username}!`, {
+          duration: 2500,
+          style: {
+            background: "linear-gradient(to right, #a855f7, #6366f1)",
+            color: "white",
+            borderRadius: "10px",
+            fontWeight: "500",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          },
+          iconTheme: {
+            primary: "white",
+            secondary: "#7c3aed",
+          },
+        });
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      localStorage.setItem("username", res.data.username);
+        // Navigate based on role
+        switch (roleName) {
+          case "ADMIN":
+            navigate("/admin/ManageUsers");
+            break;
+          case "EVM_STAFF":
+            navigate("/evm/ManageDealers");
+            break;
+          case "DEALER_MANAGER":
+          case "DEALER_STAFF":
+            navigate("/dealer/dashboard");
+            break;
+          default:
+            navigate("/dealer/dashboard");
+        }
 
-      toast.success(`Welcome back, ${username}!`, {
-        duration: 2500,
-        style: {
-          background: "linear-gradient(to right, #a855f7, #6366f1)",
-          color: "white",
-          borderRadius: "10px",
-          fontWeight: "500",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-        },
-        iconTheme: {
-          primary: "white",
-          secondary: "#7c3aed",
-        },
-      });
-
-      // 🔹 Điều hướng chính xác theo role (đúng với App.jsx)
-      switch (role) {
-        case "ADMIN":
-          navigate("/admin/ManageUsers");
-          break;
-        case "EVM_STAFF":
-          navigate("/evm/ManageDealers");
-          break;
-        case "DEALER_MANAGER":
-          navigate("/dealer/dashboard");
-          break;
-        default:
-          navigate("/dealer/dashboard");
+        message.success("Login successfully!");
+      } else {
+        message.error(res.data.message || "Login failed!");
       }
-
-      message.success("Login successfully!");
     } catch (err) {
-      message.error("Invalid username or password!");
+      console.error("Login error:", err);
+      if (err.response?.data?.message) {
+        message.error(err.response.data.message);
+      } else {
+        message.error("Invalid username or password!");
+      }
     } finally {
       setLoading(false);
     }
