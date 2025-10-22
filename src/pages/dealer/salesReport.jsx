@@ -1,43 +1,43 @@
 // src/pages/dealer/salesReport.jsx
-import { useEffect, useState } from "react";
-import { 
-  Card, 
-  Table, 
-  Select, 
-  DatePicker, 
-  Row, 
-  Col, 
-  Statistic, 
+import { useEffect, useState, useCallback } from "react";
+import {
+  Card,
+  Table,
+  Select,
+  DatePicker,
+  Row,
+  Col,
+  Statistic,
   Progress,
   Tag,
   Button,
   Spin,
-  message
+  message,
 } from "antd";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
 } from "recharts";
-import { 
-  UserOutlined, 
-  DollarOutlined, 
+import {
+  UserOutlined,
+  DollarOutlined,
   ShoppingCartOutlined,
   TrophyOutlined,
   DownloadOutlined,
-  CalendarOutlined
+  CalendarOutlined,
 } from "@ant-design/icons";
 import DealerLayout from "../components/dealerlayout";
-import apiClient from "../../utils/axiosConfig";
+// import apiClient from "../../utils/axiosConfig"; // TODO: Uncomment when integrating real API
 import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
@@ -46,8 +46,8 @@ const { Option } = Select;
 export default function SalesReport() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
-    dayjs().subtract(30, 'days'),
-    dayjs()
+    dayjs().subtract(30, "days"),
+    dayjs(),
   ]);
   const [selectedStaff, setSelectedStaff] = useState("All");
   const [salesData, setSalesData] = useState([]);
@@ -57,19 +57,15 @@ export default function SalesReport() {
     totalSales: 0,
     totalOrders: 0,
     averageOrderValue: 0,
-    topPerformer: null
+    topPerformer: null,
   });
 
-  useEffect(() => {
-    fetchSalesData();
-  }, [dateRange, selectedStaff]);
-
-  const fetchSalesData = async () => {
+  const fetchSalesData = useCallback(async () => {
     setLoading(true);
     try {
       // In a real app, you would call the API with date range and staff filter
       // const response = await axios.get(`/api/sales/report?startDate=${dateRange[0].format('YYYY-MM-DD')}&endDate=${dateRange[1].format('YYYY-MM-DD')}&staffId=${selectedStaff}`);
-      
+
       // Mock data for development
       setTimeout(() => {
         const mockSalesData = [
@@ -82,18 +78,18 @@ export default function SalesReport() {
             averageOrderValue: 45000000,
             commission: 6750000,
             rank: 1,
-            performance: 95
+            performance: 95,
           },
           {
             id: 2,
             staffName: "Trần Thị B",
-            staffId: "STAFF002", 
+            staffId: "STAFF002",
             totalOrders: 12,
             totalRevenue: 540000000,
             averageOrderValue: 45000000,
             commission: 5400000,
             rank: 2,
-            performance: 85
+            performance: 85,
           },
           {
             id: 3,
@@ -104,7 +100,7 @@ export default function SalesReport() {
             averageOrderValue: 45000000,
             commission: 4500000,
             rank: 3,
-            performance: 78
+            performance: 78,
           },
           {
             id: 4,
@@ -115,7 +111,7 @@ export default function SalesReport() {
             averageOrderValue: 45000000,
             commission: 3600000,
             rank: 4,
-            performance: 65
+            performance: 65,
           },
           {
             id: 5,
@@ -126,8 +122,8 @@ export default function SalesReport() {
             averageOrderValue: 45000000,
             commission: 2700000,
             rank: 5,
-            performance: 55
-          }
+            performance: 55,
+          },
         ];
 
         const mockMonthlyTrend = [
@@ -136,20 +132,27 @@ export default function SalesReport() {
           { month: "Mar", sales: 220000000, orders: 5 },
           { month: "Apr", sales: 280000000, orders: 6 },
           { month: "May", sales: 320000000, orders: 7 },
-          { month: "Jun", sales: 380000000, orders: 8 }
+          { month: "Jun", sales: 380000000, orders: 8 },
         ];
 
-        const filteredData = selectedStaff === "All" 
-          ? mockSalesData 
-          : mockSalesData.filter(staff => staff.staffId === selectedStaff);
+        const filteredData =
+          selectedStaff === "All"
+            ? mockSalesData
+            : mockSalesData.filter((staff) => staff.staffId === selectedStaff);
 
         setSalesData(filteredData);
         setStaffPerformance(mockSalesData);
         setMonthlyTrend(mockMonthlyTrend);
-        
-        const totalSales = filteredData.reduce((sum, staff) => sum + staff.totalRevenue, 0);
-        const totalOrders = filteredData.reduce((sum, staff) => sum + staff.totalOrders, 0);
-        const topPerformer = mockSalesData.reduce((prev, current) => 
+
+        const totalSales = filteredData.reduce(
+          (sum, staff) => sum + staff.totalRevenue,
+          0
+        );
+        const totalOrders = filteredData.reduce(
+          (sum, staff) => sum + staff.totalOrders,
+          0
+        );
+        const topPerformer = mockSalesData.reduce((prev, current) =>
           prev.totalRevenue > current.totalRevenue ? prev : current
         );
 
@@ -157,7 +160,7 @@ export default function SalesReport() {
           totalSales,
           totalOrders,
           averageOrderValue: totalOrders > 0 ? totalSales / totalOrders : 0,
-          topPerformer
+          topPerformer,
         });
 
         setLoading(false);
@@ -167,7 +170,12 @@ export default function SalesReport() {
       message.error("Failed to load sales data");
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, selectedStaff]);
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [fetchSalesData]);
 
   const staffOptions = [
     { value: "All", label: "All Staff" },
@@ -175,7 +183,7 @@ export default function SalesReport() {
     { value: "STAFF002", label: "Trần Thị B" },
     { value: "STAFF003", label: "Lê Văn C" },
     { value: "STAFF004", label: "Phạm Thị D" },
-    { value: "STAFF005", label: "Hoàng Văn E" }
+    { value: "STAFF005", label: "Hoàng Văn E" },
   ];
 
   const columns = [
@@ -187,12 +195,20 @@ export default function SalesReport() {
       render: (rank) => (
         <div className="text-center">
           {rank <= 3 ? (
-            <TrophyOutlined className={`text-xl ${rank === 1 ? 'text-yellow-500' : rank === 2 ? 'text-gray-400' : 'text-orange-500'}`} />
+            <TrophyOutlined
+              className={`text-xl ${
+                rank === 1
+                  ? "text-yellow-500"
+                  : rank === 2
+                  ? "text-gray-400"
+                  : "text-orange-500"
+              }`}
+            />
           ) : (
             <span className="text-gray-500">#{rank}</span>
           )}
         </div>
-      )
+      ),
     },
     {
       title: "Staff Name",
@@ -203,7 +219,7 @@ export default function SalesReport() {
           <div className="font-semibold">{name}</div>
           <div className="text-sm text-gray-500">{record.staffId}</div>
         </div>
-      )
+      ),
     },
     {
       title: "Total Orders",
@@ -215,7 +231,7 @@ export default function SalesReport() {
           <div className="text-lg font-semibold">{orders}</div>
           <div className="text-sm text-gray-500">orders</div>
         </div>
-      )
+      ),
     },
     {
       title: "Total Revenue",
@@ -225,10 +241,10 @@ export default function SalesReport() {
       render: (revenue) => (
         <div className="text-right">
           <div className="text-lg font-semibold text-green-600">
-            {revenue.toLocaleString('vi-VN')} VND
+            {revenue.toLocaleString("vi-VN")} VND
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Avg Order Value",
@@ -237,11 +253,9 @@ export default function SalesReport() {
       align: "right",
       render: (avg) => (
         <div className="text-right">
-          <div className="font-semibold">
-            {avg.toLocaleString('vi-VN')} VND
-          </div>
+          <div className="font-semibold">{avg.toLocaleString("vi-VN")} VND</div>
         </div>
-      )
+      ),
     },
     {
       title: "Commission",
@@ -251,10 +265,10 @@ export default function SalesReport() {
       render: (commission) => (
         <div className="text-right">
           <div className="font-semibold text-blue-600">
-            {commission.toLocaleString('vi-VN')} VND
+            {commission.toLocaleString("vi-VN")} VND
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Performance",
@@ -268,17 +282,17 @@ export default function SalesReport() {
             size={60}
             percent={performance}
             strokeColor={{
-              '0%': '#108ee9',
-              '100%': '#87d068',
+              "0%": "#108ee9",
+              "100%": "#87d068",
             }}
           />
           <div className="text-xs text-gray-500 mt-1">{performance}%</div>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
   const exportReport = () => {
     message.success("Report exported successfully!");
@@ -292,14 +306,18 @@ export default function SalesReport() {
             <UserOutlined className="mr-2" />
             Sales Report by Staff
           </h2>
-          <p className="text-gray-600">Track sales performance and commission by sales staff</p>
+          <p className="text-gray-600">
+            Track sales performance and commission by sales staff
+          </p>
         </div>
 
         {/* Filters */}
         <Card className="mb-6">
           <Row gutter={16} align="middle">
             <Col span={8}>
-              <label className="block text-sm font-medium mb-2">Date Range:</label>
+              <label className="block text-sm font-medium mb-2">
+                Date Range:
+              </label>
               <RangePicker
                 value={dateRange}
                 onChange={setDateRange}
@@ -308,7 +326,9 @@ export default function SalesReport() {
               />
             </Col>
             <Col span={8}>
-              <label className="block text-sm font-medium mb-2">Staff Filter:</label>
+              <label className="block text-sm font-medium mb-2">
+                Staff Filter:
+              </label>
               <Select
                 value={selectedStaff}
                 onChange={setSelectedStaff}
@@ -318,8 +338,8 @@ export default function SalesReport() {
             </Col>
             <Col span={8}>
               <label className="block text-sm font-medium mb-2">Actions:</label>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<DownloadOutlined />}
                 onClick={exportReport}
                 className="w-full"
@@ -340,7 +360,7 @@ export default function SalesReport() {
                 precision={0}
                 prefix={<DollarOutlined />}
                 suffix="VND"
-                valueStyle={{ color: '#3f8600' }}
+                valueStyle={{ color: "#3f8600" }}
               />
             </Card>
           </Col>
@@ -350,7 +370,7 @@ export default function SalesReport() {
                 title="Total Orders"
                 value={summaryStats.totalOrders}
                 prefix={<ShoppingCartOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: "#1890ff" }}
               />
             </Card>
           </Col>
@@ -362,7 +382,7 @@ export default function SalesReport() {
                 precision={0}
                 prefix={<DollarOutlined />}
                 suffix="VND"
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: "#722ed1" }}
               />
             </Card>
           </Col>
@@ -372,7 +392,7 @@ export default function SalesReport() {
                 title="Top Performer"
                 value={summaryStats.topPerformer?.staffName || "N/A"}
                 prefix={<TrophyOutlined />}
-                valueStyle={{ color: '#fa8c16' }}
+                valueStyle={{ color: "#fa8c16" }}
               />
             </Card>
           </Col>
@@ -404,16 +424,25 @@ export default function SalesReport() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="totalRevenue"
                   >
                     {staffPerformance.slice(0, 5).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value.toLocaleString('vi-VN')} VND`} />
+                  <Tooltip
+                    formatter={(value) =>
+                      `${value.toLocaleString("vi-VN")} VND`
+                    }
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </Card>
@@ -424,13 +453,17 @@ export default function SalesReport() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value) => `${value.toLocaleString('vi-VN')} VND`} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke="#1677ff" 
+                  <Tooltip
+                    formatter={(value) =>
+                      `${value.toLocaleString("vi-VN")} VND`
+                    }
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#1677ff"
                     strokeWidth={2}
-                    dot={{ fill: '#1677ff', strokeWidth: 2, r: 4 }}
+                    dot={{ fill: "#1677ff", strokeWidth: 2, r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -445,8 +478,14 @@ export default function SalesReport() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="staffName" />
               <YAxis />
-              <Tooltip formatter={(value) => `${value.toLocaleString('vi-VN')} VND`} />
-              <Bar dataKey="totalRevenue" fill="#1677ff" radius={[4, 4, 0, 0]} />
+              <Tooltip
+                formatter={(value) => `${value.toLocaleString("vi-VN")} VND`}
+              />
+              <Bar
+                dataKey="totalRevenue"
+                fill="#1677ff"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </Card>

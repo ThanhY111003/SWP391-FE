@@ -10,7 +10,6 @@ import {
   message,
   Popconfirm,
 } from "antd";
-import axios from "axios";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -72,10 +71,7 @@ export default function ManageStaff() {
 
       if (editingStaff) {
         // update
-        await apiClient.put(
-          `/api/dealer/staff/${editingStaff.id}`,
-          values
-        );
+        await apiClient.put(`/api/dealer/staff/${editingStaff.id}`, values);
         message.success("Update staff successfully!");
       } else {
         // create

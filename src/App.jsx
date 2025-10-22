@@ -29,21 +29,44 @@ function App() {
 
         {/* Dealer */}
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />
-        <Route path="/dealer/manageStaff" element={<ManageStaff />} />
+        <Route path="/dealer/catalog" element={<VehicleCatalog />} />
+        <Route path="/dealer/comparison" element={<VehicleComparison />} />
         <Route path="/dealer/orders" element={<ManageOrders />} />
+        <Route path="/dealer/orders/:id" element={<OrderDetail />} />
+        <Route path="/dealer/inventory" element={<Inventory />} />
+        <Route path="/dealer/customers" element={<CustomerHistory />} />
+        <Route path="/dealer/sales-report" element={<SalesReport />} />
+        <Route path="/dealer/debt-report" element={<DebtReport />} />
+        <Route path="/dealer/colors" element={<ColorManagement />} />
+        <Route path="/dealer/staff" element={<ManageStaff />} />
+        <Route path="/dealer/manageStaff" element={<ManageStaff />} />
 
         {/* EVM */}
-        <Route path="/evm/ManageDealers" element={<AuthGuard><ManageDealers /></AuthGuard>} />
+        <Route
+          path="/evm/ManageDealers"
+          element={
+            <AuthGuard>
+              <ManageDealers />
+            </AuthGuard>
+          }
+        />
 
         {/* Manufacturer */}
         <Route
           path="/manufacturer/dealerManagement"
-          element={<AuthGuard><DealerManagement /></AuthGuard>}
+          element={
+            <AuthGuard>
+              <DealerManagement />
+            </AuthGuard>
+          }
         />
         <Route path="/manufacturer/priceTable" element={<PriceTable />} />
-        
+
         {/* Redirect manufacturer root to dealerManagement */}
-        <Route path="/manufacturer" element={<Navigate to="/manufacturer/dealerManagement" replace />} />
+        <Route
+          path="/manufacturer"
+          element={<Navigate to="/manufacturer/dealerManagement" replace />}
+        />
 
         {/* Default route (fallback) */}
         <Route path="*" element={<Navigate to="/login" replace />} />

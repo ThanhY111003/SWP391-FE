@@ -15,7 +15,6 @@ import {
 } from "antd";
 import api from "../../config/axios";
 import DealerLayout from "../components/dealerlayout";
-import apiClient from "../../utils/axiosConfig";
 
 const { Option } = Select;
 
@@ -29,19 +28,22 @@ export default function ManageOrders() {
   //  Thêm: lưu bảng giá hiệu lực hiện tại
   const [priceTable, setPriceTable] = useState(null);
 
-
   //  1. Fetch danh sách đơn hàng từ database
   const fetchOrders = async () => {
     setLoading(true);
-    
+
     try {
       const res = await api.get("/dealer/orders");
       console.log("API Response:", res.data);
-      
+
       // API trả về format: { success: true, data: [...] }
       if (res.data && res.data.success && res.data.data) {
         setOrders(res.data.data);
-        console.log("Orders loaded from database:", res.data.data.length, "orders");
+        console.log(
+          "Orders loaded from database:",
+          res.data.data.length,
+          "orders"
+        );
       } else {
         console.log("No data received from API");
         setOrders([]);
@@ -66,11 +68,11 @@ export default function ManageOrders() {
             id: 1,
             name: "Dealer ABC",
             code: "DL001",
-            levelName: "Gold"
+            levelName: "Gold",
           },
           createdBy: {
             username: "staff001",
-            fullName: "Nguyễn Văn A"
+            fullName: "Nguyễn Văn A",
           },
           orderDetails: [
             {
@@ -79,9 +81,9 @@ export default function ManageOrders() {
               vehicleColorName: "Đỏ",
               quantity: 5,
               unitPrice: 50000000,
-              totalPrice: 250000000
-            }
-          ]
+              totalPrice: 250000000,
+            },
+          ],
         },
         {
           id: 2,
@@ -99,11 +101,11 @@ export default function ManageOrders() {
             id: 1,
             name: "Dealer ABC",
             code: "DL001",
-            levelName: "Gold"
+            levelName: "Gold",
           },
           createdBy: {
             username: "staff002",
-            fullName: "Trần Thị B"
+            fullName: "Trần Thị B",
           },
           orderDetails: [
             {
@@ -112,9 +114,9 @@ export default function ManageOrders() {
               vehicleColorName: "Xanh",
               quantity: 3,
               unitPrice: 70000000,
-              totalPrice: 210000000
-            }
-          ]
+              totalPrice: 210000000,
+            },
+          ],
         },
       ]);
     } finally {
@@ -127,7 +129,7 @@ export default function ManageOrders() {
     try {
       const res = await api.get("/manufacturer/pricetables/active");
       console.log("Price table API Response:", res.data);
-      
+
       if (res.data && res.data.success && res.data.data) {
         setPriceTable(res.data.data);
         console.log("Price table loaded from database");
@@ -136,7 +138,10 @@ export default function ManageOrders() {
         setPriceTable(null);
       }
     } catch (err) {
-      console.log("Price table API not available, using mock data:", err.message);
+      console.log(
+        "Price table API not available, using mock data:",
+        err.message
+      );
       // Fallback về mock data khi API chưa sẵn sàng
       setPriceTable({
         name: "Bảng giá Q4-2025 (Mock Data)",
@@ -187,20 +192,26 @@ export default function ManageOrders() {
       if (editingOrder) {
         // Update existing order
         try {
-          const res = await api.put(`/dealer/orders/${editingOrder.id}`, values);
+          const res = await api.put(
+            `/dealer/orders/${editingOrder.id}`,
+            values
+          );
           if (res.data && res.data.success) {
             message.success("Cập nhật đơn hàng thành công!");
           } else {
             message.error("Cập nhật đơn hàng thất bại!");
           }
         } catch (err) {
-          console.log("Update API not available, updating locally:", err.message);
+          console.log(
+            "Update API not available, updating locally:",
+            err.message
+          );
           // Fallback: cập nhật local state
-          setOrders(prev => prev.map(order => 
-            order.id === editingOrder.id 
-              ? { ...order, ...values }
-              : order
-          ));
+          setOrders((prev) =>
+            prev.map((order) =>
+              order.id === editingOrder.id ? { ...order, ...values } : order
+            )
+          );
           message.success("Cập nhật đơn hàng thành công (chế độ offline)!");
         }
       } else {
@@ -213,27 +224,32 @@ export default function ManageOrders() {
             message.error("Tạo đơn hàng thất bại!");
           }
         } catch (err) {
-          console.log("Create API not available, creating locally:", err.message);
+          console.log(
+            "Create API not available, creating locally:",
+            err.message
+          );
           // Fallback: thêm vào local state
           const newOrder = {
             id: Date.now(), // Temporary ID
             ...values,
             status: "PENDING",
-            orderDate: new Date().toISOString().split('T')[0],
+            orderDate: new Date().toISOString().split("T")[0],
             createdBy: {
-              username: localStorage.getItem('username') || 'current_user',
-              fullName: 'Current User'
+              username: localStorage.getItem("username") || "current_user",
+              fullName: "Current User",
             },
-            orderDetails: [{
-              id: Date.now(),
-              vehicleModelName: values.model,
-              vehicleColorName: "Default",
-              quantity: values.quantity,
-              unitPrice: values.unitPrice,
-              totalPrice: values.totalPrice
-            }]
+            orderDetails: [
+              {
+                id: Date.now(),
+                vehicleModelName: values.model,
+                vehicleColorName: "Default",
+                quantity: values.quantity,
+                unitPrice: values.unitPrice,
+                totalPrice: values.totalPrice,
+              },
+            ],
           };
-          setOrders(prev => [...prev, newOrder]);
+          setOrders((prev) => [...prev, newOrder]);
           message.success("Tạo đơn hàng thành công (chế độ offline)!");
         }
       }
@@ -258,7 +274,7 @@ export default function ManageOrders() {
     } catch (err) {
       console.log("Delete API not available, deleting locally:", err.message);
       // Fallback: xóa khỏi local state
-      setOrders(prev => prev.filter(order => order.id !== id));
+      setOrders((prev) => prev.filter((order) => order.id !== id));
       message.success("Xóa đơn hàng thành công (chế độ offline)!");
     }
   };
@@ -278,20 +294,20 @@ export default function ManageOrders() {
 
   //  7. Cấu hình bảng
   const columns = [
-    { 
-      title: "Order Code", 
-      dataIndex: "orderCode", 
+    {
+      title: "Order Code",
+      dataIndex: "orderCode",
       key: "orderCode",
-      width: 120
+      width: 120,
     },
-    { 
-      title: "Order Date", 
-      dataIndex: "orderDate", 
+    {
+      title: "Order Date",
+      dataIndex: "orderDate",
       key: "orderDate",
-      width: 120
+      width: 120,
     },
-    { 
-      title: "Vehicle Details", 
+    {
+      title: "Vehicle Details",
       key: "vehicleDetails",
       render: (_, record) => {
         const details = record.orderDetails || [];
@@ -299,40 +315,43 @@ export default function ManageOrders() {
           <div>
             {details.map((detail, index) => (
               <div key={index} className="text-sm">
-                <div>{detail.vehicleModelName} - {detail.vehicleColorName}</div>
+                <div>
+                  {detail.vehicleModelName} - {detail.vehicleColorName}
+                </div>
                 <div className="text-gray-500">Qty: {detail.quantity}</div>
               </div>
             ))}
           </div>
         );
-      }
+      },
     },
-    { 
-      title: "Total Amount (VND)", 
-      dataIndex: "totalAmount", 
+    {
+      title: "Total Amount (VND)",
+      dataIndex: "totalAmount",
       key: "totalAmount",
-      render: (amount) => amount?.toLocaleString('vi-VN'),
-      width: 150
+      render: (amount) => amount?.toLocaleString("vi-VN"),
+      width: 150,
     },
-    { 
-      title: "Payment Progress", 
+    {
+      title: "Payment Progress",
       key: "paymentProgress",
       render: (_, record) => (
         <div>
           <div className="text-sm">{record.paymentProgress}%</div>
           <div className="text-xs text-gray-500">
-            {record.paidAmount?.toLocaleString('vi-VN')} / {record.totalAmount?.toLocaleString('vi-VN')}
+            {record.paidAmount?.toLocaleString("vi-VN")} /{" "}
+            {record.totalAmount?.toLocaleString("vi-VN")}
           </div>
         </div>
       ),
-      width: 120
+      width: 120,
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: renderStatus,
-      width: 100
+      width: 100,
     },
     {
       title: "Created By",
@@ -343,23 +362,27 @@ export default function ManageOrders() {
           <div className="text-gray-500">{record.createdBy?.username}</div>
         </div>
       ),
-      width: 120
+      width: 120,
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <div className="space-x-2">
-          <Button size="small" onClick={() => openModal(record)}>Edit</Button>
+          <Button size="small" onClick={() => openModal(record)}>
+            Edit
+          </Button>
           <Popconfirm
             title="Delete this order?"
             onConfirm={() => handleDelete(record.id)}
           >
-            <Button size="small" danger>Delete</Button>
+            <Button size="small" danger>
+              Delete
+            </Button>
           </Popconfirm>
         </div>
       ),
-      width: 120
+      width: 120,
     },
   ];
 
@@ -380,16 +403,21 @@ export default function ManageOrders() {
 
         {/* ✅ Hiển thị bảng giá đang hiệu lực */}
         {priceTable && (
-          <Card className="mb-6" title={`📊 ${priceTable.name || 'Bảng giá hiện hành'}`}>
+          <Card
+            className="mb-6"
+            title={`📊 ${priceTable.name || "Bảng giá hiện hành"}`}
+          >
             <p>
               Hiệu lực: {priceTable.effectiveFrom} → {priceTable.effectiveTo}
             </p>
             <ul className="list-disc ml-5">
-              {priceTable.items && priceTable.items.map((item, i) => (
-                <li key={i}>
-                  {item.model || item.vehicleModelName}: <strong>{item.price?.toLocaleString('vi-VN')} VND</strong>
-                </li>
-              ))}
+              {priceTable.items &&
+                priceTable.items.map((item, i) => (
+                  <li key={i}>
+                    {item.model || item.vehicleModelName}:{" "}
+                    <strong>{item.price?.toLocaleString("vi-VN")} VND</strong>
+                  </li>
+                ))}
             </ul>
           </Card>
         )}
@@ -425,11 +453,16 @@ export default function ManageOrders() {
             >
               {/* ✅ Danh sách model lấy từ bảng giá hiệu lực */}
               <Select placeholder="Select car model">
-                {priceTable?.items && priceTable.items.map((item) => (
-                  <Option key={item.model || item.vehicleModelName} value={item.model || item.vehicleModelName}>
-                    {item.model || item.vehicleModelName} ({item.price?.toLocaleString('vi-VN')} VND)
-                  </Option>
-                ))}
+                {priceTable?.items &&
+                  priceTable.items.map((item) => (
+                    <Option
+                      key={item.model || item.vehicleModelName}
+                      value={item.model || item.vehicleModelName}
+                    >
+                      {item.model || item.vehicleModelName} (
+                      {item.price?.toLocaleString("vi-VN")} VND)
+                    </Option>
+                  ))}
               </Select>
             </Form.Item>
 

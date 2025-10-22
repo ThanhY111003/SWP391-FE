@@ -1,27 +1,26 @@
 // src/pages/dealer/colorManagement.jsx
 import { useEffect, useState } from "react";
-import { 
-  Card, 
-  Table, 
-  Tag, 
-  Button, 
-  Modal, 
-  Form, 
-  Input, 
-  Space, 
+import {
+  Card,
+  Table,
+  Tag,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Space,
   Popconfirm,
-  message,
   Spin,
   Row,
   Col,
-  InputNumber
+  InputNumber,
 } from "antd";
-import { 
+import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   StopOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
@@ -50,26 +49,26 @@ export default function ColorManagement() {
           id: 1,
           colorName: "Pearl White",
           hexCode: "#FFFFFF",
-          isActive: true
+          isActive: true,
         },
         {
           id: 2,
           colorName: "Midnight Silver",
           hexCode: "#2C2C2C",
-          isActive: true
+          isActive: true,
         },
         {
           id: 3,
           colorName: "Deep Blue",
           hexCode: "#1E3A8A",
-          isActive: true
+          isActive: true,
         },
         {
           id: 4,
           colorName: "Red Metallic",
           hexCode: "#DC2626",
-          isActive: false
-        }
+          isActive: false,
+        },
       ]);
     } finally {
       setLoading(false);
@@ -94,10 +93,13 @@ export default function ColorManagement() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (editingColor) {
         // Update color
-        const response = await apiClient.put(`/api/colors/${editingColor.id}`, values);
+        const response = await apiClient.put(
+          `/api/colors/${editingColor.id}`,
+          values
+        );
         if (response.data.success) {
           toast.success("Color updated successfully!", {
             position: "top-right",
@@ -176,14 +178,19 @@ export default function ColorManagement() {
 
   const handleToggleStatus = async (id, currentStatus) => {
     try {
-      const endpoint = currentStatus ? `/api/colors/${id}/inactive` : `/api/colors/${id}/reactive`;
+      const endpoint = currentStatus
+        ? `/api/colors/${id}/inactive`
+        : `/api/colors/${id}/reactive`;
       const response = await apiClient.put(endpoint);
-      
+
       if (response.data.success) {
-        toast.success(`Color ${currentStatus ? 'deactivated' : 'activated'} successfully!`, {
-          position: "top-right",
-          duration: 3000,
-        });
+        toast.success(
+          `Color ${currentStatus ? "deactivated" : "activated"} successfully!`,
+          {
+            position: "top-right",
+            duration: 3000,
+          }
+        );
         fetchColors();
       } else {
         toast.error(response.data.message || "Failed to update color status!", {
@@ -214,13 +221,13 @@ export default function ColorManagement() {
       key: "colorName",
       render: (text, record) => (
         <div className="flex items-center gap-2">
-          <div 
+          <div
             className="w-8 h-8 rounded border-2 border-gray-300"
             style={{ backgroundColor: record.hexCode }}
           ></div>
           <span className="font-medium">{text}</span>
         </div>
-      )
+      ),
     },
     {
       title: "Hex Code",
@@ -230,33 +237,36 @@ export default function ColorManagement() {
         <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
           {hex}
         </code>
-      )
+      ),
     },
     {
       title: "Status",
       dataIndex: "isActive",
       key: "isActive",
       render: (isActive) => (
-        <Tag color={isActive ? "green" : "red"} icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}>
+        <Tag
+          color={isActive ? "green" : "red"}
+          icon={isActive ? <CheckCircleOutlined /> : <StopOutlined />}
+        >
           {isActive ? "Active" : "Inactive"}
         </Tag>
       ),
-      align: "center"
+      align: "center",
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button 
-            type="default" 
+          <Button
+            type="default"
             size="small"
             onClick={() => openModal(record)}
             icon={<EditOutlined />}
           >
             Edit
           </Button>
-          <Button 
+          <Button
             type={record.isActive ? "default" : "primary"}
             size="small"
             onClick={() => handleToggleStatus(record.id, record.isActive)}
@@ -271,9 +281,9 @@ export default function ColorManagement() {
             okText="Yes"
             cancelText="No"
           >
-            <Button 
-              type="primary" 
-              danger 
+            <Button
+              type="primary"
+              danger
               size="small"
               icon={<DeleteOutlined />}
             >
@@ -282,8 +292,8 @@ export default function ColorManagement() {
           </Popconfirm>
         </Space>
       ),
-      align: "center"
-    }
+      align: "center",
+    },
   ];
 
   return (
@@ -295,10 +305,12 @@ export default function ColorManagement() {
               <h2 className="text-2xl font-bold mb-2 text-gray-800">
                 🎨 Color Management
               </h2>
-              <p className="text-gray-600">Manage vehicle colors and their availability</p>
+              <p className="text-gray-600">
+                Manage vehicle colors and their availability
+              </p>
             </div>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               icon={<PlusOutlined />}
               onClick={() => openModal()}
             >
@@ -333,7 +345,7 @@ export default function ColorManagement() {
             form={form}
             layout="vertical"
             initialValues={{
-              isActive: true
+              isActive: true,
             }}
           >
             <Form.Item
@@ -341,7 +353,10 @@ export default function ColorManagement() {
               label="Color Name"
               rules={[
                 { required: true, message: "Please enter color name!" },
-                { min: 2, message: "Color name must be at least 2 characters!" }
+                {
+                  min: 2,
+                  message: "Color name must be at least 2 characters!",
+                },
               ]}
             >
               <Input placeholder="e.g., Pearl White" />
@@ -352,7 +367,10 @@ export default function ColorManagement() {
               label="Hex Code"
               rules={[
                 { required: true, message: "Please enter hex code!" },
-                { pattern: /^#([A-Fa-f0-9]{6})$/, message: "Please enter valid hex code (e.g., #FFFFFF)!" }
+                {
+                  pattern: /^#([A-Fa-f0-9]{6})$/,
+                  message: "Please enter valid hex code (e.g., #FFFFFF)!",
+                },
               ]}
             >
               <Input placeholder="#FFFFFF" />
