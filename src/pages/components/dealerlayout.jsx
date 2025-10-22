@@ -1,6 +1,6 @@
 // src/pages/components/DealerLayout.jsx
 import { Layout, Menu } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
   ShoppingCartOutlined,
@@ -12,13 +12,14 @@ import {
   SwapOutlined,
   UserOutlined,
   ExclamationCircleOutlined,
-  BgColorsOutlined,  // New icon for colors
+  BgColorsOutlined, // New icon for colors
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
 
 export default function DealerLayout({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     {
@@ -99,21 +100,38 @@ export default function DealerLayout({ children }) {
     }
   };
 
+  // Tìm menu item active dựa trên URL hiện tại
+  const getSelectedKey = () => {
+    const currentPath = location.pathname;
+    const activeItem = menuItems.find((item) => item.path === currentPath);
+    return activeItem ? [activeItem.key] : ["dashboard"];
+  };
+
   return (
     <Layout className="min-h-screen">
-      <Sider theme="dark">
+      <Sider
+        theme="dark"
+        style={{
+          overflow: "auto",
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+        }}
+      >
         <div className="text-white text-center py-4 font-bold text-xl">
           Dealer Portal
         </div>
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["dashboard"]}
+          selectedKeys={getSelectedKey()}
           items={menuItems}
           onClick={handleClick}
         />
       </Sider>
-      <Layout>
+      <Layout style={{ marginLeft: 200 }}>
         <Header className="bg-white shadow px-6 text-lg font-semibold flex items-center">
           Agent management portal
         </Header>

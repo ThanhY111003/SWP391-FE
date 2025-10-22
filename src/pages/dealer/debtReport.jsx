@@ -1,47 +1,47 @@
 // src/pages/dealer/debtReport.jsx
 import { useEffect, useState } from "react";
-import { 
-  Card, 
-  Table, 
-  Select, 
-  DatePicker, 
-  Row, 
-  Col, 
-  Statistic, 
+import {
+  Card,
+  Table,
+  Select,
+  DatePicker,
+  Row,
+  Col,
+  Statistic,
   Tag,
   Button,
   Spin,
   message,
   Tabs,
   Progress,
-  Alert
+  Alert,
 } from "antd";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
 } from "recharts";
-import { 
-  ExclamationCircleOutlined, 
-  DollarOutlined, 
+import {
+  ExclamationCircleOutlined,
+  DollarOutlined,
   UserOutlined,
   CarOutlined,
   WarningOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
-  DownloadOutlined
+  DownloadOutlined,
 } from "@ant-design/icons";
 import DealerLayout from "../components/dealerlayout";
-import apiClient from "../../utils/axiosConfig";
+// import apiClient from "../../utils/axiosConfig"; // TODO: Uncomment when integrating real API
 import dayjs from "dayjs";
 
 const { RangePicker } = DatePicker;
@@ -51,8 +51,8 @@ const { TabPane } = Tabs;
 export default function DebtReport() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([
-    dayjs().subtract(90, 'days'),
-    dayjs()
+    dayjs().subtract(90, "days"),
+    dayjs(),
   ]);
   const [selectedDealer, setSelectedDealer] = useState("All");
   const [customerDebts, setCustomerDebts] = useState([]);
@@ -61,7 +61,7 @@ export default function DebtReport() {
     totalCustomerDebt: 0,
     totalManufacturerDebt: 0,
     overdueCount: 0,
-    totalDebt: 0
+    totalDebt: 0,
   });
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function DebtReport() {
             status: "Current",
             installmentPlan: "2 months",
             nextPaymentDate: "2024-02-15",
-            nextPaymentAmount: 22500000
+            nextPaymentAmount: 22500000,
           },
           {
             id: 2,
@@ -104,7 +104,7 @@ export default function DebtReport() {
             status: "Overdue",
             installmentPlan: "3 months",
             nextPaymentDate: "2024-02-10",
-            nextPaymentAmount: 22750000
+            nextPaymentAmount: 22750000,
           },
           {
             id: 3,
@@ -120,7 +120,7 @@ export default function DebtReport() {
             status: "Paid",
             installmentPlan: "1 month",
             nextPaymentDate: null,
-            nextPaymentAmount: 0
+            nextPaymentAmount: 0,
           },
           {
             id: 4,
@@ -136,8 +136,8 @@ export default function DebtReport() {
             status: "Overdue",
             installmentPlan: "4 months",
             nextPaymentDate: "2024-02-05",
-            nextPaymentAmount: 19833333
-          }
+            nextPaymentAmount: 19833333,
+          },
         ];
 
         const mockManufacturerDebts = [
@@ -155,7 +155,7 @@ export default function DebtReport() {
             status: "Current",
             creditLimit: 100000000,
             availableCredit: 77500000,
-            paymentTerms: "30 days"
+            paymentTerms: "30 days",
           },
           {
             id: 2,
@@ -171,7 +171,7 @@ export default function DebtReport() {
             status: "Overdue",
             creditLimit: 150000000,
             availableCredit: 104500000,
-            paymentTerms: "30 days"
+            paymentTerms: "30 days",
           },
           {
             id: 3,
@@ -187,22 +187,31 @@ export default function DebtReport() {
             status: "Paid",
             creditLimit: 80000000,
             availableCredit: 80000000,
-            paymentTerms: "30 days"
-          }
+            paymentTerms: "30 days",
+          },
         ];
 
         setCustomerDebts(mockCustomerDebts);
         setManufacturerDebts(mockManufacturerDebts);
 
-        const totalCustomerDebt = mockCustomerDebts.reduce((sum, debt) => sum + debt.remainingAmount, 0);
-        const totalManufacturerDebt = mockManufacturerDebts.reduce((sum, debt) => sum + debt.remainingAmount, 0);
-        const overdueCount = [...mockCustomerDebts, ...mockManufacturerDebts].filter(debt => debt.status === "Overdue").length;
+        const totalCustomerDebt = mockCustomerDebts.reduce(
+          (sum, debt) => sum + debt.remainingAmount,
+          0
+        );
+        const totalManufacturerDebt = mockManufacturerDebts.reduce(
+          (sum, debt) => sum + debt.remainingAmount,
+          0
+        );
+        const overdueCount = [
+          ...mockCustomerDebts,
+          ...mockManufacturerDebts,
+        ].filter((debt) => debt.status === "Overdue").length;
 
         setSummaryStats({
           totalCustomerDebt,
           totalManufacturerDebt,
           overdueCount,
-          totalDebt: totalCustomerDebt + totalManufacturerDebt
+          totalDebt: totalCustomerDebt + totalManufacturerDebt,
         });
 
         setLoading(false);
@@ -216,19 +225,27 @@ export default function DebtReport() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Paid": return "green";
-      case "Current": return "blue";
-      case "Overdue": return "red";
-      default: return "default";
+      case "Paid":
+        return "green";
+      case "Current":
+        return "blue";
+      case "Overdue":
+        return "red";
+      default:
+        return "default";
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "Paid": return <CheckCircleOutlined />;
-      case "Current": return <ClockCircleOutlined />;
-      case "Overdue": return <WarningOutlined />;
-      default: return null;
+      case "Paid":
+        return <CheckCircleOutlined />;
+      case "Current":
+        return <ClockCircleOutlined />;
+      case "Overdue":
+        return <WarningOutlined />;
+      default:
+        return null;
     }
   };
 
@@ -242,18 +259,20 @@ export default function DebtReport() {
           <div className="font-semibold">{name}</div>
           <div className="text-sm text-gray-500">{record.customerId}</div>
         </div>
-      )
+      ),
     },
     {
       title: "Order Code",
       dataIndex: "orderCode",
       key: "orderCode",
-      render: (code) => <code className="bg-gray-100 px-2 py-1 rounded">{code}</code>
+      render: (code) => (
+        <code className="bg-gray-100 px-2 py-1 rounded">{code}</code>
+      ),
     },
     {
       title: "Order Date",
       dataIndex: "orderDate",
-      key: "orderDate"
+      key: "orderDate",
     },
     {
       title: "Total Amount",
@@ -262,9 +281,11 @@ export default function DebtReport() {
       align: "right",
       render: (amount) => (
         <div className="text-right">
-          <div className="font-semibold">{amount.toLocaleString('vi-VN')} VND</div>
+          <div className="font-semibold">
+            {amount.toLocaleString("vi-VN")} VND
+          </div>
         </div>
-      )
+      ),
     },
     {
       title: "Paid Amount",
@@ -273,9 +294,9 @@ export default function DebtReport() {
       align: "right",
       render: (amount) => (
         <div className="text-right text-green-600">
-          {amount.toLocaleString('vi-VN')} VND
+          {amount.toLocaleString("vi-VN")} VND
         </div>
-      )
+      ),
     },
     {
       title: "Remaining",
@@ -285,10 +306,10 @@ export default function DebtReport() {
       render: (amount) => (
         <div className="text-right">
           <div className="font-semibold text-red-600">
-            {amount.toLocaleString('vi-VN')} VND
+            {amount.toLocaleString("vi-VN")} VND
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Due Date",
@@ -303,7 +324,7 @@ export default function DebtReport() {
             </div>
           )}
         </div>
-      )
+      ),
     },
     {
       title: "Status",
@@ -313,7 +334,7 @@ export default function DebtReport() {
         <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
           {status}
         </Tag>
-      )
+      ),
     },
     {
       title: "Next Payment",
@@ -324,15 +345,15 @@ export default function DebtReport() {
             <>
               <div className="text-sm">{record.nextPaymentDate}</div>
               <div className="font-semibold text-blue-600">
-                {record.nextPaymentAmount.toLocaleString('vi-VN')} VND
+                {record.nextPaymentAmount.toLocaleString("vi-VN")} VND
               </div>
             </>
           ) : (
             <span className="text-gray-500">-</span>
           )}
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const manufacturerColumns = [
@@ -345,18 +366,20 @@ export default function DebtReport() {
           <div className="font-semibold">{name}</div>
           <div className="text-sm text-gray-500">{record.dealerId}</div>
         </div>
-      )
+      ),
     },
     {
       title: "Order Code",
       dataIndex: "orderCode",
       key: "orderCode",
-      render: (code) => <code className="bg-gray-100 px-2 py-1 rounded">{code}</code>
+      render: (code) => (
+        <code className="bg-gray-100 px-2 py-1 rounded">{code}</code>
+      ),
     },
     {
       title: "Order Date",
       dataIndex: "orderDate",
-      key: "orderDate"
+      key: "orderDate",
     },
     {
       title: "Total Amount",
@@ -365,9 +388,11 @@ export default function DebtReport() {
       align: "right",
       render: (amount) => (
         <div className="text-right">
-          <div className="font-semibold">{amount.toLocaleString('vi-VN')} VND</div>
+          <div className="font-semibold">
+            {amount.toLocaleString("vi-VN")} VND
+          </div>
         </div>
-      )
+      ),
     },
     {
       title: "Paid Amount",
@@ -376,9 +401,9 @@ export default function DebtReport() {
       align: "right",
       render: (amount) => (
         <div className="text-right text-green-600">
-          {amount.toLocaleString('vi-VN')} VND
+          {amount.toLocaleString("vi-VN")} VND
         </div>
-      )
+      ),
     },
     {
       title: "Remaining",
@@ -388,10 +413,10 @@ export default function DebtReport() {
       render: (amount) => (
         <div className="text-right">
           <div className="font-semibold text-red-600">
-            {amount.toLocaleString('vi-VN')} VND
+            {amount.toLocaleString("vi-VN")} VND
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Credit Limit",
@@ -400,12 +425,12 @@ export default function DebtReport() {
       align: "right",
       render: (limit, record) => (
         <div className="text-right">
-          <div>{limit.toLocaleString('vi-VN')} VND</div>
+          <div>{limit.toLocaleString("vi-VN")} VND</div>
           <div className="text-sm text-gray-500">
-            Available: {record.availableCredit.toLocaleString('vi-VN')} VND
+            Available: {record.availableCredit.toLocaleString("vi-VN")} VND
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Due Date",
@@ -420,7 +445,7 @@ export default function DebtReport() {
             </div>
           )}
         </div>
-      )
+      ),
     },
     {
       title: "Status",
@@ -430,19 +455,45 @@ export default function DebtReport() {
         <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
           {status}
         </Tag>
-      )
-    }
+      ),
+    },
   ];
 
   const debtChartData = [
-    { name: "Customer Debt", value: summaryStats.totalCustomerDebt, color: "#ff4d4f" },
-    { name: "Manufacturer Debt", value: summaryStats.totalManufacturerDebt, color: "#1890ff" }
+    {
+      name: "Customer Debt",
+      value: summaryStats.totalCustomerDebt,
+      color: "#ff4d4f",
+    },
+    {
+      name: "Manufacturer Debt",
+      value: summaryStats.totalManufacturerDebt,
+      color: "#1890ff",
+    },
   ];
 
   const statusChartData = [
-    { name: "Paid", value: [...customerDebts, ...manufacturerDebts].filter(d => d.status === "Paid").length, color: "#52c41a" },
-    { name: "Current", value: [...customerDebts, ...manufacturerDebts].filter(d => d.status === "Current").length, color: "#1890ff" },
-    { name: "Overdue", value: [...customerDebts, ...manufacturerDebts].filter(d => d.status === "Overdue").length, color: "#ff4d4f" }
+    {
+      name: "Paid",
+      value: [...customerDebts, ...manufacturerDebts].filter(
+        (d) => d.status === "Paid"
+      ).length,
+      color: "#52c41a",
+    },
+    {
+      name: "Current",
+      value: [...customerDebts, ...manufacturerDebts].filter(
+        (d) => d.status === "Current"
+      ).length,
+      color: "#1890ff",
+    },
+    {
+      name: "Overdue",
+      value: [...customerDebts, ...manufacturerDebts].filter(
+        (d) => d.status === "Overdue"
+      ).length,
+      color: "#ff4d4f",
+    },
   ];
 
   const exportReport = () => {
@@ -457,7 +508,9 @@ export default function DebtReport() {
             <ExclamationCircleOutlined className="mr-2" />
             Debt Report
           </h2>
-          <p className="text-gray-600">Track outstanding debts from customers and to manufacturers</p>
+          <p className="text-gray-600">
+            Track outstanding debts from customers and to manufacturers
+          </p>
         </div>
 
         {/* Alerts */}
@@ -475,7 +528,9 @@ export default function DebtReport() {
         <Card className="mb-6">
           <Row gutter={16} align="middle">
             <Col span={8}>
-              <label className="block text-sm font-medium mb-2">Date Range:</label>
+              <label className="block text-sm font-medium mb-2">
+                Date Range:
+              </label>
               <RangePicker
                 value={dateRange}
                 onChange={setDateRange}
@@ -484,7 +539,9 @@ export default function DebtReport() {
               />
             </Col>
             <Col span={8}>
-              <label className="block text-sm font-medium mb-2">Dealer Filter:</label>
+              <label className="block text-sm font-medium mb-2">
+                Dealer Filter:
+              </label>
               <Select
                 value={selectedDealer}
                 onChange={setSelectedDealer}
@@ -499,8 +556,8 @@ export default function DebtReport() {
             </Col>
             <Col span={8}>
               <label className="block text-sm font-medium mb-2">Actions:</label>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<DownloadOutlined />}
                 onClick={exportReport}
                 className="w-full"
@@ -521,7 +578,7 @@ export default function DebtReport() {
                 precision={0}
                 prefix={<UserOutlined />}
                 suffix="VND"
-                valueStyle={{ color: '#ff4d4f' }}
+                valueStyle={{ color: "#ff4d4f" }}
               />
             </Card>
           </Col>
@@ -533,7 +590,7 @@ export default function DebtReport() {
                 precision={0}
                 prefix={<CarOutlined />}
                 suffix="VND"
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: "#1890ff" }}
               />
             </Card>
           </Col>
@@ -545,7 +602,7 @@ export default function DebtReport() {
                 precision={0}
                 prefix={<DollarOutlined />}
                 suffix="VND"
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ color: "#722ed1" }}
               />
             </Card>
           </Col>
@@ -555,7 +612,7 @@ export default function DebtReport() {
                 title="Overdue Payments"
                 value={summaryStats.overdueCount}
                 prefix={<WarningOutlined />}
-                valueStyle={{ color: '#fa8c16' }}
+                valueStyle={{ color: "#fa8c16" }}
               />
             </Card>
           </Col>
@@ -572,7 +629,9 @@ export default function DebtReport() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -581,7 +640,11 @@ export default function DebtReport() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `${value.toLocaleString('vi-VN')} VND`} />
+                  <Tooltip
+                    formatter={(value) =>
+                      `${value.toLocaleString("vi-VN")} VND`
+                    }
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </Card>
@@ -595,7 +658,9 @@ export default function DebtReport() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
