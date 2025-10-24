@@ -12,6 +12,7 @@ import {
 } from "antd";
 import { useState, useEffect } from "react";
 import api from "../../config/axios";
+import AdminLayout from "../components/adminlayout";
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -83,7 +84,7 @@ export default function ManageUsers() {
           : null,
         // Convert single roleName to match API
         roleName: values.roleName,
-        dealerId: values.dealerId || 0, // Default to 0 if not provided
+        dealerId: values.dealerId ? parseInt(values.dealerId, 10) : 0, // Convert to number
       };
 
       // Remove roles field if exists (use roleName instead)
@@ -159,13 +160,14 @@ export default function ManageUsers() {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">User Management</h2>
-        <Button type="primary" onClick={() => setOpen(true)}>
-          + Create New
-        </Button>
-      </div>
+    <AdminLayout>
+      <div className="p-6 min-h-screen bg-gray-50">
+        <div className="flex justify-between mb-4">
+          <h2 className="text-xl font-bold">User Management</h2>
+          <Button type="primary" onClick={() => setOpen(true)}>
+            + Create New
+          </Button>
+        </div>
 
       <Table
         dataSource={users || []}
@@ -200,7 +202,6 @@ export default function ManageUsers() {
           onFinish={handleCreateUser}
           initialValues={{
             gender: "MALE",
-            dealerId: 0,
           }}
         >
           <Form.Item
@@ -291,29 +292,20 @@ export default function ManageUsers() {
             selectedRole === "DEALER_STAFF") && (
             <Form.Item
               name="dealerId"
-              label="Dealer"
-              rules={[{ required: true, message: "Vui lòng chọn dealer!" }]}
-            >
-              <Select
-                placeholder="Chọn dealer"
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
+              label="Dealer ID"
+              rules={[
+                { required: true, message: "Vui lòng nhập Dealer ID!" },
+                { 
+                  pattern: /^\d+$/, 
+                  message: "Dealer ID phải là số!" 
                 }
-              >
-                {dealers.map((dealer) => (
-                  <Select.Option
-                    key={dealer.id}
-                    value={dealer.id}
-                    label={dealer.dealerName}
-                  >
-                    {dealer.dealerName}
-                  </Select.Option>
-                ))}
-              </Select>
+              ]}
+            >
+              <Input 
+                placeholder="Nhập Dealer ID (số)" 
+                type="number"
+                min={1}
+              />
             </Form.Item>
           )}
 
@@ -327,6 +319,7 @@ export default function ManageUsers() {
           </Button>
         </Form>
       </Modal>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
