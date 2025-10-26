@@ -13,7 +13,6 @@ import {
   Typography,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import api from "../../config/axios";
 
 const { Title } = Typography;
@@ -33,7 +32,12 @@ export default function Login() {
 
       // Kiểm tra response structure theo API mới
       if (res.data.success && res.data.code === "OK") {
-        const { token, refreshToken, roleName, username: responseUsername } = res.data.data;
+        const {
+          token,
+          refreshToken,
+          roleName,
+          username: responseUsername,
+        } = res.data.data;
 
         // Lưu thông tin vào localStorage
         localStorage.setItem("token", token);
@@ -59,7 +63,7 @@ export default function Login() {
         // 🔹 Điều hướng chính xác theo roleName từ API
         switch (roleName) {
           case "ADMIN":
-            navigate("/admin/ManageUsers");
+            navigate("/manufacturer/dealerManagement");
             break;
           case "EVM_STAFF":
             navigate("/evm/ManageDealers");
@@ -81,7 +85,8 @@ export default function Login() {
       }
     } catch (err) {
       // Xử lý lỗi từ API
-      const errorMessage = err.response?.data?.message || "Invalid username or password!";
+      const errorMessage =
+        err.response?.data?.message || "Invalid username or password!";
       message.error(errorMessage);
       console.error("Login error:", err);
     } finally {

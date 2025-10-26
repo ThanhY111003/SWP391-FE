@@ -31,20 +31,9 @@ export default function ManageUsers() {
 
       // Đảm bảo users luôn là array
       if (res.data && Array.isArray(res.data)) {
-        console.log("Using direct array format");
         setUsers(res.data);
-      } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
-        // Nếu response có format { data: [...] }
-        console.log("Using res.data.data format");
-        setUsers(res.data.data);
-      } else if (
-        res.data &&
-        res.data.success &&
-        res.data.data &&
-        Array.isArray(res.data.data)
-      ) {
-        // Nếu response có format { success: true, data: [...] }
-        console.log("Using success format");
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        // Xử lý các định dạng response phổ biến như { data: [...] } hoặc { success: true, data: [...] }
         setUsers(res.data.data);
       } else {
         console.warn("Unexpected API response format:", res.data);
@@ -62,16 +51,16 @@ export default function ManageUsers() {
   };
 
   const fetchDealers = async () => {
-    // try {
-    //   const res = await api.get("evm/dealers");
-    //   if (res.data && Array.isArray(res.data)) {
-    //     setDealers(res.data);
-    //   } else if (res.data?.data) {
-    //     setDealers(res.data.data);
-    //   }
-    // } catch (error) {
-    //   console.error("Error fetching dealers:", error);
-    // }
+    try {
+      const res = await api.get("evm/dealers");
+      if (res.data && Array.isArray(res.data)) {
+        setDealers(res.data);
+      } else if (res.data?.data) {
+        setDealers(res.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dealers:", error);
+    }
   };
 
   const handleCreateUser = async (values) => {

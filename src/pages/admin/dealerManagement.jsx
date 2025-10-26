@@ -1,8 +1,15 @@
-export { default } from "../admin/dealerManagement";
-/*
-// Legacy file kept for backward compatibility. The implementation moved to src/pages/admin/dealerManagement.jsx
 import { useState } from "react";
-import { Table, Card, Button, Modal, Form, Input, Select, InputNumber, Tag } from "antd";
+import {
+  Table,
+  Card,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  InputNumber,
+  Tag,
+} from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
@@ -79,20 +86,13 @@ const DealerManagement = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (s) => (
-        <Tag color={s === "Active" ? "green" : "red"}>{s}</Tag>
-      ),
+      render: (s) => <Tag color={s === "Active" ? "green" : "red"}>{s}</Tag>,
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <Button
-          icon={<EditOutlined />}
-          type="primary"
-          size="small"
-          onClick={() => showEditModal(record)}
-        >
+        <Button icon={<EditOutlined />} onClick={() => showEditModal(record)}>
           Edit
         </Button>
       ),
@@ -100,31 +100,19 @@ const DealerManagement = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <Card
-        title="Dealer Management"
-        extra={
-          <Button
-            icon={<PlusOutlined />}
-            type="primary"
-            onClick={showAddModal}
-          >
-            Add Dealer
-          </Button>
-        }
-      >
-        <Table
-          dataSource={dealers}
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
-        />
-      </Card>
+    <Card
+      title="Dealer Management"
+      extra={
+        <Button type="primary" icon={<PlusOutlined />} onClick={showAddModal}>
+          Add Dealer
+        </Button>
+      }
+    >
+      <Table columns={columns} dataSource={dealers} rowKey="id" />
 
-  {/* Modal thêm/sửa đại lý * /}
       <Modal
-        title={editingDealer ? "Edit Dealer" : "Add new Dealer"}
         open={isModalVisible}
+        title={editingDealer ? "Edit Dealer" : "Add Dealer"}
         onCancel={() => setIsModalVisible(false)}
         onOk={handleSave}
       >
@@ -132,43 +120,38 @@ const DealerManagement = () => {
           <Form.Item
             label="Dealer Name"
             name="name"
-            rules={[{ required: true, message: "Please enter the dealer name" }]}
+            rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
-
-          <Form.Item
-            label="Dealer Level"
-            name="level"
-            rules={[{ required: true }]}
-          >
+          <Form.Item label="Level" name="level" rules={[{ required: true }]}>
             <Select>
               <Option value="Level 1">Level 1</Option>
               <Option value="Level 2">Level 2</Option>
               <Option value="Level 3">Level 3</Option>
             </Select>
           </Form.Item>
-
-          <Form.Item
-            label="Quota" //Hạn mức
-            name="quota"
-            rules={[{ required: true, message: "Enter quota" }]}
-          >
-            <InputNumber min={1} className="w-full" />
+          <Form.Item label="Quota" name="quota" rules={[{ required: true }]}>
+            <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>
-
+          <Form.Item
+            label="Current Usage"
+            name="currentUsage"
+            rules={[{ required: true }]}
+          >
+            <InputNumber min={0} style={{ width: "100%" }} />
+          </Form.Item>
           <Form.Item
             label="Price Table"
             name="priceTable"
-            rules={[{ required: true, message: "Please enter the price table" }]}
+            rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </Card>
   );
 };
 
 export default DealerManagement;
-*/
