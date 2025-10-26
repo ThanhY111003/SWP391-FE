@@ -13,6 +13,7 @@ import {
   Typography,
 } from "antd";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import api from "../../config/axios";
 
 const { Title } = Typography;

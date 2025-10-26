@@ -13,8 +13,8 @@ import DebtReport from "./pages/dealer/debtReport";
 import ColorManagement from "./pages/dealer/colorManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageDealers from "./pages/evm/ManageDealers";
-import PriceTable from "./pages/manufacturer/priceTable";
-import DealerManagement from "./pages/manufacturer/dealerManagement";
+import PriceTable from "./pages/admin/priceTable";
+import DealerManagement from "./pages/admin/dealerManagement";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 
