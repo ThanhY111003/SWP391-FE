@@ -16,21 +16,31 @@ import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/manufacturer/priceTable";
 import DealerManagement from "./pages/manufacturer/dealerManagement";
 import AuthGuard from "./components/AuthGuard";
+import DebugAuth from "./components/DebugAuth";
 
 function App() {
   return (
     <BrowserRouter>
+      <DebugAuth />
       <Routes>
         {/* Auth */}
         <Route path="/login" element={<Login />} />
 
         {/* Admin */}
-        <Route path="/admin/ManageUsers" element={<ManageUsers />} />
+        <Route path="/admin/ManageUsers" element={<AuthGuard><ManageUsers /></AuthGuard>} />
 
         {/* Dealer */}
-        <Route path="/dealer/dashboard" element={<DealerDashboard />} />
-        <Route path="/dealer/manageStaff" element={<ManageStaff />} />
-        <Route path="/dealer/orders" element={<ManageOrders />} />
+        <Route path="/dealer/dashboard" element={<AuthGuard><DealerDashboard /></AuthGuard>} />
+        <Route path="/dealer/staff" element={<AuthGuard><ManageStaff /></AuthGuard>} />
+        <Route path="/dealer/orders" element={<AuthGuard><ManageOrders /></AuthGuard>} />
+        <Route path="/dealer/orders/:id" element={<AuthGuard><OrderDetail /></AuthGuard>} />
+        <Route path="/dealer/inventory" element={<AuthGuard><Inventory /></AuthGuard>} />
+        <Route path="/dealer/customers" element={<AuthGuard><CustomerHistory /></AuthGuard>} />
+        <Route path="/dealer/catalog" element={<AuthGuard><VehicleCatalog /></AuthGuard>} />
+        <Route path="/dealer/comparison" element={<AuthGuard><VehicleComparison /></AuthGuard>} />
+        <Route path="/dealer/sales-report" element={<AuthGuard><SalesReport /></AuthGuard>} />
+        <Route path="/dealer/debt-report" element={<AuthGuard><DebtReport /></AuthGuard>} />
+        <Route path="/dealer/colors" element={<AuthGuard><ColorManagement /></AuthGuard>} />
 
         {/* EVM */}
         <Route path="/evm/ManageDealers" element={<AuthGuard><ManageDealers /></AuthGuard>} />
@@ -40,7 +50,7 @@ function App() {
           path="/manufacturer/dealerManagement"
           element={<AuthGuard><DealerManagement /></AuthGuard>}
         />
-        <Route path="/manufacturer/priceTable" element={<PriceTable />} />
+        <Route path="/manufacturer/priceTable" element={<AuthGuard><PriceTable /></AuthGuard>} />
         
         {/* Redirect manufacturer root to dealerManagement */}
         <Route path="/manufacturer" element={<Navigate to="/manufacturer/dealerManagement" replace />} />
