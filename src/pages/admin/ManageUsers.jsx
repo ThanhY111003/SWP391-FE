@@ -12,7 +12,6 @@ import {
 } from "antd";
 import { useState, useEffect } from "react";
 import api from "../../config/axios";
-import AdminLayout from "../components/adminlayout";
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -149,14 +148,13 @@ export default function ManageUsers() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="p-6 min-h-screen bg-gray-50">
-        <div className="flex justify-between mb-4">
-          <h2 className="text-xl font-bold">User Management</h2>
-          <Button type="primary" onClick={() => setOpen(true)}>
-            + Create New
-          </Button>
-        </div>
+    <>
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">User Management</h2>
+        <Button type="primary" onClick={() => setOpen(true)}>
+          + Create New
+        </Button>
+      </div>
 
       <Table
         dataSource={users || []}
@@ -284,17 +282,13 @@ export default function ManageUsers() {
               label="Dealer ID"
               rules={[
                 { required: true, message: "Vui lòng nhập Dealer ID!" },
-                { 
-                  pattern: /^\d+$/, 
-                  message: "Dealer ID phải là số!" 
-                }
+                {
+                  pattern: /^\d+$/,
+                  message: "Dealer ID phải là số!",
+                },
               ]}
             >
-              <Input 
-                placeholder="Nhập Dealer ID (số)" 
-                type="number"
-                min={1}
-              />
+              <Input placeholder="Nhập Dealer ID (số)" type="number" min={1} />
             </Form.Item>
           )}
 
@@ -308,7 +302,6 @@ export default function ManageUsers() {
           </Button>
         </Form>
       </Modal>
-      </div>
-    </AdminLayout>
+    </>
   );
 }
