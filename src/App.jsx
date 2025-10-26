@@ -15,6 +15,7 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/manufacturer/priceTable";
 import DealerManagement from "./pages/manufacturer/dealerManagement";
+import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 
 function App() {
@@ -24,8 +25,8 @@ function App() {
         {/* Auth */}
         <Route path="/login" element={<Login />} />
 
-        {/* Admin */}
-        <Route path="/admin/ManageUsers" element={<ManageUsers />} />
+        {/* Admin - Now part of Manufacturer */}
+        {/* <Route path="/admin/ManageUsers" element={<ManageUsers />} /> */}
 
         {/* Dealer */}
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />
@@ -56,11 +57,32 @@ function App() {
           path="/manufacturer/dealerManagement"
           element={
             <AuthGuard>
-              <DealerManagement />
+              <ManufacturerLayout>
+                <DealerManagement />
+              </ManufacturerLayout>
             </AuthGuard>
           }
         />
-        <Route path="/manufacturer/priceTable" element={<PriceTable />} />
+        <Route
+          path="/manufacturer/priceTable"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <PriceTable />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/users"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <ManageUsers />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
 
         {/* Redirect manufacturer root to dealerManagement */}
         <Route
