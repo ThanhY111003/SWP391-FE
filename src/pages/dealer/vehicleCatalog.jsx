@@ -62,63 +62,7 @@ export default function VehicleCatalog() {
       }
     } catch (error) {
       console.error("Error fetching vehicles:", error);
-      // Mock data for development
-      setVehicles([
-        {
-          id: 1,
-          name: "VF 8",
-          modelCode: "VF8-2024",
-          description: "VinFast VF 8 - Premium electric SUV",
-          brand: "VinFast",
-          year: 2024,
-          batteryCapacity: 87,
-          rangeKm: 447,
-          chargingTime: 70,
-          maxSpeed: 180,
-          acceleration: 5.5,
-          seatingCapacity: 5,
-          cargoVolume: 376,
-          manufacturerPrice: 800000000,
-          imageUrl: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400",
-          isActive: true
-        },
-        {
-          id: 2,
-          name: "VF 9",
-          modelCode: "VF9-2024",
-          description: "VinFast VF 9 - Luxury electric SUV",
-          brand: "VinFast",
-          year: 2024,
-          batteryCapacity: 92,
-          rangeKm: 510,
-          chargingTime: 75,
-          maxSpeed: 200,
-          acceleration: 5.0,
-          seatingCapacity: 7,
-          cargoVolume: 450,
-          manufacturerPrice: 1200000000,
-          imageUrl: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400",
-          isActive: true
-        },
-        {
-          id: 3,
-          name: "Tesla Model 3",
-          modelCode: "TM3-2024",
-          description: "Tesla Model 3 - Electric sedan",
-          brand: "Tesla",
-          year: 2024,
-          batteryCapacity: 75,
-          rangeKm: 500,
-          chargingTime: 60,
-          maxSpeed: 225,
-          acceleration: 4.4,
-          seatingCapacity: 5,
-          cargoVolume: 425,
-          manufacturerPrice: 1800000000,
-          imageUrl: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400",
-          isActive: true
-        }
-      ]);
+      
     } finally {
       setLoading(false);
     }

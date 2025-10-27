@@ -43,77 +43,7 @@ export default function VehicleComparison() {
         }
       } catch (error) {
         console.error("Error fetching vehicles:", error);
-        // Mock data for development
-        setVehicles([
-          {
-            id: 1,
-            name: "EV Sedan Pro",
-            modelCode: "ESP-2024",
-            brand: "Tesla",
-            year: 2024,
-            batteryCapacity: 75,
-            rangeKm: 500,
-            chargingTime: 8,
-            maxSpeed: 200,
-            acceleration: 4.2,
-            seatingCapacity: 5,
-            cargoVolume: 425,
-            manufacturerPrice: 45000000,
-            imageUrl: "https://via.placeholder.com/300x200/1677ff/ffffff?text=EV+Sedan+Pro",
-            isActive: true
-          },
-          {
-            id: 2,
-            name: "EV SUV Max",
-            modelCode: "ESM-2024",
-            brand: "Tesla",
-            year: 2024,
-            batteryCapacity: 100,
-            rangeKm: 600,
-            chargingTime: 10,
-            maxSpeed: 180,
-            acceleration: 5.1,
-            seatingCapacity: 7,
-            cargoVolume: 800,
-            manufacturerPrice: 65000000,
-            imageUrl: "https://via.placeholder.com/300x200/52c41a/ffffff?text=EV+SUV+Max",
-            isActive: true
-          },
-          {
-            id: 3,
-            name: "EV Compact",
-            modelCode: "EC-2024",
-            brand: "BYD",
-            year: 2024,
-            batteryCapacity: 50,
-            rangeKm: 350,
-            chargingTime: 6,
-            maxSpeed: 150,
-            acceleration: 6.8,
-            seatingCapacity: 4,
-            cargoVolume: 300,
-            manufacturerPrice: 32000000,
-            imageUrl: "https://via.placeholder.com/300x200/faad14/ffffff?text=EV+Compact",
-            isActive: true
-          },
-          {
-            id: 4,
-            name: "EV Luxury",
-            modelCode: "EL-2024",
-            brand: "BMW",
-            year: 2024,
-            batteryCapacity: 90,
-            rangeKm: 550,
-            chargingTime: 9,
-            maxSpeed: 220,
-            acceleration: 3.8,
-            seatingCapacity: 5,
-            cargoVolume: 500,
-            manufacturerPrice: 85000000,
-            imageUrl: "https://via.placeholder.com/300x200/722ed1/ffffff?text=EV+Luxury",
-            isActive: true
-          }
-        ]);
+        
       } finally {
         setLoading(false);
       }
