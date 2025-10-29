@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+/* UX polish: tránh hiện caret/selection và giữ ring cho keyboard only */
+button,
+.ant-btn {
+  cursor: pointer;
+  user-select: none;
+  caret-color: transparent; /* không hiện con trỏ dạng I-beam trên nút */
+}
+
+/* Ẩn caret nhấp nháy trên mọi phần tử KHÔNG phải là vùng nhập liệu */
+/* Giữ nguyên caret cho input/textarea/select và contenteditable=true */
+:where(body)
+  *:not(input):not(textarea):not(select):not([contenteditable="true"]) {
+  caret-color: transparent;
+}
+
+/* Con trỏ dạng pointer cho các thành phần tương tác phổ biến */
+a,
+[role="button"],
+button,
+.ant-btn,
+.ant-switch,
+.ant-tabs-tab,
+.ant-menu-item,
+.ant-pagination-item,
+.ant-tag {
+  cursor: pointer;
+}
+
+/* Ẩn hiệu ứng focus khi click chuột nhưng vẫn giữ cho focus bằng bàn phím */
+.ant-btn:focus {
+  outline: none;
+}
+.ant-btn:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+/* Switch cũng có pointer rõ ràng */
+.ant-switch {
+  cursor: pointer;
+}
