@@ -31,19 +31,46 @@ export default function Login() {
       // Gọi API login thật
       const res = await api.post("auth/login", values);
 
-      // Kiểm tra response structure theo API mới
-      if (res.data.success && res.data.code === "OK") {
-        const {
-          token,
-          refreshToken,
-          roleName,
-          username: responseUsername,
-        } = res.data.data;
+      // Ghi log để dễ debug khi BE thay đổi cấu trúc
+      console.log("[Login] raw response:", res);
 
+      // Linh hoạt với nhiều định dạng trả về khác nhau của BE
+      const raw = res?.data ?? {};
+      const payload = raw?.data ?? raw; // một số BE bọc data bên trong 'data'
+
+      // Lấy token theo nhiều khả năng khác nhau
+      const tokenFromHeader = res?.headers?.authorization?.startsWith("Bearer ")
+        ? res.headers.authorization.slice(7)
+        : undefined;
+      const token =
+        payload?.token ||
+        payload?.accessToken ||
+        raw?.token ||
+        raw?.accessToken ||
+        tokenFromHeader;
+
+      const refreshToken = payload?.refreshToken || raw?.refreshToken;
+
+      // Lấy role
+      let roleName =
+        payload?.roleName ||
+        payload?.role ||
+        raw?.roleName ||
+        (Array.isArray(payload?.roles) ? payload.roles[0] : undefined);
+      if (typeof roleName === "string") {
+        roleName = roleName.replace(/^ROLE_/, "");
+      }
+
+      // Lấy username
+      const responseUsername =
+        payload?.username || payload?.userName || payload?.user?.username;
+
+      // Điều kiện thành công: có 'token' là đủ
+      if (token) {
         // Lưu thông tin vào localStorage
         localStorage.setItem("token", token);
-        localStorage.setItem("refreshToken", refreshToken);
-        localStorage.setItem("role", roleName);
+        if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+        if (roleName) localStorage.setItem("role", roleName);
         localStorage.setItem("username", responseUsername || username);
 
         toast.success(`Welcome back, ${responseUsername || username}!`, {
@@ -79,10 +106,14 @@ export default function Login() {
             message.warning("Unknown role, redirecting to default page");
             navigate("/dealer/dashboard");
         }
-
-        message.success(res.data.message || "Login successfully!");
+        message.success(raw?.message || "Login successfully!");
       } else {
-        message.error(res.data.message || "Login failed!");
+        // Không có token trong response
+        console.error("[Login] No token found in response:", raw);
+        message.error(
+          raw?.message ||
+            "Login failed! Backend did not return a token. Please check API response."
+        );
       }
     } catch (err) {
       // Xử lý lỗi từ API

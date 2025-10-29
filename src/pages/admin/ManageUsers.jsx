@@ -25,7 +25,7 @@ export default function ManageUsers() {
     setLoading(true);
     try {
       // BE API: GET /api/users
-      const res = await api.get("admin/users/get-all-users");
+      const res = await api.get("admin/users");
       console.log("API Response:", res.data); // Debug log
 
       // Đảm bảo users luôn là array
@@ -51,7 +51,7 @@ export default function ManageUsers() {
 
   const fetchDealers = async () => {
     try {
-      const res = await api.get("evm/dealers");
+      const res = await api.get("dealers");
       if (res.data && Array.isArray(res.data)) {
         setDealers(res.data);
       } else if (res.data?.data) {
@@ -80,7 +80,7 @@ export default function ManageUsers() {
 
       console.log("Sending data:", formattedValues);
 
-      await api.post("admin/users/create-users", formattedValues);
+      await api.post("admin/users", formattedValues);
       message.success("Tạo tài khoản thành công! Email đã được gửi.");
       form.resetFields();
       setOpen(false);
