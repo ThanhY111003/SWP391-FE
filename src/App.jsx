@@ -12,6 +12,7 @@ import SalesReport from "./pages/dealer/salesReport";
 import DebtReport from "./pages/dealer/debtReport";
 import ColorManagement from "./pages/dealer/colorManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
+import OrderManagement from "./pages/admin/orderManagement";
 import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
@@ -90,6 +91,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <ManageUsers />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/orders"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <OrderManagement />
               </ManufacturerLayout>
             </AuthGuard>
           }

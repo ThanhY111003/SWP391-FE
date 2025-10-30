@@ -7,6 +7,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   CrownOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -27,6 +28,12 @@ export default function ManufacturerLayout({ children }) {
       icon: <UserOutlined />,
       label: "Quản lý người dùng",
       path: "/manufacturer/users",
+    },
+    {
+      key: "order-management",
+      icon: <FileTextOutlined />,
+      label: "Quản lý đơn hàng",
+      path: "/manufacturer/orders",
     },
     {
       key: "dealer-levels",
