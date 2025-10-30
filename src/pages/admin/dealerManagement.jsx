@@ -22,6 +22,9 @@ import api from "../../config/axios";
 const DealerManagement = () => {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(false);
+  // Dealer Levels
+  const [dealerLevels, setDealerLevels] = useState([]);
+  const [levelsLoading, setLevelsLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit'
   const [currentDealerId, setCurrentDealerId] = useState(null);
@@ -30,13 +33,12 @@ const DealerManagement = () => {
   const [detailDealer, setDetailDealer] = useState(null);
   const [form] = Form.useForm();
   const [togglingIds, setTogglingIds] = useState(new Set());
+  const [messageApi, contextHolder] = message.useMessage();
 
   // Tìm kiếm & lọc
   const [searchText, setSearchText] = useState("");
   const [filterRegion, setFilterRegion] = useState();
   const [filterStatus, setFilterStatus] = useState(); // true | false | undefined
-  // Lọc theo trạng thái từ SERVER (để lấy cả đại lý ngừng nếu BE hỗ trợ)
-  const [serverStatus, setServerStatus] = useState(); // 'ALL' | 'ACTIVE' | 'INACTIVE' | undefined
 
   // Helper: trim string an toàn
   const trimSafe = (v) => (typeof v === "string" ? v.trim() : v);
@@ -97,15 +99,10 @@ const DealerManagement = () => {
       .toLowerCase();
 
   // Fetch danh sách đại lý
-  const fetchDealers = async (statusKey) => {
+  const fetchDealers = async () => {
     setLoading(true);
     try {
-      const params = {};
-      if (statusKey) params.status = statusKey; // kỳ vọng BE hỗ trợ ?status=ALL|ACTIVE|INACTIVE
-      const res = await api.get(
-        "dealers",
-        Object.keys(params).length ? { params } : undefined
-      ); // GET /api/dealers
+      const res = await api.get("dealers"); // GET /api/dealers (FE sẽ tự filter)
       const payload = res.data;
       let list = [];
       if (Array.isArray(payload)) list = payload;
@@ -114,7 +111,7 @@ const DealerManagement = () => {
       setDealers(list);
     } catch (err) {
       console.error("Fetch dealers failed", err);
-      message.error(
+      messageApi.error(
         err.response?.data?.message || "Không tải được danh sách đại lý"
       );
     } finally {
@@ -124,18 +121,63 @@ const DealerManagement = () => {
 
   useEffect(() => {
     fetchDealers();
+    // Tải sẵn danh sách cấp ngay khi vào trang để đảm bảo mở modal là có dữ liệu
+    fetchDealerLevels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch Dealer Levels (dynamic — để hãng sửa là FE thấy ngay)
+  const fetchDealerLevels = async () => {
+    setLevelsLoading(true);
+    try {
+      // Ưu tiên endpoint bạn yêu cầu: /api/dealer-levels. Nếu không có dữ liệu, fallback sang /dealer-levels/all
+      let res = await api.get("dealer-levels"); // GET /api/dealer-levels
+      let payload = res.data;
+      let list = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload)
+        ? payload
+        : [];
+      if (!list.length) {
+        // Fallback sang /all nếu endpoint đầu tiên trả rỗng/không như kỳ vọng
+        try {
+          res = await api.get("dealer-levels/all"); // GET /api/dealer-levels/all
+          payload = res.data;
+          list = Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload)
+            ? payload
+            : [];
+        } catch {
+          // bỏ qua, lỗi sẽ được catch bên ngoài
+        }
+      }
+      // sort theo levelNumber tăng dần để hiển thị có thứ tự
+      list.sort((a, b) => (a.levelNumber ?? 0) - (b.levelNumber ?? 0));
+      setDealerLevels(list);
+    } catch (e) {
+      console.error("Fetch dealer levels failed", e);
+      message.error(
+        e.response?.data?.message || "Không tải được danh sách cấp đại lý"
+      );
+    } finally {
+      setLevelsLoading(false);
+    }
+  };
 
   const showAddModal = () => {
     form.resetFields();
     setModalMode("create");
     setCurrentDealerId(null);
+    // Luôn gọi để cập nhật mới nhất từ server
+    fetchDealerLevels();
     setIsModalVisible(true);
   };
 
   const showEditModal = async (record) => {
     setModalMode("edit");
     setCurrentDealerId(record.id);
+    fetchDealerLevels();
     try {
       // lấy chi tiết để đảm bảo dữ liệu đầy đủ/đồng bộ
       const res = await api.get(`dealers/${record.id}`);
@@ -179,17 +221,27 @@ const DealerManagement = () => {
         payload.levelNumber = values.levelNumber;
       }
       if (modalMode === "create") {
+        const key = "dealer-save";
+        messageApi.loading({ content: "Đang tạo...", key });
         const res = await api.post("dealers", payload); // POST /api/dealers
         if (res.data?.success !== false) {
-          message.success(res.data?.message || "Tạo đại lý thành công");
+          messageApi.success({
+            content: res.data?.message || "Tạo đại lý thành công",
+            key,
+          });
           setIsModalVisible(false);
           form.resetFields();
           fetchDealers();
         }
       } else {
+        const key = "dealer-save";
+        messageApi.loading({ content: "Đang lưu...", key });
         const res = await api.put(`dealers/${currentDealerId}`, payload); // PUT /api/dealers/{dealerId}
         if (res.data?.success !== false) {
-          message.success(res.data?.message || "Cập nhật đại lý thành công");
+          messageApi.success({
+            content: res.data?.message || "Cập nhật đại lý thành công",
+            key,
+          });
           setIsModalVisible(false);
           form.resetFields();
           fetchDealers();
@@ -202,7 +254,7 @@ const DealerManagement = () => {
         modalMode === "create"
           ? "Tạo đại lý thất bại"
           : "Cập nhật đại lý thất bại";
-      message.error(err.response?.data?.message || defaultMsg);
+      messageApi.error(err.response?.data?.message || defaultMsg);
     }
   };
 
@@ -218,7 +270,7 @@ const DealerManagement = () => {
       setDetailDealer(detail);
     } catch (err) {
       console.error("Fetch dealer detail failed", err);
-      message.error(
+      messageApi.error(
         err.response?.data?.message || "Không tải được chi tiết đại lý"
       );
     } finally {
@@ -235,6 +287,8 @@ const DealerManagement = () => {
         nextActive ? "activate" : "deactivate"
       }`;
       // PATCH theo swagger; gửi body rỗng để đảm bảo Content-Type application/json
+      const key = `dealer-toggle-${record.id}`;
+      messageApi.loading({ content: "Đang cập nhật trạng thái...", key });
       const res = await api.patch(url, {});
       if (res.data?.success === false) {
         throw new Error(res.data?.message || "Thao tác thất bại");
@@ -249,10 +303,13 @@ const DealerManagement = () => {
       setDetailDealer((prev) =>
         prev && prev.id === record.id ? { ...prev, isActive: nextActive } : prev
       );
-      message.success(nextActive ? "Đã bật hoạt động" : "Đã tắt hoạt động");
+      messageApi.success({
+        content: nextActive ? "Đã bật hoạt động" : "Đã tắt hoạt động",
+        key,
+      });
     } catch (err) {
       console.error("Toggle active failed", err?.response || err);
-      message.error(
+      messageApi.error(
         err.response?.data?.message ||
           (nextActive ? "Bật hoạt động thất bại" : "Tắt hoạt động thất bại")
       );
@@ -347,6 +404,7 @@ const DealerManagement = () => {
         </Button>
       }
     >
+      {contextHolder}
       {/* Thanh tìm kiếm & lọc */}
       <Space
         wrap
@@ -364,24 +422,6 @@ const DealerManagement = () => {
           onChange={(e) => setSearchText(e.target.value)}
         />
         <Space wrap>
-          <Select
-            allowClear
-            placeholder="Tải từ server theo trạng thái"
-            style={{ width: 220 }}
-            value={serverStatus}
-            onChange={(val) => {
-              setServerStatus(val);
-              // Khi chọn lọc server, tải lại dữ liệu từ server
-              fetchDealers(val);
-              // Xóa lọc client-side để tránh nhầm
-              setFilterStatus(undefined);
-            }}
-            options={[
-              { label: "Tất cả (server)", value: "ALL" },
-              { label: "Hoạt động (server)", value: "ACTIVE" },
-              { label: "Ngừng (server)", value: "INACTIVE" },
-            ]}
-          />
           <Select
             allowClear
             options={regionOptions}
@@ -406,7 +446,6 @@ const DealerManagement = () => {
               setSearchText("");
               setFilterRegion(undefined);
               setFilterStatus(undefined);
-              setServerStatus(undefined);
               fetchDealers();
             }}
           >
@@ -486,12 +525,17 @@ const DealerManagement = () => {
           >
             <Select
               allowClear
+              loading={levelsLoading}
               placeholder="Chọn cấp đại lý"
-              options={[
-                { label: "Cấp 1", value: 1 },
-                { label: "Cấp 2", value: 2 },
-                { label: "Cấp 3", value: 3 },
-              ]}
+              notFoundContent={
+                levelsLoading ? "Đang tải..." : "Không có dữ liệu"
+              }
+              options={dealerLevels.map((lv) => ({
+                label:
+                  (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
+                  (lv.levelName ? ` - ${lv.levelName}` : ""),
+                value: lv.levelNumber,
+              }))}
             />
           </Form.Item>
           <Form.Item label="Khu vực" name="region">
@@ -531,7 +575,17 @@ const DealerManagement = () => {
             </Descriptions.Item>
             {detailDealer.levelNumber !== undefined && (
               <Descriptions.Item label="Cấp đại lý">
-                {detailDealer.levelNumber}
+                {(() => {
+                  const lv = dealerLevels.find(
+                    (x) => x.levelNumber === detailDealer.levelNumber
+                  );
+                  if (lv)
+                    return (
+                      (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
+                      (lv.levelName ? ` - ${lv.levelName}` : "")
+                    );
+                  return detailDealer.levelNumber;
+                })()}
               </Descriptions.Item>
             )}
             <Descriptions.Item label="Khu vực">

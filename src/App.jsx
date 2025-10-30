@@ -15,6 +15,7 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
+import DealerLevels from "./pages/admin/dealerLevels";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 
@@ -69,6 +70,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <PriceTable />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/dealer-levels"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <DealerLevels />
               </ManufacturerLayout>
             </AuthGuard>
           }

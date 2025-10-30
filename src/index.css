@@ -15,6 +15,18 @@ button,
   caret-color: transparent;
 }
 
+/* Hiển thị lại caret trên input/textarea/select và các input của Ant Design
+   (caret-color là thuộc tính kế thừa nên cần override rõ ràng) */
+input,
+textarea,
+select,
+[contenteditable="true"],
+.ant-input,
+.ant-input-number-input,
+.ant-select-selection-search-input {
+  caret-color: auto !important;
+}
+
 /* Con trỏ dạng pointer cho các thành phần tương tác phổ biến */
 a,
 [role="button"],
