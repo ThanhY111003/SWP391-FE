@@ -312,6 +312,41 @@ export default function VehicleCatalog() {
     }
   };
 
+  // Delete color from vehicle
+  const handleDeleteColor = async (colorId) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/vehicle-models/${selectedVehicle.id}/colors/${colorId}`
+      );
+      
+      if (response.data.success) {
+        toast.success("Màu đã được xóa khỏi xe thành công!", {
+          position: "top-right",
+          duration: 3000,
+        });
+        fetchVehicleColors();
+      } else {
+        toast.error(response.data.message || "Xóa màu thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting color from vehicle:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          position: "top-right",
+          duration: 3000,
+        });
+      } else {
+        toast.error("Xóa màu thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    }
+  };
+
   // Filter vehicles
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesBrand = brandFilter === "All" || vehicle.brand === brandFilter;
@@ -470,6 +505,30 @@ export default function VehicleCatalog() {
       render: (isActive) => (
         <Badge status={isActive ? "success" : "error"} text={isActive ? "Active" : "Inactive"} />
       ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Popconfirm
+          title="Xóa màu khỏi xe?"
+          description="Bạn có chắc chắn muốn xóa màu này khỏi model xe?"
+          onConfirm={() => handleDeleteColor(record.id)}
+          okText="Xóa"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+        >
+          <Button 
+            type="primary" 
+            danger 
+            size="small"
+            icon={<DeleteOutlined />}
+          >
+            Xóa
+          </Button>
+        </Popconfirm>
+      ),
+      align: "center"
     }
   ];
 
