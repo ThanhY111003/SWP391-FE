@@ -6,6 +6,7 @@ import {
   DollarCircleOutlined,
   LogoutOutlined,
   UserOutlined,
+  CrownOutlined,
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -26,6 +27,12 @@ export default function ManufacturerLayout({ children }) {
       icon: <UserOutlined />,
       label: "Quản lý người dùng",
       path: "/manufacturer/users",
+    },
+    {
+      key: "dealer-levels",
+      icon: <CrownOutlined />,
+      label: "Quản lý cấp đại lý",
+      path: "/manufacturer/dealer-levels",
     },
     {
       key: "price-table",
