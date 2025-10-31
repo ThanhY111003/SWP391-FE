@@ -73,7 +73,7 @@ export default function Login() {
         if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
         if (roleName) localStorage.setItem("role", roleName);
         localStorage.setItem("username", responseUsername || username);
-        
+
         // Debug: Log saved values
         console.log("Login - Saved to localStorage:");
         console.log("Token:", token ? "Present" : "Missing");
@@ -99,9 +99,6 @@ export default function Login() {
         switch (roleName) {
           case "ADMIN":
             navigate("/manufacturer/dealerManagement");
-            break;
-          case "EVM_STAFF":
-            navigate("/evm/ManageDealers");
             break;
           case "EVM_STAFF":
             navigate("/dealer/dashboard");
