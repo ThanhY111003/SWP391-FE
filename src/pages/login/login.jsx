@@ -15,7 +15,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../../config/axios";
-import TestAuth from "../../components/TestAuth";
 
 const { Title } = Typography;
 
@@ -132,7 +131,6 @@ export default function Login() {
 
   return (
     <div className="relative w-screen h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-purple-900 to-indigo-800">
-      <TestAuth />
       {/* 🔹 Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-60"

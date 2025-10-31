@@ -48,6 +48,12 @@ export default function ManufacturerLayout({ children }) {
       path: "/manufacturer/priceTable",
     },
     {
+      key: "price-table1",
+      icon: <FileTextOutlined />,
+      label: "Dealer dashboard",
+      path: "/dealer/dashboard",
+    },
+    {
       key: "logout",
       icon: <LogoutOutlined />,
       label: "Đăng xuất",
