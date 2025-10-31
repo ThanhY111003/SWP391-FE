@@ -103,7 +103,7 @@ export default function Login() {
           case "EVM_STAFF":
             navigate("/evm/ManageDealers");
             break;
-          case "DEALER_MANAGER":
+          case "EVM_STAFF":
             navigate("/dealer/dashboard");
             break;
           case "MANUFACTURER":

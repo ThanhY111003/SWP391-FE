@@ -9,7 +9,6 @@ import {
   Form,
   Input,
   Space,
-  Popconfirm,
   Spin,
   Row,
   Col,
@@ -18,7 +17,6 @@ import {
 import {
   PlusOutlined,
   EditOutlined,
-  DeleteOutlined,
   StopOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
@@ -87,7 +85,7 @@ export default function ColorManagement() {
         }
       } else {
         // Create color
-        const response = await apiClient.post("/api/colors/create", values);
+        const response = await apiClient.post("/api/colors", values);
         if (response.data.success) {
           toast.success("Color created successfully!", {
             position: "top-right",
@@ -118,47 +116,17 @@ export default function ColorManagement() {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      const response = await apiClient.delete(`/api/colors/${id}`);
-      if (response.data.success) {
-        toast.success("Color deleted successfully!", {
-          position: "top-right",
-          duration: 3000,
-        });
-        fetchColors();
-      } else {
-        toast.error(response.data.message || "Failed to delete color!", {
-          position: "top-right",
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error deleting color:", error);
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message, {
-          position: "top-right",
-          duration: 3000,
-        });
-      } else {
-        toast.error("Failed to delete color!", {
-          position: "top-right",
-          duration: 3000,
-        });
-      }
-    }
-  };
-
   const handleToggleStatus = async (id, currentStatus) => {
     try {
       const endpoint = currentStatus
-        ? `/api/colors/${id}/inactive`
-        : `/api/colors/${id}/reactive`;
-      const response = await apiClient.put(endpoint);
+        ? `/api/colors/${id}/deactivate`
+        : `/api/colors/${id}/activate`;
+      const response = await apiClient.patch(endpoint);
 
       if (response.data.success) {
         toast.success(
-          `Color ${currentStatus ? "deactivated" : "activated"} successfully!`,
+          response.data.message || 
+          `Màu đã được ${currentStatus ? "vô hiệu hóa" : "kích hoạt"} thành công!`,
           {
             position: "top-right",
             duration: 3000,
@@ -166,7 +134,7 @@ export default function ColorManagement() {
         );
         fetchColors();
       } else {
-        toast.error(response.data.message || "Failed to update color status!", {
+        toast.error(response.data.message || "Cập nhật trạng thái màu thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -179,7 +147,7 @@ export default function ColorManagement() {
           duration: 3000,
         });
       } else {
-        toast.error("Failed to update color status!", {
+        toast.error("Cập nhật trạng thái màu thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -247,22 +215,6 @@ export default function ColorManagement() {
           >
             {record.isActive ? "Deactivate" : "Activate"}
           </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this color?"
-            description="This action cannot be undone."
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button
-              type="primary"
-              danger
-              size="small"
-              icon={<DeleteOutlined />}
-            >
-              Delete
-            </Button>
-          </Popconfirm>
         </Space>
       ),
       align: "center",

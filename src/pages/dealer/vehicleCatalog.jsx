@@ -48,6 +48,11 @@ export default function VehicleCatalog() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignForm] = Form.useForm();
   
+  // Modal states for price adjustment update
+  const [isPriceAdjustmentModalOpen, setIsPriceAdjustmentModalOpen] = useState(false);
+  const [editingColorPrice, setEditingColorPrice] = useState(null);
+  const [priceAdjustmentForm] = Form.useForm();
+  
   // Modal states for vehicle CRUD
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
@@ -59,10 +64,18 @@ export default function VehicleCatalog() {
       const response = await apiClient.get("/api/vehicle-models");
       if (response.data.success) {
         setVehicles(response.data.data);
+      } else {
+        toast.error(response.data.message || "Không thể tải danh sách xe!", {
+          position: "top-right",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error("Error fetching vehicles:", error);
-      
+      toast.error(error.response?.data?.message || "Không thể tải danh sách xe!", {
+        position: "top-right",
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -79,9 +92,18 @@ export default function VehicleCatalog() {
       const response = await apiClient.get("/api/colors");
       if (response.data.success) {
         setAllColors(response.data.data.filter(color => color.isActive));
+      } else {
+        toast.error(response.data.message || "Không thể tải danh sách màu!", {
+          position: "top-right",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error("Error fetching all colors:", error);
+      toast.error(error.response?.data?.message || "Không thể tải danh sách màu!", {
+        position: "top-right",
+        duration: 3000,
+      });
       // Mock data for development
       setAllColors([
         {
@@ -114,9 +136,18 @@ export default function VehicleCatalog() {
       const response = await apiClient.get(`/api/vehicle-models/${selectedVehicle.id}/colors`);
       if (response.data.success) {
         setVehicleColors(response.data.data);
+      } else {
+        toast.error(response.data.message || "Không thể tải màu sắc của xe!", {
+          position: "top-right",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error("Error fetching vehicle colors:", error);
+      toast.error(error.response?.data?.message || "Không thể tải màu sắc của xe!", {
+        position: "top-right",
+        duration: 3000,
+      });
       // Mock data for development
       setVehicleColors([
         {
@@ -124,14 +155,16 @@ export default function VehicleCatalog() {
           colorName: "Pearl White",
           hexCode: "#FFFFFF",
           priceAdjustment: 0,
-          isActive: true
+          isActive: true,
+          colorId: 1
         },
         {
           id: 2,
           colorName: "Midnight Silver",
           hexCode: "#2C2C2C",
           priceAdjustment: 5000000,
-          isActive: true
+          isActive: true,
+          colorId: 2
         }
       ]);
     }
@@ -169,10 +202,17 @@ export default function VehicleCatalog() {
             imageUrl: vehicleData.imageUrl || '',
             isActive: vehicleData.isActive
           });
+        } else {
+          toast.error(response.data.message || "Không thể tải thông tin chi tiết xe!", {
+            position: "top-right",
+            duration: 3000,
+          });
+          // Fallback to basic vehicle data
+          vehicleForm.setFieldsValue(vehicle);
         }
       } catch (error) {
         console.error("Error fetching vehicle details:", error);
-        toast.error("Failed to load vehicle details!", {
+        toast.error(error.response?.data?.message || "Không thể tải thông tin chi tiết xe!", {
           position: "top-right",
           duration: 3000,
         });
@@ -193,13 +233,14 @@ export default function VehicleCatalog() {
         // Update vehicle
         const response = await apiClient.put(`/api/vehicle-models/${editingVehicle.id}`, values);
         if (response.data.success) {
-          toast.success("Vehicle updated successfully!", {
+          toast.success(response.data.message || "Cập nhật xe thành công!", {
             position: "top-right",
             duration: 3000,
           });
           fetchVehicles();
+          setIsVehicleModalOpen(false);
         } else {
-          toast.error(response.data.message || "Failed to update vehicle!", {
+          toast.error(response.data.message || "Cập nhật xe thất bại!", {
             position: "top-right",
             duration: 3000,
           });
@@ -208,19 +249,19 @@ export default function VehicleCatalog() {
         // Create vehicle
         const response = await apiClient.post("/api/vehicle-models/create", values);
         if (response.data.success) {
-          toast.success("Vehicle created successfully!", {
+          toast.success(response.data.message || "Tạo xe mới thành công!", {
             position: "top-right",
             duration: 3000,
           });
           fetchVehicles();
+          setIsVehicleModalOpen(false);
         } else {
-          toast.error(response.data.message || "Failed to create vehicle!", {
+          toast.error(response.data.message || "Tạo xe mới thất bại!", {
             position: "top-right",
             duration: 3000,
           });
         }
       }
-      setIsVehicleModalOpen(false);
     } catch (error) {
       console.error("Error saving vehicle:", error);
       if (error.response?.data?.message) {
@@ -229,7 +270,7 @@ export default function VehicleCatalog() {
           duration: 3000,
         });
       } else {
-        toast.error("Failed to save vehicle!", {
+        toast.error("Lưu xe thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -241,13 +282,13 @@ export default function VehicleCatalog() {
     try {
       const response = await apiClient.delete(`/api/vehicle-models/${id}`);
       if (response.data.success) {
-        toast.success("Vehicle deleted successfully!", {
+        toast.success(response.data.message || "Xóa xe thành công!", {
           position: "top-right",
           duration: 3000,
         });
         fetchVehicles();
       } else {
-        toast.error(response.data.message || "Failed to delete vehicle!", {
+        toast.error(response.data.message || "Xóa xe thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -260,7 +301,7 @@ export default function VehicleCatalog() {
           duration: 3000,
         });
       } else {
-        toast.error("Failed to delete vehicle!", {
+        toast.error("Xóa xe thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -280,31 +321,45 @@ export default function VehicleCatalog() {
       const { colorId, priceAdjustment } = values;
       
       const response = await apiClient.post(
-        `/api/vehicle-models/${selectedVehicle.id}/colors/${colorId}/assign?priceAdjustment=${priceAdjustment}`
+        `/api/vehicle-models/${selectedVehicle.id}/colors?colorId=${colorId}&priceAdjustment=${priceAdjustment}`
       );
       
       if (response.data.success) {
-        toast.success("Color assigned to vehicle successfully!", {
+        toast.success(response.data.message || "Gán màu cho xe thành công!", {
           position: "top-right",
           duration: 3000,
         });
         fetchVehicleColors();
         setIsAssignModalOpen(false);
       } else {
-        toast.error(response.data.message || "Failed to assign color!", {
-          position: "top-right",
-          duration: 3000,
-        });
+        // Kiểm tra code lỗi đặc biệt
+        if (response.data.code === "VEHICLE_COLOR_ALREADY_EXISTS") {
+          toast.error(response.data.message || "Màu đã được gán cho mẫu xe này", {
+            position: "top-right",
+            duration: 3000,
+          });
+        } else {
+          toast.error(response.data.message || "Gán màu thất bại!", {
+            position: "top-right",
+            duration: 3000,
+          });
+        }
       }
     } catch (error) {
       console.error("Error assigning color:", error);
-      if (error.response?.data?.message) {
+      // Kiểm tra code lỗi từ response
+      if (error.response?.data?.code === "VEHICLE_COLOR_ALREADY_EXISTS") {
+        toast.error(error.response.data.message || "Màu đã được gán cho mẫu xe này", {
+          position: "top-right",
+          duration: 3000,
+        });
+      } else if (error.response?.data?.message) {
         toast.error(error.response.data.message, {
           position: "top-right",
           duration: 3000,
         });
       } else {
-        toast.error("Failed to assign color!", {
+        toast.error("Gán màu thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -320,7 +375,7 @@ export default function VehicleCatalog() {
       );
       
       if (response.data.success) {
-        toast.success("Màu đã được xóa khỏi xe thành công!", {
+        toast.success(response.data.message || "Màu đã được xóa khỏi xe thành công!", {
           position: "top-right",
           duration: 3000,
         });
@@ -340,6 +395,54 @@ export default function VehicleCatalog() {
         });
       } else {
         toast.error("Xóa màu thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    }
+  };
+
+  // Open price adjustment modal
+  const openPriceAdjustmentModal = (colorRecord) => {
+    setEditingColorPrice(colorRecord);
+    priceAdjustmentForm.setFieldsValue({
+      priceAdjustment: colorRecord.priceAdjustment || 0
+    });
+    setIsPriceAdjustmentModalOpen(true);
+  };
+
+  // Update price adjustment
+  const handleUpdatePriceAdjustment = async () => {
+    try {
+      const values = await priceAdjustmentForm.validateFields();
+      const { priceAdjustment } = values;
+      
+      const response = await apiClient.patch(
+        `/api/vehicle-models/${selectedVehicle.id}/colors/${editingColorPrice.colorId}/price-adjustment?newAdjustment=${priceAdjustment}`
+      );
+      
+      if (response.data.success) {
+        toast.success(response.data.message || "Cập nhật giá điều chỉnh thành công!", {
+          position: "top-right",
+          duration: 3000,
+        });
+        fetchVehicleColors();
+        setIsPriceAdjustmentModalOpen(false);
+      } else {
+        toast.error(response.data.message || "Cập nhật giá điều chỉnh thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating price adjustment:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          position: "top-right",
+          duration: 3000,
+        });
+      } else {
+        toast.error("Cập nhật giá điều chỉnh thất bại!", {
           position: "top-right",
           duration: 3000,
         });
@@ -510,23 +613,33 @@ export default function VehicleCatalog() {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <Popconfirm
-          title="Xóa màu khỏi xe?"
-          description="Bạn có chắc chắn muốn xóa màu này khỏi model xe?"
-          onConfirm={() => handleDeleteColor(record.id)}
-          okText="Xóa"
-          cancelText="Hủy"
-          okButtonProps={{ danger: true }}
-        >
+        <Space>
           <Button 
-            type="primary" 
-            danger 
+            type="default" 
             size="small"
-            icon={<DeleteOutlined />}
+            onClick={() => openPriceAdjustmentModal(record)}
+            icon={<EditOutlined />}
           >
-            Xóa
+            Sửa giá
           </Button>
-        </Popconfirm>
+          <Popconfirm
+            title="Xóa màu khỏi xe?"
+            description="Bạn có chắc chắn muốn xóa màu này khỏi model xe?"
+            onConfirm={() => handleDeleteColor(record.colorId)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button 
+              type="primary" 
+              danger 
+              size="small"
+              icon={<DeleteOutlined />}
+            >
+              Xóa
+            </Button>
+          </Popconfirm>
+        </Space>
       ),
       align: "center"
     }
@@ -878,6 +991,36 @@ export default function VehicleCatalog() {
                 placeholder="0"
               />
             </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* Update Price Adjustment Modal */}
+        <Modal
+          title="Cập nhật giá điều chỉnh"
+          open={isPriceAdjustmentModalOpen}
+          onCancel={() => setIsPriceAdjustmentModalOpen(false)}
+          onOk={handleUpdatePriceAdjustment}
+          okText="Cập nhật"
+          cancelText="Hủy"
+        >
+          <Form form={priceAdjustmentForm} layout="vertical">
+            <Form.Item
+              name="priceAdjustment"
+              label="Giá điều chỉnh (VNĐ)"
+              rules={[{ required: true, message: "Vui lòng nhập giá điều chỉnh!" }]}
+            >
+              <InputNumber
+                style={{ width: "100%" }}
+                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                placeholder="0"
+              />
+            </Form.Item>
+            {editingColorPrice && (
+              <div className="text-sm text-gray-500">
+                Màu: <span className="font-medium">{editingColorPrice.colorName}</span>
+              </div>
+            )}
           </Form>
         </Modal>
       </div>

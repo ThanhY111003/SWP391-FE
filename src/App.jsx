@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Login from "./pages/login/login";
 import DealerDashboard from "./pages/dealer/dashboard";
 import ManageStaff from "./pages/dealer/manageStaff";
@@ -24,6 +25,30 @@ import DebugAuth from "./components/DebugAuth";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#4aed88',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#ff0000',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <DebugAuth />
       <Routes>
         {/* Auth */}

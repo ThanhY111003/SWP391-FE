@@ -33,58 +33,49 @@
     {
       "name": "Xác thực (B2B)",
       "description": "Các API xác thực & quản trị tài khoản nội bộ (Admin/EVM/Dealer)"
+    },
+    {
+      "name": "Quản lý đơn hàng (Dealer)",
+      "description": "Các API để Dealer tạo và xem các đơn hàng của chính mình"
+    },
+    {
+      "name": "Quản lý cấp độ đại lý (Dealer Level)",
+      "description": "Các API quản trị cấp độ đại lý cho hệ thống B2B"
+    },
+    {
+      "name": "Quản lý màu xe theo Model",
+      "description": "Các API cho phép gán, chỉnh sửa và quản lý màu sắc của từng model xe"
+    },
+    {
+      "name": "Quản lý vai trò & phân quyền (Role/Permission)",
+      "description": "Các API phục vụ quản trị vai trò, quyền và gán quyền cho người dùng"
+    },
+    {
+      "name": "Quản lý người dùng (Admin)",
+      "description": "Các API dành cho Admin quản trị, tạo và quản lý tài khoản nội bộ"
+    },
+    {
+      "name": "Quản lý khách hàng (Customer)",
+      "description": "Các API cho phép đại lý quản lý thông tin khách hàng và xe đã mua"
+    },
+    {
+      "name": "Quản lý đại lý (Dealer)",
+      "description": "Các API phục vụ quản trị đại lý cho Admin và EVM"
+    },
+    {
+      "name": "Quản lý xe (Vehicle Instance)",
+      "description": "Các API cho phép quản lý xe vật lý: tìm kiếm, cập nhật trạng thái, bán cho khách"
+    },
+    {
+      "name": "Quản lý màu xe (Color)",
+      "description": "Các API dành cho quản trị viên hoặc nhân viên EVM để tạo, chỉnh sửa, và quản lý màu xe"
+    },
+    {
+      "name": "Quản lý đơn hàng (Admin)",
+      "description": "Các API quản trị đơn hàng cho Admin – duyệt, hủy, xác nhận thanh toán"
     }
   ],
   "paths": {
-    "/api/vehicle-models/{modelId}/colors/{colorId}/price-adjustment": {
-      "put": {
-        "tags": [
-          "vehicle-model-color-controller"
-        ],
-        "summary": "Cập nhật chênh lệch giá của màu trên model",
-        "operationId": "updatePriceAdjustment",
-        "parameters": [
-          {
-            "name": "modelId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "colorId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "newAdjustment",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVehicleModelColorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/vehicle-models/{id}": {
       "get": {
         "tags": [
@@ -158,11 +149,58 @@
         }
       }
     },
+    "/api/vehicle-instances/{id}/status": {
+      "put": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Cập nhật trạng thái xe (IN_STOCK ↔ RESERVED)",
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "IN_STOCK",
+                "RESERVED",
+                "SOLD"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dealers/{dealerId}": {
       "get": {
         "tags": [
-          "dealer-controller"
+          "Quản lý đại lý (Dealer)"
         ],
+        "summary": "Lấy chi tiết Dealer",
+        "description": "Trả về thông tin chi tiết của một Dealer theo ID",
         "operationId": "getDealer",
         "parameters": [
           {
@@ -190,9 +228,11 @@
       },
       "put": {
         "tags": [
-          "dealer-controller"
+          "Quản lý đại lý (Dealer)"
         ],
-        "operationId": "editDealer",
+        "summary": "Cập nhật thông tin Dealer",
+        "description": "Chỉnh sửa thông tin của một Dealer cụ thể",
+        "operationId": "updateDealer",
         "parameters": [
           {
             "name": "dealerId",
@@ -228,12 +268,45 @@
         }
       }
     },
-    "/api/dealer-levels/edit/{id}": {
+    "/api/dealer-levels/{id}": {
+      "get": {
+        "tags": [
+          "Quản lý cấp độ đại lý (Dealer Level)"
+        ],
+        "summary": "Lấy chi tiết cấp độ đại lý",
+        "description": "Trả về thông tin chi tiết của một cấp độ đại lý theo ID",
+        "operationId": "getDealerLevel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerLevelResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": [
-          "dealer-level-controller"
+          "Quản lý cấp độ đại lý (Dealer Level)"
         ],
-        "operationId": "editDealerLevel",
+        "summary": "Cập nhật cấp độ đại lý",
+        "description": "Chỉnh sửa thông tin của cấp độ đại lý theo ID",
+        "operationId": "updateDealerLevel",
         "parameters": [
           {
             "name": "id",
@@ -267,12 +340,115 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Quản lý cấp độ đại lý (Dealer Level)"
+        ],
+        "summary": "Xóa cấp độ đại lý",
+        "description": "Xóa một cấp độ đại lý khỏi hệ thống",
+        "operationId": "deleteDealerLevel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{id}": {
+      "get": {
+        "tags": [
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Lấy chi tiết khách hàng (bao gồm xe đã mua)",
+        "operationId": "getById_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCustomerDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Cập nhật thông tin khách hàng",
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCustomerResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/colors/{id}": {
       "get": {
         "tags": [
-          "color-controller"
+          "Quản lý màu xe (Color)"
         ],
         "summary": "Lấy chi tiết màu theo ID",
         "operationId": "getColorById",
@@ -302,7 +478,7 @@
       },
       "put": {
         "tags": [
-          "color-controller"
+          "Quản lý màu xe (Color)"
         ],
         "summary": "Cập nhật thông tin màu",
         "description": "Cho phép cập nhật tên và mã hex.\nNếu đổi mã hex sẽ kiểm tra trùng.\nYêu cầu quyền 'color.update'.\n",
@@ -342,17 +518,17 @@
         }
       }
     },
-    "/api/colors/{id}/reactive": {
-      "put": {
+    "/api/vehicle-models/{modelId}/colors": {
+      "get": {
         "tags": [
-          "color-controller"
+          "Quản lý màu xe theo Model"
         ],
-        "summary": "Kích hoạt lại màu",
-        "description": "Cho phép kích hoạt lại màu đã bị vô hiệu hóa, yêu cầu quyền 'color.update'.",
-        "operationId": "reactiveColor",
+        "summary": "Lấy danh sách màu của model",
+        "description": "Trả về danh sách màu đã gán cho một model cụ thể",
+        "operationId": "getColorsByModel",
         "parameters": [
           {
-            "name": "id",
+            "name": "modelId",
             "in": "path",
             "required": true,
             "schema": {
@@ -367,180 +543,19 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseColorResponse"
+                  "$ref": "#/components/schemas/ApiResponseListVehicleModelColorResponse"
                 }
               }
             }
           }
         }
-      }
-    },
-    "/api/colors/{id}/inactive": {
-      "put": {
-        "tags": [
-          "color-controller"
-        ],
-        "summary": "Vô hiệu hóa màu",
-        "description": "Ẩn màu khỏi hệ thống, yêu cầu quyền 'color.update'.",
-        "operationId": "inactiveColor",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseColorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/admin/users/{id}/reactivate": {
-      "put": {
-        "tags": [
-          "admin-user-controller"
-        ],
-        "operationId": "reactivateUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/admin/users/{id}/inactive": {
-      "put": {
-        "tags": [
-          "admin-user-controller"
-        ],
-        "operationId": "inactiveUser",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseObject"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/admin/orders/{orderId}/cancel": {
-      "put": {
-        "tags": [
-          "admin-order-controller"
-        ],
-        "summary": "Admin hủy đơn hàng (chỉ khi chưa hoàn tất)",
-        "operationId": "cancelOrder",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/admin/orders/{orderId}/approve": {
-      "put": {
-        "tags": [
-          "admin-order-controller"
-        ],
-        "summary": "Approve đơn -\u003E generate VIN/Engine & nhập inventory dealer",
-        "operationId": "approve",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseOrderApproveResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vehicle-models/{modelId}/colors/{colorId}/assign": {
+      },
       "post": {
         "tags": [
-          "vehicle-model-color-controller"
+          "Quản lý màu xe theo Model"
         ],
         "summary": "Gán màu vào model xe",
-        "description": "Dành cho ADMIN hoặc EVM_STAFF có quyền 'vehicleModelColor.create'.\nCho phép gán 1 màu có sẵn trong catalog vào model cụ thể,\nvới mức chênh lệch giá tùy chọn.\n",
+        "description": "Dành cho ADMIN hoặc EVM_STAFF có quyền 'vehicleModelColor.create'.\nCho phép gán màu sẵn trong catalog vào model cụ thể, kèm chênh lệch giá tùy chọn.\n",
         "operationId": "assignColor",
         "parameters": [
           {
@@ -554,7 +569,7 @@
           },
           {
             "name": "colorId",
-            "in": "path",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "integer",
@@ -617,16 +632,26 @@
         }
       }
     },
-    "/api/roles/{roleId}/permissions:remove": {
+    "/api/vehicle-instances/{id}/assign-customer": {
       "post": {
         "tags": [
-          "role-controller"
+          "Quản lý xe (Vehicle Instance)"
         ],
-        "operationId": "removePermissions",
+        "summary": "Gán xe cho khách hàng",
+        "operationId": "assignToCustomer",
         "parameters": [
           {
-            "name": "roleId",
+            "name": "id",
             "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "integer",
@@ -634,23 +659,13 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RolePermissionBulkRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseRoleDetailResponse"
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -658,11 +673,13 @@
         }
       }
     },
-    "/api/roles/{roleId}/permissions:add": {
+    "/api/roles/{roleId}/permissions/add": {
       "post": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
+        "summary": "Thêm permissions vào Role",
+        "description": "Thêm danh sách quyền mới vào role, bỏ qua quyền đã tồn tại",
         "operationId": "addPermissions",
         "parameters": [
           {
@@ -702,8 +719,10 @@
     "/api/roles/{id}/reset": {
       "post": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
+        "summary": "Reset Role về mặc định",
+        "description": "Đặt lại Role về cấu hình mặc định (yêu cầu restart ứng dụng để áp dụng permissions mới)",
         "operationId": "resetToDefault",
         "parameters": [
           {
@@ -733,9 +752,51 @@
     "/api/roles/assign/users/{userId}/roles/{roleId}": {
       "post": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
+        "summary": "Gán Role cho User",
+        "description": "Gán một vai trò cụ thể cho người dùng",
         "operationId": "assignRoleToUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Quản lý vai trò & phân quyền (Role/Permission)"
+        ],
+        "summary": "Gỡ Role khỏi User",
+        "description": "Xóa vai trò đã được gán khỏi người dùng",
+        "operationId": "unassignRoleFromUser",
         "parameters": [
           {
             "name": "userId",
@@ -770,11 +831,33 @@
         }
       }
     },
-    "/api/dealers/create": {
+    "/api/dealers": {
+      "get": {
+        "tags": [
+          "Quản lý đại lý (Dealer)"
+        ],
+        "summary": "Lấy danh sách Dealer",
+        "description": "Trả về danh sách tất cả các Dealer (phụ thuộc quyền)",
+        "operationId": "getAllDealers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDealerResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "dealer-controller"
+          "Quản lý đại lý (Dealer)"
         ],
+        "summary": "Tạo mới Dealer",
+        "description": "Tạo mới một đại lý (chỉ Admin/EVM được phép)",
         "operationId": "createDealer",
         "requestBody": {
           "content": {
@@ -800,12 +883,33 @@
         }
       }
     },
-    "/api/dealer/orders/create": {
+    "/api/dealer/orders": {
+      "get": {
+        "tags": [
+          "Quản lý đơn hàng (Dealer)"
+        ],
+        "summary": "Xem danh sách đơn hàng của Dealer",
+        "description": "Trả về danh sách tất cả các đơn hàng thuộc Dealer hiện tại",
+        "operationId": "getMyOrders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "dealer-order-controller"
+          "Quản lý đơn hàng (Dealer)"
         ],
-        "summary": "Dealer tạo yêu cầu nhập xe",
+        "summary": "Tạo yêu cầu nhập xe",
+        "description": "Dealer tạo đơn hàng nhập xe mới vào hệ thống",
         "operationId": "createOrder",
         "requestBody": {
           "content": {
@@ -831,11 +935,33 @@
         }
       }
     },
-    "/api/dealer-levels/create": {
+    "/api/dealer-levels": {
+      "get": {
+        "tags": [
+          "Quản lý cấp độ đại lý (Dealer Level)"
+        ],
+        "summary": "Lấy danh sách cấp độ đại lý",
+        "description": "Trả về danh sách tất cả cấp độ đại lý hiện có",
+        "operationId": "getAllDealerLevels",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDealerLevelResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "dealer-level-controller"
+          "Quản lý cấp độ đại lý (Dealer Level)"
         ],
+        "summary": "Tạo cấp độ đại lý",
+        "description": "Thêm mới một cấp độ đại lý trong hệ thống",
         "operationId": "createDealerLevel",
         "requestBody": {
           "content": {
@@ -861,10 +987,80 @@
         }
       }
     },
-    "/api/colors/create": {
+    "/api/customers": {
+      "get": {
+        "tags": [
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Lấy toàn bộ khách hàng (không lọc)",
+        "operationId": "getAll_1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListCustomerResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "color-controller"
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Tạo mới khách hàng",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCustomerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colors": {
+      "get": {
+        "tags": [
+          "Quản lý màu xe (Color)"
+        ],
+        "summary": "Lấy danh sách màu sắc",
+        "description": "Thêm `?includeInactive=true` để lấy cả các màu đã vô hiệu hóa.",
+        "operationId": "getAllColors",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListColorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quản lý màu xe (Color)"
         ],
         "summary": "Tạo màu mới",
         "description": "Dành cho ADMIN hoặc EVM_STAFF có quyền 'color.create'.\nBao gồm tên màu và mã hex (#RRGGBB).\n",
@@ -1081,13 +1277,32 @@
         }
       }
     },
-    "/api/admin/users/create-users": {
+    "/api/admin/users": {
+      "get": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Lấy danh sách tất cả user (có giới hạn theo role)",
+        "operationId": "getAllUsers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListUserResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
-          "admin-user-controller"
+          "Quản lý người dùng (Admin)"
         ],
         "summary": "Tạo người dùng nội bộ",
-        "description": "ADMIN: tạo được EVM_STAFF, DEALER_MANAGER, DEALER_STAFF;\nEVM_STAFF: tạo được DEALER_MANAGER, DEALER_STAFF;\nDEALER_MANAGER: tạo được DEALER_STAFF (trong dealer của mình).\nEmail sẽ nhận OTP để xác thực & đặt mật khẩu lần đầu.\n",
+        "description": "ADMIN: tạo được EVM_STAFF, DEALER_MANAGER, DEALER_STAFF.\nEVM_STAFF: tạo được DEALER_MANAGER, DEALER_STAFF.\nDEALER_MANAGER: tạo được DEALER_STAFF (trong dealer của mình).\nHệ thống sẽ gửi email OTP để xác thực & đặt mật khẩu lần đầu.\n",
         "operationId": "createUser",
         "requestBody": {
           "content": {
@@ -1116,9 +1331,10 @@
     "/api/admin/orders/{orderId}/installments/{installmentNumber}/confirm": {
       "post": {
         "tags": [
-          "admin-order-controller"
+          "Quản lý đơn hàng (Admin)"
         ],
-        "summary": "Xác nhận thanh toán một kỳ trả góp cho đơn CONFIRMED",
+        "summary": "Xác nhận thanh toán kỳ trả góp",
+        "description": "Xác nhận Admin đã nhận thanh toán cho một kỳ trả góp của đơn hàng CONFIRMED",
         "operationId": "confirmInstallmentPayment",
         "parameters": [
           {
@@ -1154,12 +1370,128 @@
         }
       }
     },
-    "/api/dealers/{dealerId}/reactivate": {
+    "/api/vehicle-models/{modelId}/colors/{colorId}/price-adjustment": {
       "patch": {
         "tags": [
-          "dealer-controller"
+          "Quản lý màu xe theo Model"
         ],
-        "operationId": "reactivateDealer",
+        "summary": "Cập nhật chênh lệch giá của màu",
+        "description": "Cập nhật phần chênh lệch giá cho một màu đã gán với model cụ thể",
+        "operationId": "updatePriceAdjustment",
+        "parameters": [
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "colorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "newAdjustment",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleModelColorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vehicle-instances/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Vô hiệu hóa xe",
+        "operationId": "deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vehicle-instances/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Kích hoạt lại xe",
+        "operationId": "activate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dealers/{dealerId}/deactivate": {
+      "patch": {
+        "tags": [
+          "Quản lý đại lý (Dealer)"
+        ],
+        "summary": "Vô hiệu hóa Dealer",
+        "description": "Chuyển Dealer sang trạng thái không hoạt động (inactive)",
+        "operationId": "deactivateDealer",
         "parameters": [
           {
             "name": "dealerId",
@@ -1185,12 +1517,14 @@
         }
       }
     },
-    "/api/dealers/{dealerId}/inactive": {
+    "/api/dealers/{dealerId}/activate": {
       "patch": {
         "tags": [
-          "dealer-controller"
+          "Quản lý đại lý (Dealer)"
         ],
-        "operationId": "inactiveDealer",
+        "summary": "Kích hoạt lại Dealer",
+        "description": "Kích hoạt lại Dealer từ trạng thái inactive",
+        "operationId": "activateDealer",
         "parameters": [
           {
             "name": "dealerId",
@@ -1209,6 +1543,431 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseDealerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Vô hiệu hóa khách hàng",
+        "operationId": "deactivate_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customers/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Quản lý khách hàng (Customer)"
+        ],
+        "summary": "Kích hoạt lại khách hàng",
+        "operationId": "activate_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colors/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Quản lý màu xe (Color)"
+        ],
+        "summary": "Vô hiệu hóa màu",
+        "description": "Ẩn màu khỏi hệ thống, yêu cầu quyền 'color.update'.",
+        "operationId": "deactivateColor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseColorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/colors/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Quản lý màu xe (Color)"
+        ],
+        "summary": "Kích hoạt lại màu",
+        "description": "Cho phép kích hoạt lại màu đã bị vô hiệu hóa, yêu cầu quyền 'color.update'.",
+        "operationId": "activateColor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseColorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}": {
+      "get": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Lấy chi tiết 1 user theo ID (có giới hạn theo role)",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Admin / EVM Staff / Dealer Manager cập nhật thông tin người khác",
+        "operationId": "updateUserProfile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/deactivate": {
+      "patch": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Vô hiệu hóa người dùng",
+        "description": "Chuyển trạng thái người dùng sang không hoạt động (inactive)",
+        "operationId": "deactivateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/assign-dealer/{dealerId}": {
+      "patch": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Gán user vào một đại lý",
+        "operationId": "assignUserToDealer",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "dealerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/{id}/activate": {
+      "patch": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Kích hoạt lại người dùng",
+        "description": "Kích hoạt lại người dùng từ trạng thái inactive",
+        "operationId": "activateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseObject"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/users/me": {
+      "get": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Lấy thông tin cá nhân của user hiện tại",
+        "operationId": "getMyProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Quản lý người dùng (Admin)"
+        ],
+        "summary": "Cập nhật thông tin cá nhân (profile của chính mình)",
+        "operationId": "updateMyProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/orders/{orderId}/cancel": {
+      "patch": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Hủy đơn hàng",
+        "description": "Admin hủy đơn hàng khi đơn chưa hoàn tất hoặc chưa giao xe",
+        "operationId": "cancelOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/orders/{orderId}/approve": {
+      "patch": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Duyệt đơn hàng (Approve)",
+        "description": "Phê duyệt đơn hàng, tự động tạo VIN/Engine và nhập hàng vào kho Dealer tương ứng",
+        "operationId": "approve",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderApproveResponse"
                 }
               }
             }
@@ -1238,16 +1997,70 @@
         }
       }
     },
-    "/api/vehicle-models/{modelId}/colors": {
+    "/api/vehicle-instances": {
       "get": {
         "tags": [
-          "vehicle-model-color-controller"
+          "Quản lý xe (Vehicle Instance)"
         ],
-        "summary": "Lấy danh sách màu của model cụ thể",
-        "operationId": "getColorsByModel",
+        "summary": "Lấy danh sách xe (lọc theo đại lý, trạng thái, active)",
+        "operationId": "getAll",
         "parameters": [
           {
-            "name": "modelId",
+            "name": "dealerId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "IN_STOCK",
+                "RESERVED",
+                "SOLD"
+              ]
+            }
+          },
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vehicle-instances/{id}": {
+      "get": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Lấy chi tiết xe theo ID",
+        "operationId": "getById",
+        "parameters": [
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -1262,7 +2075,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListVehicleModelColorResponse"
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
                 }
               }
             }
@@ -1270,19 +2083,21 @@
         }
       }
     },
-    "/api/roles/permissions/all": {
+    "/api/roles": {
       "get": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
-        "operationId": "getAllPermissions",
+        "summary": "Lấy danh sách tất cả Roles",
+        "description": "Trả về danh sách đầy đủ các vai trò (roles) trong hệ thống",
+        "operationId": "getAllRoles",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListPermissionResponse"
+                  "$ref": "#/components/schemas/ApiResponseListRoleResponse"
                 }
               }
             }
@@ -1290,11 +2105,13 @@
         }
       }
     },
-    "/api/roles/get-role/{id}": {
+    "/api/roles/{id}": {
       "get": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
+        "summary": "Lấy thông tin chi tiết của một Role",
+        "description": "Trả về thông tin chi tiết và các permissions của một role theo ID",
         "operationId": "getRoleById",
         "parameters": [
           {
@@ -1321,60 +2138,21 @@
         }
       }
     },
-    "/api/roles/all": {
+    "/api/roles/permissions": {
       "get": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
-        "operationId": "getAllRoles",
+        "summary": "Lấy danh sách tất cả Permissions",
+        "description": "Trả về toàn bộ danh sách quyền (permissions) trong hệ thống",
+        "operationId": "getAllPermissions",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListRoleResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/dealers/all": {
-      "get": {
-        "tags": [
-          "dealer-controller"
-        ],
-        "operationId": "getAllDealers",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListDealerResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/dealer/orders": {
-      "get": {
-        "tags": [
-          "dealer-order-controller"
-        ],
-        "summary": "Dealer xem danh sách đơn của chính mình",
-        "operationId": "getMyOrders",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListOrderResponse"
+                  "$ref": "#/components/schemas/ApiResponseListPermissionResponse"
                 }
               }
             }
@@ -1385,9 +2163,10 @@
     "/api/dealer/orders/{orderId}": {
       "get": {
         "tags": [
-          "dealer-order-controller"
+          "Quản lý đơn hàng (Dealer)"
         ],
-        "summary": "Dealer xem chi tiết đơn của chính mình",
+        "summary": "Xem chi tiết đơn hàng của Dealer",
+        "description": "Trả về thông tin chi tiết một đơn hàng thuộc Dealer hiện tại theo ID",
         "operationId": "getMyOrderById",
         "parameters": [
           {
@@ -1414,106 +2193,14 @@
         }
       }
     },
-    "/api/dealer-levels/{id}": {
-      "get": {
-        "tags": [
-          "dealer-level-controller"
-        ],
-        "operationId": "getDealerLevel",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseDealerLevelResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/dealer-levels/all": {
-      "get": {
-        "tags": [
-          "dealer-level-controller"
-        ],
-        "operationId": "getAllDealerLevels",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListDealerLevelResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/colors": {
-      "get": {
-        "tags": [
-          "color-controller"
-        ],
-        "summary": "Lấy danh sách tất cả màu sắc",
-        "description": "Thêm ?includeInactive=true để lấy cả các màu đã vô hiệu hóa.",
-        "operationId": "getAllColors",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListColorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/admin/users/get-all-users": {
-      "get": {
-        "tags": [
-          "admin-user-controller"
-        ],
-        "operationId": "getAllUsers",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListUserResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/admin/orders": {
       "get": {
         "tags": [
-          "admin-order-controller"
+          "Quản lý đơn hàng (Admin)"
         ],
-        "summary": "Danh sách đơn hàng (admin)",
-        "operationId": "getAll",
+        "summary": "Lấy danh sách đơn hàng",
+        "description": "Trả về danh sách tất cả đơn hàng trong hệ thống (dành cho Admin)",
+        "operationId": "getAll_2",
         "responses": {
           "200": {
             "description": "OK",
@@ -1531,10 +2218,11 @@
     "/api/admin/orders/{orderId}": {
       "get": {
         "tags": [
-          "admin-order-controller"
+          "Quản lý đơn hàng (Admin)"
         ],
-        "summary": "Chi tiết đơn hàng theo ID (admin)",
-        "operationId": "getById",
+        "summary": "Xem chi tiết đơn hàng",
+        "description": "Trả về thông tin chi tiết của một đơn hàng theo ID",
+        "operationId": "getById_2",
         "parameters": [
           {
             "name": "orderId",
@@ -1560,12 +2248,13 @@
         }
       }
     },
-    "/api/vehicle-models/{modelId}/colors/{colorId}/unassign": {
+    "/api/vehicle-models/{modelId}/colors/{colorId}": {
       "delete": {
         "tags": [
-          "vehicle-model-color-controller"
+          "Quản lý màu xe theo Model"
         ],
-        "summary": "Xóa gán màu khỏi model (unassign)",
+        "summary": "Gỡ màu khỏi model",
+        "description": "Xóa quan hệ giữa model và màu cụ thể, yêu cầu quyền 'vehicleModelColor.delete'",
         "operationId": "unassignColor",
         "parameters": [
           {
@@ -1601,22 +2290,15 @@
         }
       }
     },
-    "/api/roles/unassign/users/{userId}/roles/{roleId}": {
+    "/api/roles/{roleId}/permissions/remove": {
       "delete": {
         "tags": [
-          "role-controller"
+          "Quản lý vai trò & phân quyền (Role/Permission)"
         ],
-        "operationId": "unassignRoleFromUser",
+        "summary": "Xóa permissions khỏi Role",
+        "description": "Gỡ danh sách quyền khỏi role theo ID",
+        "operationId": "removePermissions",
         "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
           {
             "name": "roleId",
             "in": "path",
@@ -1627,44 +2309,23 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
-                }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionBulkRequest"
               }
             }
-          }
-        }
-      }
-    },
-    "/api/dealer-levels/delete/{id}": {
-      "delete": {
-        "tags": [
-          "dealer-level-controller"
-        ],
-        "operationId": "deleteDealerLevel",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
+                  "$ref": "#/components/schemas/ApiResponseRoleDetailResponse"
                 }
               }
             }
@@ -1675,55 +2336,6 @@
   },
   "components": {
     "schemas": {
-      "ApiResponseVehicleModelColorResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/VehicleModelColorResponse"
-          }
-        }
-      },
-      "VehicleModelColorResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "vehicleModelId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "colorId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "colorName": {
-            "type": "string"
-          },
-          "hexCode": {
-            "type": "string"
-          },
-          "priceAdjustment": {
-            "type": "number"
-          },
-          "imageUrl": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          }
-        }
-      },
       "VehicleModelRequest": {
         "required": [
           "brand",
@@ -1862,6 +2474,68 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseVehicleInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleInstanceResponse"
+          }
+        }
+      },
+      "VehicleInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "dealerName": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "currentValue": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -2050,6 +2724,102 @@
           }
         }
       },
+      "UpdateCustomerRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "pattern": "^[0-9]{10,11}$",
+            "type": "string"
+          },
+          "email": {
+            "pattern": "^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
+            "type": "string"
+          },
+          "idNumber": {
+            "pattern": "^[0-9]{9,12}$",
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "gender": {
+            "pattern": "^(MALE|FEMALE|OTHER)$",
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CustomerResponse"
+          }
+        }
+      },
+      "CustomerResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "idNumber": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ColorRequest": {
         "required": [
           "colorName",
@@ -2101,7 +2871,56 @@
           }
         }
       },
-      "ApiResponseObject": {
+      "ApiResponseVehicleModelColorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleModelColorResponse"
+          }
+        }
+      },
+      "VehicleModelColorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vehicleModelId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "colorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "hexCode": {
+            "type": "string"
+          },
+          "priceAdjustment": {
+            "type": "number"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseVoid": {
         "type": "object",
         "properties": {
           "success": {
@@ -2115,6 +2934,169 @@
           },
           "data": {
             "type": "object"
+          }
+        }
+      },
+      "RolePermissionBulkRequest": {
+        "required": [
+          "permissionIds"
+        ],
+        "type": "object",
+        "properties": {
+          "permissionIds": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "ApiResponseRoleDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RoleDetailResponse"
+          }
+        }
+      },
+      "PermissionInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          }
+        }
+      },
+      "RoleDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isCustomized": {
+            "type": "boolean"
+          },
+          "permissions": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionInfo"
+            }
+          }
+        }
+      },
+      "ApiResponseResetRoleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResetRoleResponse"
+          }
+        }
+      },
+      "ResetRoleResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleDetailResponse"
+          }
+        }
+      },
+      "CreateOrderRequest": {
+        "required": [
+          "isInstallment",
+          "orderDetails"
+        ],
+        "type": "object",
+        "properties": {
+          "isInstallment": {
+            "type": "boolean"
+          },
+          "installmentMonths": {
+            "maximum": 60,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "notes": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string"
+          },
+          "orderDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderDetailRequest"
+            }
+          }
+        }
+      },
+      "OrderDetailRequest": {
+        "required": [
+          "quantity",
+          "vehicleModelColorId"
+        ],
+        "type": "object",
+        "properties": {
+          "vehicleModelColorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2287,222 +3269,6 @@
           }
         }
       },
-      "ApiResponseOrderApproveResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/OrderApproveResponse"
-          }
-        }
-      },
-      "OrderApproveResponse": {
-        "type": "object",
-        "properties": {
-          "orderId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "orderCode": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "created": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "RolePermissionBulkRequest": {
-        "required": [
-          "permissionIds"
-        ],
-        "type": "object",
-        "properties": {
-          "permissionIds": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        }
-      },
-      "ApiResponseRoleDetailResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/RoleDetailResponse"
-          }
-        }
-      },
-      "PermissionInfo": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "resource": {
-            "type": "string"
-          },
-          "action": {
-            "type": "string"
-          }
-        }
-      },
-      "RoleDetailResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "isCustomized": {
-            "type": "boolean"
-          },
-          "permissions": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PermissionInfo"
-            }
-          }
-        }
-      },
-      "ApiResponseResetRoleResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ResetRoleResponse"
-          }
-        }
-      },
-      "ResetRoleResponse": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "role": {
-            "$ref": "#/components/schemas/RoleDetailResponse"
-          }
-        }
-      },
-      "ApiResponseVoid": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object"
-          }
-        }
-      },
-      "CreateOrderRequest": {
-        "required": [
-          "isInstallment",
-          "orderDetails"
-        ],
-        "type": "object",
-        "properties": {
-          "isInstallment": {
-            "type": "boolean"
-          },
-          "installmentMonths": {
-            "maximum": 60,
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          },
-          "notes": {
-            "maxLength": 1000,
-            "minLength": 0,
-            "type": "string"
-          },
-          "orderDetails": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderDetailRequest"
-            }
-          }
-        }
-      },
-      "OrderDetailRequest": {
-        "required": [
-          "quantity",
-          "vehicleModelColorId"
-        ],
-        "type": "object",
-        "properties": {
-          "vehicleModelColorId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "quantity": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "CreateDealerLevelRequest": {
         "required": [
           "creditLimit",
@@ -2554,6 +3320,48 @@
           "description": {
             "maxLength": 500,
             "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "CreateCustomerRequest": {
+        "required": [
+          "address",
+          "dateOfBirth",
+          "email",
+          "fullName",
+          "gender",
+          "idNumber",
+          "phoneNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "pattern": "^[0-9]{10,11}$",
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "idNumber": {
+            "pattern": "^[0-9]{9,12}$",
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "gender": {
+            "pattern": "^(MALE|FEMALE|OTHER)$",
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "notes": {
             "type": "string"
           }
         }
@@ -2750,6 +3558,164 @@
           }
         }
       },
+      "UpdateUserProfileRequest": {
+        "required": [
+          "dateOfBirth",
+          "email",
+          "fullName",
+          "gender",
+          "idNumber",
+          "phoneNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "pattern": "^[0-9]{10,11}$",
+            "type": "string"
+          },
+          "idNumber": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "gender": {
+            "pattern": "^(MALE|FEMALE|OTHER)$",
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseUserDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserDetailResponse"
+          }
+        }
+      },
+      "UserDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "idNumber": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "roles": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dealerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dealerName": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseObject": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "ApiResponseOrderApproveResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrderApproveResponse"
+          }
+        }
+      },
+      "OrderApproveResponse": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ApiResponseListVehicleModelResponse": {
         "type": "object",
         "properties": {
@@ -2787,6 +3753,67 @@
             "items": {
               "$ref": "#/components/schemas/VehicleModelColorResponse"
             }
+          }
+        }
+      },
+      "ApiResponseListVehicleInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleInstanceResponse"
+            }
+          }
+        }
+      },
+      "ApiResponseListRoleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleResponse"
+            }
+          }
+        }
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isCustomized": {
+            "type": "boolean"
           }
         }
       },
@@ -2833,47 +3860,6 @@
             "type": "string"
           },
           "isActive": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ApiResponseListRoleResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RoleResponse"
-            }
-          }
-        }
-      },
-      "RoleResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "name": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "isCustomized": {
             "type": "boolean"
           }
         }
@@ -2938,6 +3924,140 @@
           }
         }
       },
+      "ApiResponseListCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerResponse"
+            }
+          }
+        }
+      },
+      "ApiResponseCustomerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CustomerDetailResponse"
+          }
+        }
+      },
+      "CustomerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "idNumber": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "vehiclesPurchased": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerVehicleResponse"
+            }
+          }
+        }
+      },
+      "CustomerVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "salePrice": {
+            "type": "number"
+          },
+          "saleDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "warrantyStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "warrantyEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "dealerName": {
+            "type": "string"
+          },
+          "soldByUserName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseListColorResponse": {
         "type": "object",
         "properties": {
@@ -2994,15 +4114,19 @@
           "active": {
             "type": "boolean"
           },
-          "verified": {
-            "type": "boolean"
-          },
           "roles": {
             "uniqueItems": true,
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "dealerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dealerName": {
+            "type": "string"
           }
         }
       }
