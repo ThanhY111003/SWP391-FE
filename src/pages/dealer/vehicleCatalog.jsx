@@ -62,63 +62,7 @@ export default function VehicleCatalog() {
       }
     } catch (error) {
       console.error("Error fetching vehicles:", error);
-      // Mock data for development
-      setVehicles([
-        {
-          id: 1,
-          name: "VF 8",
-          modelCode: "VF8-2024",
-          description: "VinFast VF 8 - Premium electric SUV",
-          brand: "VinFast",
-          year: 2024,
-          batteryCapacity: 87,
-          rangeKm: 447,
-          chargingTime: 70,
-          maxSpeed: 180,
-          acceleration: 5.5,
-          seatingCapacity: 5,
-          cargoVolume: 376,
-          manufacturerPrice: 800000000,
-          imageUrl: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400",
-          isActive: true
-        },
-        {
-          id: 2,
-          name: "VF 9",
-          modelCode: "VF9-2024",
-          description: "VinFast VF 9 - Luxury electric SUV",
-          brand: "VinFast",
-          year: 2024,
-          batteryCapacity: 92,
-          rangeKm: 510,
-          chargingTime: 75,
-          maxSpeed: 200,
-          acceleration: 5.0,
-          seatingCapacity: 7,
-          cargoVolume: 450,
-          manufacturerPrice: 1200000000,
-          imageUrl: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400",
-          isActive: true
-        },
-        {
-          id: 3,
-          name: "Tesla Model 3",
-          modelCode: "TM3-2024",
-          description: "Tesla Model 3 - Electric sedan",
-          brand: "Tesla",
-          year: 2024,
-          batteryCapacity: 75,
-          rangeKm: 500,
-          chargingTime: 60,
-          maxSpeed: 225,
-          acceleration: 4.4,
-          seatingCapacity: 5,
-          cargoVolume: 425,
-          manufacturerPrice: 1800000000,
-          imageUrl: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400",
-          isActive: true
-        }
-      ]);
+      
     } finally {
       setLoading(false);
     }
@@ -368,6 +312,41 @@ export default function VehicleCatalog() {
     }
   };
 
+  // Delete color from vehicle
+  const handleDeleteColor = async (colorId) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/vehicle-models/${selectedVehicle.id}/colors/${colorId}`
+      );
+      
+      if (response.data.success) {
+        toast.success("Màu đã được xóa khỏi xe thành công!", {
+          position: "top-right",
+          duration: 3000,
+        });
+        fetchVehicleColors();
+      } else {
+        toast.error(response.data.message || "Xóa màu thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting color from vehicle:", error);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message, {
+          position: "top-right",
+          duration: 3000,
+        });
+      } else {
+        toast.error("Xóa màu thất bại!", {
+          position: "top-right",
+          duration: 3000,
+        });
+      }
+    }
+  };
+
   // Filter vehicles
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesBrand = brandFilter === "All" || vehicle.brand === brandFilter;
@@ -526,6 +505,30 @@ export default function VehicleCatalog() {
       render: (isActive) => (
         <Badge status={isActive ? "success" : "error"} text={isActive ? "Active" : "Inactive"} />
       ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Popconfirm
+          title="Xóa màu khỏi xe?"
+          description="Bạn có chắc chắn muốn xóa màu này khỏi model xe?"
+          onConfirm={() => handleDeleteColor(record.id)}
+          okText="Xóa"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+        >
+          <Button 
+            type="primary" 
+            danger 
+            size="small"
+            icon={<DeleteOutlined />}
+          >
+            Xóa
+          </Button>
+        </Popconfirm>
+      ),
+      align: "center"
     }
   ];
 

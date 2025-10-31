@@ -43,33 +43,6 @@ export default function ColorManagement() {
       }
     } catch (error) {
       console.error("Error fetching colors:", error);
-      // Mock data for development
-      setColors([
-        {
-          id: 1,
-          colorName: "Pearl White",
-          hexCode: "#FFFFFF",
-          isActive: true,
-        },
-        {
-          id: 2,
-          colorName: "Midnight Silver",
-          hexCode: "#2C2C2C",
-          isActive: true,
-        },
-        {
-          id: 3,
-          colorName: "Deep Blue",
-          hexCode: "#1E3A8A",
-          isActive: true,
-        },
-        {
-          id: 4,
-          colorName: "Red Metallic",
-          hexCode: "#DC2626",
-          isActive: false,
-        },
-      ]);
     } finally {
       setLoading(false);
     }

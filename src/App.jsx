@@ -19,10 +19,12 @@ import DealerManagement from "./pages/admin/dealerManagement";
 import DealerLevels from "./pages/admin/dealerLevels";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
+import DebugAuth from "./components/DebugAuth";
 
 function App() {
   return (
     <BrowserRouter>
+      <DebugAuth />
       <Routes>
         {/* Auth */}
         <Route path="/login" element={<Login />} />
