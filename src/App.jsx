@@ -14,6 +14,9 @@ import DebtReport from "./pages/dealer/debtReport";
 import ColorManagement from "./pages/dealer/colorManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
 import OrderManagement from "./pages/admin/orderManagement";
+import AdminColorManagement from "./pages/admin/ColorManagement";
+import VehicleModelColors from "./pages/admin/VehicleModelColors";
+import VehicleModels from "./pages/admin/VehicleModels";
 import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
@@ -25,26 +28,26 @@ import DebugAuth from "./components/DebugAuth";
 function App() {
   return (
     <BrowserRouter>
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: '#4aed88',
-              secondary: '#fff',
+              primary: "#4aed88",
+              secondary: "#fff",
             },
           },
           error: {
             duration: 3000,
             iconTheme: {
-              primary: '#ff0000',
-              secondary: '#fff',
+              primary: "#ff0000",
+              secondary: "#fff",
             },
           },
         }}
@@ -128,6 +131,36 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <OrderManagement />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/colors"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <AdminColorManagement />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/vehicle-models"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <VehicleModels />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/vehicle-models/:modelId/colors"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <VehicleModelColors />
               </ManufacturerLayout>
             </AuthGuard>
           }

@@ -162,10 +162,15 @@ export default function OrderManagement() {
 
   // Handle order approval
   const handleApproveOrder = async (orderId) => {
+    console.log("Approving order with ID:", orderId);
     setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
 
     try {
-      const response = await api.patch(`/admin/orders/${orderId}/approve`);
+      // Try with status in body as per API requirement
+      const response = await api.patch(`/admin/orders/${orderId}/approve`, {
+        status: "APPROVED",
+      });
+      console.log("Approve response:", response.data);
 
       if (response.data && response.data.success) {
         message.success({
@@ -189,6 +194,7 @@ export default function OrderManagement() {
       }
     } catch (error) {
       console.error("Error approving order:", error);
+      console.error("Error response:", error.response?.data);
       const errorMessage =
         error.response?.data?.message ||
         "Có lỗi xảy ra khi phê duyệt đơn hàng!";
@@ -262,7 +268,7 @@ export default function OrderManagement() {
 
   // Check if order can be approved/rejected
   const canApproveOrder = (status) => {
-    return ["PENDING", "CONFIRMED"].includes(status);
+    return status === "PENDING";
   };
 
   // Check if order can be cancelled

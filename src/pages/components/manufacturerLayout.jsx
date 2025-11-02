@@ -8,6 +8,8 @@ import {
   UserOutlined,
   CrownOutlined,
   FileTextOutlined,
+  BgColorsOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -34,6 +36,18 @@ export default function ManufacturerLayout({ children }) {
       icon: <FileTextOutlined />,
       label: "Quản lý đơn hàng",
       path: "/manufacturer/orders",
+    },
+    {
+      key: "vehicle-models",
+      icon: <CarOutlined />,
+      label: "Quản lý Vehicle Models",
+      path: "/manufacturer/vehicle-models",
+    },
+    {
+      key: "color-management",
+      icon: <BgColorsOutlined />,
+      label: "Quản lý màu sắc",
+      path: "/manufacturer/colors",
     },
     {
       key: "dealer-levels",

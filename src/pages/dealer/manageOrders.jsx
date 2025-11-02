@@ -33,6 +33,7 @@ const { Text } = Typography;
 export default function ManageOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingColors, setLoadingColors] = useState(false);
   const [open, setOpen] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -94,30 +95,88 @@ export default function ManageOrders() {
     }
   };
 
-  // 3. Fetch vehicle model colors
-  const fetchVehicleModelColors = async () => {
+  // 3. Fetch vehicle models và colors
+  const fetchVehicleModelsAndColors = async () => {
+    setLoadingColors(true);
     try {
-      const res = await api.get("/dealer/vehicle-model-colors");
-      console.log("Vehicle model colors API Response:", res.data);
+      // Lấy danh sách vehicle models
+      const modelsRes = await api.get("/vehicle-models");
+      console.log("Vehicle models API Response:", modelsRes.data);
 
-      if (res.data && res.data.success && res.data.data) {
-        setVehicleModelColors(res.data.data);
-        console.log("Vehicle model colors loaded from database");
+      if (
+        modelsRes.data &&
+        (Array.isArray(modelsRes.data) || modelsRes.data.data)
+      ) {
+        const models = Array.isArray(modelsRes.data)
+          ? modelsRes.data
+          : modelsRes.data.data;
+
+        // Lấy màu sắc cho từng model
+        const allModelColors = [];
+
+        for (const model of models) {
+          try {
+            const colorsRes = await api.get(
+              `/vehicle-models/${model.id}/colors`
+            );
+            console.log(`Colors for model ${model.id}:`, colorsRes.data);
+
+            if (
+              colorsRes.data &&
+              (Array.isArray(colorsRes.data) || colorsRes.data.data)
+            ) {
+              const colors = Array.isArray(colorsRes.data)
+                ? colorsRes.data
+                : colorsRes.data.data;
+
+              // Thêm thông tin model vào mỗi màu
+              colors.forEach((color) => {
+                allModelColors.push({
+                  id: color.id,
+                  vehicleModelId: color.vehicleModelId,
+                  vehicleModelName: model.name,
+                  colorId: color.colorId,
+                  colorName: color.colorName,
+                  hexCode: color.hexCode,
+                  priceAdjustment: color.priceAdjustment || 0,
+                  basePrice: model.basePrice || 0,
+                  price: (model.basePrice || 0) + (color.priceAdjustment || 0),
+                  isActive: color.isActive,
+                });
+              });
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch colors for model ${model.id}:`, err);
+          }
+        }
+
+        // Chỉ lấy những màu đang active
+        const activeColors = allModelColors.filter((color) => color.isActive);
+        setVehicleModelColors(activeColors);
+        console.log("Vehicle model colors loaded:", activeColors);
+
+        if (activeColors.length === 0) {
+          message.warning(
+            "Chưa có màu sắc nào được cấu hình cho các vehicle models"
+          );
+        }
       } else {
-        console.log("No vehicle model colors data received from API");
+        console.log("No vehicle models data received from API");
         setVehicleModelColors([]);
       }
     } catch (err) {
-      console.error("Error fetching vehicle model colors:", err);
-      console.log("Vehicle model colors API not available");
+      console.error("Error fetching vehicle models and colors:", err);
+      message.error("Không thể tải danh sách xe và màu sắc");
       setVehicleModelColors([]);
+    } finally {
+      setLoadingColors(false);
     }
   };
 
   useEffect(() => {
     fetchOrders();
     fetchPriceTable(); // ✅ Gọi thêm API bảng giá
-    fetchVehicleModelColors(); // ✅ Gọi thêm API vehicle model colors
+    fetchVehicleModelsAndColors(); // ✅ Gọi thêm API vehicle models và colors
   }, []);
 
   // Format currency
@@ -131,8 +190,18 @@ export default function ManageOrders() {
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN");
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   // Handle view order detail
@@ -194,11 +263,13 @@ export default function ManageOrders() {
       } else {
         // Create new order - use new API format
         try {
+          const isInstallmentPayment = values.paymentMethod === "INSTALLMENT";
+
           const orderData = {
-            isInstallment: values.isInstallment || false,
-            installmentMonths: values.isInstallment
+            isInstallment: isInstallmentPayment,
+            installmentMonths: isInstallmentPayment
               ? values.installmentMonths || 12
-              : null,
+              : 0,
             notes: values.notes || "",
             orderDetails: [
               {
@@ -294,19 +365,23 @@ export default function ManageOrders() {
       render: (_, record) => {
         const details = record.orderDetails || [];
         return (
-          <div>
+          <div className="space-y-2">
             {details.map((detail, index) => (
               <div key={index} className="text-sm">
-                <div className="font-medium">
-                  {detail.vehicleModelName} - {detail.vehicleColorName}
+                <div className="font-medium">{detail.vehicleModelName}</div>
+                <div className="text-gray-500">
+                  {detail.vehicleColorName} • Qty: {detail.quantity}
                 </div>
-                <div className="text-gray-500">Qty: {detail.quantity}</div>
+                <div className="text-xs text-blue-600">
+                  {formatCurrency(detail.unitPrice)} × {detail.quantity} ={" "}
+                  {formatCurrency(detail.totalPrice)}
+                </div>
               </div>
             ))}
           </div>
         );
       },
-      width: 200,
+      width: 250,
     },
     {
       title: "Total Amount",
@@ -441,6 +516,93 @@ export default function ManageOrders() {
           </Card>
         )}
 
+        {/* ✅ Hiển thị các model và màu có sẵn */}
+        {loadingColors ? (
+          <Card
+            className="mb-6"
+            title="🚗 Danh sách xe và màu sắc có sẵn"
+            size="small"
+          >
+            <div className="text-center py-8">
+              <div className="text-gray-500">
+                Đang tải danh sách xe và màu sắc...
+              </div>
+            </div>
+          </Card>
+        ) : vehicleModelColors.length > 0 ? (
+          <Card
+            className="mb-6"
+            title="🚗 Danh sách xe và màu sắc có sẵn"
+            size="small"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(() => {
+                const groupedByModel = vehicleModelColors.reduce(
+                  (acc, item) => {
+                    const modelName = item.vehicleModelName;
+                    if (!acc[modelName]) acc[modelName] = [];
+                    acc[modelName].push(item);
+                    return acc;
+                  },
+                  {}
+                );
+
+                return Object.entries(groupedByModel).map(
+                  ([modelName, colors]) => (
+                    <div
+                      key={modelName}
+                      className="border rounded-lg p-3 bg-gray-50"
+                    >
+                      <h4 className="font-semibold text-gray-800 mb-2">
+                        {modelName}
+                      </h4>
+                      <div className="space-y-2">
+                        {colors.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div
+                                style={{
+                                  width: 16,
+                                  height: 16,
+                                  backgroundColor: item.hexCode || "#cccccc",
+                                  border: "1px solid #d9d9d9",
+                                  borderRadius: 3,
+                                }}
+                              />
+                              <span className="text-sm">{item.colorName}</span>
+                            </div>
+                            <span className="text-xs text-green-600 font-medium">
+                              {formatCurrency(item.price)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                );
+              })()}
+            </div>
+          </Card>
+        ) : (
+          <Card
+            className="mb-6"
+            title="🚗 Danh sách xe và màu sắc có sẵn"
+            size="small"
+          >
+            <div className="text-center py-8">
+              <div className="text-gray-500 mb-2">
+                Chưa có xe và màu sắc nào được cấu hình
+              </div>
+              <div className="text-sm text-gray-400">
+                Vui lòng liên hệ admin để thêm màu sắc cho các model xe
+              </div>
+            </div>
+          </Card>
+        )}
+
         <Table
           rowKey="id"
           columns={columns}
@@ -453,7 +615,10 @@ export default function ManageOrders() {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} orders`,
+              `${range[0]}-${range[1]} của ${total} đơn hàng`,
+          }}
+          locale={{
+            emptyText: loading ? "Đang tải..." : "Chưa có đơn hàng nào",
           }}
         />
 
@@ -469,19 +634,99 @@ export default function ManageOrders() {
         >
           <Form form={form} layout="vertical">
             <Form.Item
-              label="Vehicle Model & Color"
+              label="Chọn xe và màu sắc"
               name="vehicleModelColorId"
               rules={[
                 { required: true, message: "Vui lòng chọn model và màu xe!" },
               ]}
             >
-              <Select placeholder="Chọn model và màu xe" showSearch>
-                {vehicleModelColors.map((item) => (
-                  <Option key={item.id} value={item.id}>
-                    {item.vehicleModelName} - {item.colorName} (
-                    {formatCurrency(item.price)})
-                  </Option>
-                ))}
+              <Select
+                placeholder={
+                  loadingColors
+                    ? "Đang tải dữ liệu..."
+                    : "Chọn model xe và màu sắc"
+                }
+                showSearch
+                loading={loadingColors}
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option?.children?.toLowerCase().includes(input.toLowerCase())
+                }
+                size="large"
+                notFoundContent={
+                  loadingColors ? (
+                    <div className="text-center py-4">
+                      <div>Đang tải danh sách xe và màu sắc...</div>
+                    </div>
+                  ) : vehicleModelColors.length === 0 ? (
+                    <div className="text-center py-4">
+                      <div className="text-gray-500">
+                        Chưa có xe và màu sắc nào được cấu hình
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Vui lòng liên hệ admin để thêm màu sắc cho các model xe
+                      </div>
+                    </div>
+                  ) : (
+                    "Không tìm thấy"
+                  )
+                }
+              >
+                {(() => {
+                  // Nhóm theo vehicle model
+                  const groupedByModel = vehicleModelColors.reduce(
+                    (acc, item) => {
+                      const modelName = item.vehicleModelName;
+                      if (!acc[modelName]) acc[modelName] = [];
+                      acc[modelName].push(item);
+                      return acc;
+                    },
+                    {}
+                  );
+
+                  return Object.entries(groupedByModel).map(
+                    ([modelName, colors]) => (
+                      <Select.OptGroup
+                        key={modelName}
+                        label={
+                          <span className="font-semibold text-gray-700">
+                            {modelName}
+                          </span>
+                        }
+                      >
+                        {colors.map((item) => (
+                          <Option key={item.id} value={item.id}>
+                            <div className="flex items-center justify-between py-1">
+                              <div className="flex items-center space-x-3">
+                                <div
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    backgroundColor: item.hexCode || "#cccccc",
+                                    border: "2px solid #d9d9d9",
+                                    borderRadius: 4,
+                                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                                  }}
+                                />
+                                <div>
+                                  <div className="font-medium">
+                                    {item.colorName}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {item.hexCode}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-green-600 font-bold">
+                                {formatCurrency(item.price)}
+                              </div>
+                            </div>
+                          </Option>
+                        ))}
+                      </Select.OptGroup>
+                    )
+                  );
+                })()}
               </Select>
             </Form.Item>
 
@@ -498,20 +743,28 @@ export default function ManageOrders() {
 
             <Form.Item
               label="Hình thức thanh toán"
-              name="isInstallment"
-              valuePropName="checked"
+              name="paymentMethod"
+              rules={[
+                {
+                  required: true,
+                  message: "Vui lòng chọn hình thức thanh toán!",
+                },
+              ]}
             >
-              <Checkbox>Trả góp</Checkbox>
+              <Select placeholder="Chọn hình thức thanh toán">
+                <Option value="FULL_PAYMENT">Thanh toán đủ (một lần)</Option>
+                <Option value="INSTALLMENT">Trả góp</Option>
+              </Select>
             </Form.Item>
 
             <Form.Item
               noStyle
               shouldUpdate={(prevValues, currentValues) =>
-                prevValues.isInstallment !== currentValues.isInstallment
+                prevValues.paymentMethod !== currentValues.paymentMethod
               }
             >
               {({ getFieldValue }) =>
-                getFieldValue("isInstallment") === true ? (
+                getFieldValue("paymentMethod") === "INSTALLMENT" ? (
                   <Form.Item
                     label="Số tháng trả góp"
                     name="installmentMonths"
@@ -554,14 +807,14 @@ export default function ManageOrders() {
                 prevValues.vehicleModelColorId !==
                   currentValues.vehicleModelColorId ||
                 prevValues.quantity !== currentValues.quantity ||
-                prevValues.isInstallment !== currentValues.isInstallment ||
+                prevValues.paymentMethod !== currentValues.paymentMethod ||
                 prevValues.installmentMonths !== currentValues.installmentMonths
               }
             >
               {({ getFieldValue }) => {
                 const selectedVehicleId = getFieldValue("vehicleModelColorId");
                 const quantity = getFieldValue("quantity") || 1;
-                const isInstallment = getFieldValue("isInstallment");
+                const paymentMethod = getFieldValue("paymentMethod");
                 const installmentMonths = getFieldValue("installmentMonths");
 
                 const selectedVehicle = vehicleModelColors.find(
@@ -570,42 +823,74 @@ export default function ManageOrders() {
 
                 if (selectedVehicle && !editingOrder) {
                   const totalAmount = selectedVehicle.price * quantity;
+                  const isInstallment = paymentMethod === "INSTALLMENT";
 
                   return (
                     <Card
-                      title="Preview đơn hàng"
+                      title="🔍 Preview đơn hàng"
                       size="small"
-                      className="bg-gray-50"
+                      className="bg-gray-50 border-2 border-blue-200"
                     >
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <strong>Xe:</strong>{" "}
-                          {selectedVehicle.vehicleModelName} -{" "}
-                          {selectedVehicle.colorName}
-                        </div>
-                        <div>
-                          <strong>Số lượng:</strong> {quantity}
-                        </div>
-                        <div>
-                          <strong>Đơn giá:</strong>{" "}
-                          {formatCurrency(selectedVehicle.price)}
-                        </div>
-                        <div>
-                          <strong>Tổng tiền:</strong>{" "}
-                          {formatCurrency(totalAmount)}
-                        </div>
-                        <div>
-                          <strong>Hình thức:</strong>{" "}
-                          {isInstallment
-                            ? `Trả góp ${installmentMonths} tháng`
-                            : "Thanh toán đủ"}
-                        </div>
-                        {isInstallment && installmentMonths && (
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            style={{
+                              width: 24,
+                              height: 24,
+                              backgroundColor:
+                                selectedVehicle.hexCode || "#cccccc",
+                              border: "2px solid #d9d9d9",
+                              borderRadius: 4,
+                            }}
+                          />
                           <div>
-                            <strong>Tiền trả góp/tháng:</strong>{" "}
-                            {formatCurrency(totalAmount / installmentMonths)}
+                            <div className="font-medium text-base">
+                              {selectedVehicle.vehicleModelName}
+                            </div>
+                            <div className="text-gray-600">
+                              Màu: {selectedVehicle.colorName} (
+                              {selectedVehicle.hexCode})
+                            </div>
                           </div>
-                        )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Số lượng:</span>
+                            <span className="ml-2 font-medium">
+                              {quantity} xe
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Đơn giá:</span>
+                            <span className="ml-2 font-medium text-blue-600">
+                              {formatCurrency(selectedVehicle.price)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-medium">
+                              Tổng tiền:
+                            </span>
+                            <span className="text-xl font-bold text-green-600">
+                              {formatCurrency(totalAmount)}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            Hình thức:{" "}
+                            {isInstallment
+                              ? `Trả góp ${installmentMonths} tháng`
+                              : "Thanh toán đủ (một lần)"}
+                          </div>
+                          {isInstallment && installmentMonths && (
+                            <div className="text-sm text-orange-600 mt-1">
+                              Tiền trả góp/tháng:{" "}
+                              {formatCurrency(totalAmount / installmentMonths)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </Card>
                   );
@@ -677,6 +962,16 @@ export default function ManageOrders() {
                   </Descriptions.Item>
                   <Descriptions.Item label="Ngày thanh toán đủ">
                     {formatDate(selectedOrder.fullPaymentDate)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Người tạo đơn">
+                    <div className="text-sm">
+                      <div className="font-medium">
+                        {selectedOrder.createdBy?.fullName}
+                      </div>
+                      <div className="text-gray-500">
+                        @{selectedOrder.createdBy?.username}
+                      </div>
+                    </div>
                   </Descriptions.Item>
                   <Descriptions.Item label="Ghi chú" span={2}>
                     {selectedOrder.notes || "Không có ghi chú"}
