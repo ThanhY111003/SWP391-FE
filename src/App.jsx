@@ -12,6 +12,11 @@ import VehicleComparison from "./pages/dealer/vehicleComparison";
 import SalesReport from "./pages/dealer/salesReport";
 import DebtReport from "./pages/dealer/debtReport";
 import ColorManagement from "./pages/dealer/colorManagement";
+import ManageCustomers from "./pages/dealer/manageCustomers";
+import ManageVehicles from "./pages/dealer/manageVehicles";
+import VehicleList from "./pages/dealer/vehicleList";
+import VehicleDetail from "./pages/dealer/vehicleDetail";
+import Cart from "./pages/dealer/cart";
 import ManageUsers from "./pages/admin/ManageUsers";
 import OrderManagement from "./pages/admin/orderManagement";
 import AdminColorManagement from "./pages/admin/ColorManagement";
@@ -63,11 +68,16 @@ function App() {
         {/* Dealer */}
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />
         <Route path="/dealer/catalog" element={<VehicleCatalog />} />
+        <Route path="/dealer/vehicle-list" element={<VehicleList />} />
+        <Route path="/dealer/vehicle-detail/:modelId" element={<VehicleDetail />} />
+        <Route path="/dealer/cart" element={<Cart />} />
         <Route path="/dealer/comparison" element={<VehicleComparison />} />
         <Route path="/dealer/orders" element={<ManageOrders />} />
         <Route path="/dealer/orders/:id" element={<OrderDetail />} />
         <Route path="/dealer/inventory" element={<Inventory />} />
-        <Route path="/dealer/customers" element={<CustomerHistory />} />
+        <Route path="/dealer/vehicles" element={<ManageVehicles />} />
+        <Route path="/dealer/customers" element={<ManageCustomers />} />
+        <Route path="/dealer/customer-history" element={<CustomerHistory />} />
         <Route path="/dealer/sales-report" element={<SalesReport />} />
         <Route path="/dealer/debt-report" element={<DebtReport />} />
         <Route path="/dealer/colors" element={<ColorManagement />} />

@@ -13,6 +13,7 @@ import {
   UserOutlined,
   ExclamationCircleOutlined,
   BgColorsOutlined, // New icon for colors
+  ToolOutlined, // Icon for vehicle management
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -35,6 +36,12 @@ export default function DealerLayout({ children }) {
       path: "/dealer/catalog",
     },
     {
+      key: "vehicle-list",
+      icon: <CarOutlined />,
+      label: "Danh sách xe",
+      path: "/dealer/vehicle-list",
+    },
+    {
       key: "comparison",
       icon: <SwapOutlined />,
       label: "Vehicle Comparison",
@@ -47,10 +54,22 @@ export default function DealerLayout({ children }) {
       path: "/dealer/orders",
     },
     {
-      key: "inventory",
-      icon: <CarOutlined />,
-      label: "Inventory",
-      path: "/dealer/inventory",
+      key: "cart",
+      icon: <ShoppingCartOutlined />,
+      label: "Giỏ hàng",
+      path: "/dealer/cart",
+    },
+    // {
+    //   key: "inventory",
+    //   icon: <CarOutlined />,
+    //   label: "Inventory",
+    //   path: "/dealer/inventory",
+    // },
+    {
+      key: "vehicles",
+      icon: <ToolOutlined />,
+      label: "Quản lý xe",
+      path: "/dealer/vehicles",
     },
     {
       key: "customers",
@@ -58,24 +77,24 @@ export default function DealerLayout({ children }) {
       label: "Customers",
       path: "/dealer/customers",
     },
-    {
-      key: "sales-report",
-      icon: <BarChartOutlined />,
-      label: "Sales Report",
-      path: "/dealer/sales-report",
-    },
-    {
-      key: "debt-report",
-      icon: <ExclamationCircleOutlined />,
-      label: "Debt Report",
-      path: "/dealer/debt-report",
-    },
-    {
-      key: "colors",
-      icon: <BgColorsOutlined />,
-      label: "Color Management",
-      path: "/dealer/colors",
-    },
+    // {
+    //   key: "sales-report",
+    //   icon: <BarChartOutlined />,
+    //   label: "Sales Report",
+    //   path: "/dealer/sales-report",
+    // },
+    // {
+    //   key: "debt-report",
+    //   icon: <ExclamationCircleOutlined />,
+    //   label: "Debt Report",
+    //   path: "/dealer/debt-report",
+    // },
+    // {
+    //   key: "colors",
+    //   icon: <BgColorsOutlined />,
+    //   label: "Color Management",
+    //   path: "/dealer/colors",
+    // },
     {
       key: "staff",
       icon: <UserOutlined />,
