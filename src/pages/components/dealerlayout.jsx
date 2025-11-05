@@ -29,12 +29,12 @@ export default function DealerLayout({ children }) {
       label: "Dashboard",
       path: "/dealer/dashboard",
     },
-    {
-      key: "catalog",
-      icon: <AppstoreOutlined />,
-      label: "Vehicle Catalog",
-      path: "/dealer/catalog",
-    },
+    // {
+    //   key: "catalog",
+    //   icon: <AppstoreOutlined />,
+    //   label: "Vehicle Catalog",
+    //   path: "/dealer/catalog",
+    // },
     {
       key: "vehicle-list",
       icon: <CarOutlined />,
@@ -95,12 +95,12 @@ export default function DealerLayout({ children }) {
     //   label: "Color Management",
     //   path: "/dealer/colors",
     // },
-    {
-      key: "staff",
-      icon: <UserOutlined />,
-      label: "Staff",
-      path: "/dealer/staff",
-    },
+    // {
+    //   key: "staff",
+    //   icon: <UserOutlined />,
+    //   label: "Staff",
+    //   path: "/dealer/staff",
+    // },
     {
       key: "logout",
       icon: <LogoutOutlined />,

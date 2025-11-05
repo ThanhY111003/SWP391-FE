@@ -28,7 +28,7 @@ export default function ManageOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🧩 1. Fetch danh sách đơn hàng
+  //  1. Fetch danh sách đơn hàng
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -54,7 +54,7 @@ export default function ManageOrders() {
     fetchOrders();
   }, []);
 
-  // 🧩 2. Format currency
+  //  2. Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -62,7 +62,7 @@ export default function ManageOrders() {
     }).format(amount || 0);
   };
 
-  // 🧩 3. Format date
+  //  3. Format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -77,7 +77,7 @@ export default function ManageOrders() {
     }
   };
 
-  // 🧩 4. Render trạng thái đơn
+  //  4. Render trạng thái đơn
   const renderStatus = (status) => {
     const colorMap = {
       PENDING: "orange",
@@ -93,7 +93,7 @@ export default function ManageOrders() {
     );
   };
 
-  // 🧩 5. Cấu hình bảng
+  //  5. Cấu hình bảng
   const columns = [
     {
       title: "Mã đơn hàng",

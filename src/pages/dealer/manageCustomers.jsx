@@ -39,7 +39,7 @@ export default function ManageCustomers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [form] = Form.useForm();
 
-  // 🧩 1. Load danh sách khách hàng
+  //  1. Load danh sách khách hàng
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -59,7 +59,7 @@ export default function ManageCustomers() {
     fetchCustomers();
   }, []);
 
-  // 🧩 2. Xử lý mở modal (thêm/sửa)
+  //  2. Xử lý mở modal (thêm/sửa)
   const openModal = (record = null) => {
     setEditingCustomer(record);
     if (record) {
@@ -73,7 +73,7 @@ export default function ManageCustomers() {
     setModalOpen(true);
   };
 
-  // 🧩 3. Lấy chi tiết khách hàng
+  //  3. Lấy chi tiết khách hàng
   const fetchCustomerDetail = async (id) => {
     try {
       const res = await apiClient.get(`/api/customers/${id}`);
@@ -87,7 +87,7 @@ export default function ManageCustomers() {
     }
   };
 
-  // 🧩 4. Gửi dữ liệu khi nhấn Save
+  //  4. Gửi dữ liệu khi nhấn Save
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -119,7 +119,7 @@ export default function ManageCustomers() {
     }
   };
 
-  // 🧩 5. Vô hiệu hóa khách hàng
+  //  5. Vô hiệu hóa khách hàng
   const handleDeactivate = async (id) => {
     try {
       await apiClient.patch(`/api/customers/${id}/deactivate`);
@@ -131,7 +131,7 @@ export default function ManageCustomers() {
     }
   };
 
-  // 🧩 6. Kích hoạt lại khách hàng
+  //  6. Kích hoạt lại khách hàng
   const handleActivate = async (id) => {
     try {
       await apiClient.patch(`/api/customers/${id}/activate`);
@@ -143,7 +143,7 @@ export default function ManageCustomers() {
     }
   };
 
-  // 🧩 7. Cấu hình cột Table
+  //  7. Cấu hình cột Table
   const columns = [
     {
       title: "ID",

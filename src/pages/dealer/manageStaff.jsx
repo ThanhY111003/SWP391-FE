@@ -22,7 +22,7 @@ export default function ManageStaff() {
   const [editingStaff, setEditingStaff] = useState(null);
   const [form] = Form.useForm();
 
-  // 🧩 1. Load danh sách nhân viên
+  //  1. Load danh sách nhân viên
   const fetchStaffs = async () => {
     setLoading(true);
     try {
@@ -56,7 +56,7 @@ export default function ManageStaff() {
     fetchStaffs();
   }, []);
 
-  // 🧩 2. Xử lý mở modal (thêm/sửa)
+  //  2. Xử lý mở modal (thêm/sửa)
   const openModal = (record = null) => {
     setEditingStaff(record);
     if (record) form.setFieldsValue(record);
@@ -64,7 +64,7 @@ export default function ManageStaff() {
     setOpen(true);
   };
 
-  // 🧩 3. Gửi dữ liệu khi nhấn Save
+  //  3. Gửi dữ liệu khi nhấn Save
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -87,7 +87,7 @@ export default function ManageStaff() {
     }
   };
 
-  // 🧩 4. Xóa nhân viên
+  //  4. Xóa nhân viên
   const handleDelete = async (id) => {
     try {
       await apiClient.delete(`/api/dealer/staff/${id}`);
@@ -99,7 +99,7 @@ export default function ManageStaff() {
     }
   };
 
-  // 🧩 5. Cấu hình cột Table
+  //  5. Cấu hình cột Table
   const columns = [
     { title: "Username", dataIndex: "username", key: "username" },
     { title: "Email", dataIndex: "email", key: "email" },
