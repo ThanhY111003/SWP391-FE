@@ -35,7 +35,7 @@ export default function VehicleDetail() {
   const [selectedColor, setSelectedColor] = useState(null);
   const [addToCartForm] = Form.useForm();
 
-  // 🧩 1. Load chi tiết vehicle model
+  //  1. Load chi tiết vehicle model
   const fetchVehicleDetail = async () => {
     setLoading(true);
     try {
@@ -52,7 +52,7 @@ export default function VehicleDetail() {
     }
   };
 
-  // 🧩 2. Load màu của vehicle model
+  //  2. Load màu của vehicle model
   const fetchVehicleColors = async () => {
     try {
       const res = await apiClient.get(`/api/vehicle-models/${modelId}/colors`);
@@ -72,7 +72,7 @@ export default function VehicleDetail() {
     }
   }, [modelId]);
 
-  // 🧩 3. Mở modal thêm vào giỏ hàng
+  //  3. Mở modal thêm vào giỏ hàng
   const openAddToCartModal = (color) => {
     setSelectedColor(color);
     addToCartForm.resetFields();
@@ -83,7 +83,7 @@ export default function VehicleDetail() {
     setAddToCartModalOpen(true);
   };
 
-  // 🧩 4. Thêm vào giỏ hàng
+  //  4. Thêm vào giỏ hàng
   const handleAddToCart = async () => {
     try {
       const values = await addToCartForm.validateFields();
@@ -107,7 +107,7 @@ export default function VehicleDetail() {
     }
   };
 
-  // 🧩 5. Cấu hình cột cho bảng màu
+  //  5. Cấu hình cột cho bảng màu
   const colorColumns = [
     {
       title: "Màu",

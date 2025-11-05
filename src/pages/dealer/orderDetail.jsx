@@ -25,7 +25,7 @@ const OrderDetail = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🧩 1. Fetch chi tiết đơn hàng
+  //  1. Fetch chi tiết đơn hàng
   useEffect(() => {
     const fetchOrderDetail = async () => {
       setLoading(true);
@@ -53,7 +53,7 @@ const OrderDetail = () => {
     }
   }, [id]);
 
-  // 🧩 2. Format currency
+  //  2. Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -61,7 +61,7 @@ const OrderDetail = () => {
     }).format(amount || 0);
   };
 
-  // 🧩 3. Format date
+  //  3. Format date
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -76,7 +76,7 @@ const OrderDetail = () => {
     }
   };
 
-  // 🧩 4. Render trạng thái
+  //  4. Render trạng thái
   const renderStatus = (status) => {
     const colorMap = {
       PENDING: "orange",

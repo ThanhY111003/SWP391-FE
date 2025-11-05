@@ -35,7 +35,7 @@ export default function Cart() {
   const [createOrderModalOpen, setCreateOrderModalOpen] = useState(false);
   const [createOrderForm] = Form.useForm();
 
-  // 🧩 1. Load giỏ hàng
+  //  1. Load giỏ hàng
   const fetchCart = async () => {
     setLoading(true);
     try {
@@ -58,7 +58,7 @@ export default function Cart() {
     fetchCart();
   }, []);
 
-  // 🧩 2. Cập nhật số lượng
+  //  2. Cập nhật số lượng
   const handleUpdateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) {
       message.warning("Số lượng phải lớn hơn 0!");
@@ -80,7 +80,7 @@ export default function Cart() {
     }
   };
 
-  // 🧩 3. Xóa item khỏi giỏ hàng
+  //  3. Xóa item khỏi giỏ hàng
   const handleRemoveItem = async (itemId) => {
     try {
       await apiClient.delete(`/api/cart/items/${itemId}`);
@@ -94,7 +94,7 @@ export default function Cart() {
     }
   };
 
-  // 🧩 4. Xóa toàn bộ giỏ hàng
+  //  4. Xóa toàn bộ giỏ hàng
   const handleClearCart = async () => {
     try {
       await apiClient.delete("/api/cart/clear");
@@ -108,7 +108,7 @@ export default function Cart() {
     }
   };
 
-  // 🧩 5. Tạo đơn hàng từ giỏ hàng
+  //  5. Tạo đơn hàng từ giỏ hàng
   const handleCreateOrder = async () => {
     try {
       const values = await createOrderForm.validateFields();
@@ -146,7 +146,7 @@ export default function Cart() {
     }
   };
 
-  // 🧩 6. Cấu hình cột Table
+  //  6. Cấu hình cột Table
   const columns = [
     {
       title: "Model",

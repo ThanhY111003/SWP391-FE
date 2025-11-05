@@ -47,7 +47,7 @@ export default function VehicleList() {
   const [vehicleColors, setVehicleColors] = useState([]);
   const [addToCartForm] = Form.useForm();
 
-  // 🧩 1. Load danh sách vehicle models
+  //  1. Load danh sách vehicle models
   const fetchVehicles = async () => {
     setLoading(true);
     try {
@@ -68,7 +68,7 @@ export default function VehicleList() {
     fetchVehicles();
   }, []);
 
-  // 🧩 2. Load màu của vehicle model
+  //  2. Load màu của vehicle model
   const fetchVehicleColors = async (modelId) => {
     try {
       const res = await apiClient.get(`/api/vehicle-models/${modelId}/colors`);
@@ -82,7 +82,7 @@ export default function VehicleList() {
     }
   };
 
-  // 🧩 3. Mở modal thêm vào giỏ hàng
+  //  3. Mở modal thêm vào giỏ hàng
   const openAddToCartModal = async (vehicle) => {
     setSelectedVehicle(vehicle);
     await fetchVehicleColors(vehicle.id);
@@ -93,7 +93,7 @@ export default function VehicleList() {
     setAddToCartModalOpen(true);
   };
 
-  // 🧩 4. Thêm vào giỏ hàng
+  //  4. Thêm vào giỏ hàng
   const handleAddToCart = async () => {
     try {
       const values = await addToCartForm.validateFields();
@@ -116,7 +116,7 @@ export default function VehicleList() {
     }
   };
 
-  // 🧩 5. Filter vehicles
+  //  5. Filter vehicles
   const filteredVehicles = vehicles.filter((vehicle) => {
     const matchesBrand = brandFilter === "All" || vehicle.brand === brandFilter;
     const matchesSearch =

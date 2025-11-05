@@ -48,7 +48,7 @@ export default function ManageVehicles() {
   const [assignForm] = Form.useForm();
   const [statusForm] = Form.useForm();
 
-  // 🧩 1. Load danh sách xe
+  //  1. Load danh sách xe
   const fetchVehicles = async () => {
     setLoading(true);
     try {
@@ -71,7 +71,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 2. Load danh sách khách hàng
+  //  2. Load danh sách khách hàng
   const fetchCustomers = async () => {
     setLoadingCustomers(true);
     try {
@@ -97,7 +97,7 @@ export default function ManageVehicles() {
     }
   }, [assignModalOpen]);
 
-  // 🧩 3. Lấy chi tiết xe
+  //  3. Lấy chi tiết xe
   const fetchVehicleDetail = async (id) => {
     try {
       const res = await apiClient.get(`/api/vehicle-instances/${id}`);
@@ -111,7 +111,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 4. Vô hiệu hóa xe
+  //  4. Vô hiệu hóa xe
   const handleDeactivate = async (id) => {
     try {
       await apiClient.patch(`/api/vehicle-instances/${id}/deactivate`);
@@ -123,7 +123,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 5. Kích hoạt lại xe
+  //  5. Kích hoạt lại xe
   const handleActivate = async (id) => {
     try {
       await apiClient.patch(`/api/vehicle-instances/${id}/activate`);
@@ -135,7 +135,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 6. Mở modal gán xe cho khách hàng
+  //  6. Mở modal gán xe cho khách hàng
   const openAssignModal = (vehicle) => {
     setAssigningVehicle(vehicle);
     assignForm.resetFields();
@@ -148,7 +148,7 @@ export default function ManageVehicles() {
     setAssignModalOpen(true);
   };
 
-  // 🧩 7. Xử lý gán xe cho khách hàng
+  //  7. Xử lý gán xe cho khách hàng
   const handleAssignToCustomer = async () => {
     try {
       const values = await assignForm.validateFields();
@@ -177,7 +177,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 8. Mở modal cập nhật trạng thái
+  //  8. Mở modal cập nhật trạng thái
   const openStatusModal = (vehicle) => {
     setUpdatingStatusVehicle(vehicle);
     statusForm.resetFields();
@@ -187,7 +187,7 @@ export default function ManageVehicles() {
     setStatusModalOpen(true);
   };
 
-  // 🧩 9. Xử lý cập nhật trạng thái
+  //  9. Xử lý cập nhật trạng thái
   const handleUpdateStatus = async () => {
     try {
       const values = await statusForm.validateFields();
@@ -206,7 +206,7 @@ export default function ManageVehicles() {
     }
   };
 
-  // 🧩 10. Cấu hình cột Table
+  //  10. Cấu hình cột Table
   const columns = [
     {
       title: "ID",
