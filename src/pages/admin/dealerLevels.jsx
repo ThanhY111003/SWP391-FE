@@ -44,6 +44,11 @@ export default function DealerLevels() {
   const [detail, setDetail] = useState(null);
   const [messageApi, contextHolder] = message.useMessage();
 
+  // Helpers chuyển đổi phần trăm hiển thị (0.1 -> 10) và ngược lại
+  const toPercent = (v) =>
+    typeof v === "number" ? (v <= 1 ? Math.round(v * 100 * 100) / 100 : v) : v; // làm tròn 2 chữ số thập phân
+  const toDecimal = (v) => (typeof v === "number" ? (v > 1 ? v / 100 : v) : v);
+
   const fetchLevels = async () => {
     setLoading(true);
     try {
@@ -93,7 +98,8 @@ export default function DealerLevels() {
       levelName: record.levelName,
       levelNumber: record.levelNumber,
       discountRate: record.discountRate,
-      depositRate: record.depositRate,
+      // BE lưu 0.1 = 10% -> hiển thị 10
+      depositRate: toPercent(record.depositRate),
       maxOrderQuantity: record.maxOrderQuantity,
       creditLimit: record.creditLimit,
       maxInstallmentMonths: record.maxInstallmentMonths,
@@ -110,7 +116,8 @@ export default function DealerLevels() {
         levelName: values.levelName?.trim(),
         levelNumber: values.levelNumber,
         discountRate: values.discountRate,
-        depositRate: values.depositRate,
+        // Người dùng nhập 10 -> gửi 0.1
+        depositRate: toDecimal(values.depositRate),
         maxOrderQuantity: values.maxOrderQuantity,
         creditLimit: values.creditLimit,
         maxInstallmentMonths: values.maxInstallmentMonths,
@@ -226,7 +233,7 @@ export default function DealerLevels() {
       title: "Đặt cọc (%)",
       dataIndex: "depositRate",
       width: 120,
-      render: (v) => v ?? "-",
+      render: (v) => (v === null || v === undefined ? "-" : toPercent(v)),
     },
     {
       title: "SL tối đa/đơn",
@@ -402,7 +409,9 @@ export default function DealerLevels() {
               {detail.discountRate ?? "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Đặt cọc (%)">
-              {detail.depositRate ?? "-"}
+              {detail.depositRate === null || detail.depositRate === undefined
+                ? "-"
+                : toPercent(detail.depositRate)}
             </Descriptions.Item>
             <Descriptions.Item label="SL tối đa/đơn">
               {detail.maxOrderQuantity ?? "-"}

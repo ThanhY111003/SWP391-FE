@@ -127,6 +127,7 @@ export default function OrderManagement() {
 
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Get status color
@@ -144,6 +145,25 @@ export default function OrderManagement() {
       REFUNDED: "volcano",
     };
     return statusColors[status] || "default";
+  };
+
+  // Map status code to Vietnamese label
+  const getStatusLabel = (status) => {
+    const map = {
+      PENDING: "Chờ duyệt",
+      CONFIRMED: "Đã xác nhận",
+      APPROVED: "Đã phê duyệt",
+      PROCESSING: "Đang xử lý",
+      SHIPPED: "Đã gửi",
+      DELIVERED: "Đã giao",
+      COMPLETED: "Hoàn tất",
+      CANCELLED: "Đã hủy",
+      REJECTED: "Đã từ chối",
+      REFUNDED: "Hoàn tiền",
+      PAID: "Đã thanh toán",
+      OVERDUE: "Quá hạn",
+    };
+    return map[status] || status;
   };
 
   // Format currency
@@ -335,24 +355,7 @@ export default function OrderManagement() {
     }
   };
 
-  // Check if order has installment payments
-  const hasInstallmentPayments = (order) => {
-    return (
-      order &&
-      order.isInstallment &&
-      order.installmentPlans &&
-      order.installmentPlans.length > 0
-    );
-  };
-
-  // Check if installment can be confirmed (order must be CONFIRMED and installment not paid)
-  const canConfirmInstallment = (order, installment) => {
-    return (
-      order.status === "CONFIRMED" &&
-      installment.status !== "PAID" &&
-      installment.status !== "CONFIRMED"
-    );
-  };
+  // (removed unused helpers: hasInstallmentPayments, canConfirmInstallment)
 
   // Filter orders based on current filters
   const filteredOrders = orders.filter((order) => {
@@ -392,7 +395,7 @@ export default function OrderManagement() {
   // Table columns
   const columns = [
     {
-      title: "Order Code",
+      title: "Mã đơn hàng",
       dataIndex: "orderCode",
       key: "orderCode",
       width: 150,
@@ -407,7 +410,7 @@ export default function OrderManagement() {
       ),
     },
     {
-      title: "Dealer",
+      title: "Đại lý",
       dataIndex: "dealer",
       key: "dealer",
       width: 200,
@@ -415,20 +418,22 @@ export default function OrderManagement() {
         <div>
           <div className="font-medium">{dealer?.name}</div>
           <Text type="secondary" className="text-xs">
-            Code: {dealer?.code} | Level: {dealer?.levelName}
+            Mã: {dealer?.code} | Cấp: {dealer?.levelName}
           </Text>
         </div>
       ),
     },
     {
-      title: "Status",
+      title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       width: 120,
-      render: (status) => <Tag color={getStatusColor(status)}>{status}</Tag>,
+      render: (status) => (
+        <Tag color={getStatusColor(status)}>{getStatusLabel(status)}</Tag>
+      ),
     },
     {
-      title: "Total Amount",
+      title: "Tổng tiền",
       dataIndex: "totalAmount",
       key: "totalAmount",
       width: 150,
@@ -436,7 +441,7 @@ export default function OrderManagement() {
       sorter: (a, b) => a.totalAmount - b.totalAmount,
     },
     {
-      title: "Payment Progress",
+      title: "Tiến độ thanh toán",
       dataIndex: "paymentProgress",
       key: "paymentProgress",
       width: 150,
@@ -448,13 +453,13 @@ export default function OrderManagement() {
             strokeColor={progress === 100 ? "#52c41a" : "#1890ff"}
           />
           <Text className="text-xs">
-            Paid: {formatCurrency(record.paidAmount)}
+            Đã thanh toán: {formatCurrency(record.paidAmount)}
           </Text>
         </div>
       ),
     },
     {
-      title: "Order Date",
+      title: "Ngày tạo",
       dataIndex: "orderDate",
       key: "orderDate",
       width: 120,
@@ -462,7 +467,7 @@ export default function OrderManagement() {
       sorter: (a, b) => new Date(a.orderDate) - new Date(b.orderDate),
     },
     {
-      title: "Created By",
+      title: "Người tạo",
       dataIndex: "createdBy",
       key: "createdBy",
       width: 150,
@@ -476,21 +481,21 @@ export default function OrderManagement() {
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "actions",
       width: 280,
       fixed: "right",
       render: (_, record) => (
         <Space direction="vertical" size="small" className="w-full">
           <Space>
-            <Tooltip title="View Details">
+            <Tooltip title="Xem chi tiết">
               <Button
                 type="text"
                 icon={<EyeOutlined />}
                 onClick={() => handleViewDetail(record)}
                 size="small"
               >
-                View
+                Xem
               </Button>
             </Tooltip>
           </Space>
@@ -618,84 +623,88 @@ export default function OrderManagement() {
       <div className="flex justify-between items-center mb-6">
         <Title level={2} className="mb-0">
           <FileTextOutlined className="mr-2" />
-          Order Management
+          Quản lý đơn hàng
         </Title>
       </div>
 
       {/* Statistics */}
-      <Row gutter={16} className="mb-6">
-        <Col span={4}>
-          <Card>
+      <Row gutter={16} className="mb-6" align="stretch">
+        <Col span={4} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Total Orders"
+              title="Tổng số đơn"
               value={statistics.totalOrders}
               prefix={<FileTextOutlined />}
             />
           </Card>
         </Col>
-        <Col span={4}>
-          <Card>
+        <Col span={4} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Total Amount"
+              title="Tổng doanh số"
               value={statistics.totalAmount}
               formatter={(value) => formatCurrency(value)}
               prefix={<DollarOutlined />}
             />
           </Card>
         </Col>
-        <Col span={3}>
-          <Card>
+        <Col span={3} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Pending"
+              title="Chờ duyệt"
               value={statistics.pendingOrders}
               valueStyle={{ color: "#fa8c16" }}
               prefix={<ExclamationCircleOutlined />}
             />
           </Card>
         </Col>
-        <Col span={3}>
-          <Card>
+        <Col span={3} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Approved"
+              title="Đã phê duyệt"
               value={statistics.approvedOrders}
               valueStyle={{ color: "#52c41a" }}
               prefix={<CheckCircleOutlined />}
             />
           </Card>
         </Col>
-        <Col span={3}>
-          <Card>
+        <Col span={3} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Completed"
+              title="Hoàn tất"
               value={statistics.completedOrders}
               valueStyle={{ color: "#1890ff" }}
             />
           </Card>
         </Col>
-        <Col span={2}>
-          <Card>
+        <Col span={2} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Rejected"
+              title="Từ chối"
               value={statistics.rejectedOrders}
               valueStyle={{ color: "#f5222d" }}
               prefix={<CloseCircleOutlined />}
             />
           </Card>
         </Col>
-        <Col span={2}>
-          <Card>
+        <Col span={2} style={{ display: "flex" }}>
+          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
             <Statistic
-              title="Cancelled"
+              title="Đã hủy"
               value={statistics.cancelledOrders}
               valueStyle={{ color: "#722ed1" }}
               prefix={<StopOutlined />}
             />
           </Card>
         </Col>
-        <Col span={3}>
-          <Card className="bg-gradient-to-r from-blue-50 to-green-50">
+        <Col span={3} style={{ display: "flex" }}>
+          <Card
+            className="bg-gradient-to-r from-blue-50 to-green-50"
+            style={{ width: "100%" }}
+            bodyStyle={{ padding: 16 }}
+          >
             <Statistic
-              title="Success Rate"
+              title="Tỉ lệ thành công"
               value={
                 statistics.totalOrders > 0
                   ? Math.round(
@@ -715,44 +724,47 @@ export default function OrderManagement() {
 
       {/* Filters */}
       <Card className="mb-4">
-        <Row gutter={16}>
+        <Row gutter={16} align="middle">
           <Col span={6}>
             <Search
-              placeholder="Search by order code"
+              placeholder="Tìm theo mã đơn hàng"
               value={filters.orderCode}
               onChange={(e) =>
                 setFilters({ ...filters, orderCode: e.target.value })
               }
               allowClear
+              size="middle"
             />
           </Col>
           <Col span={6}>
             <Search
-              placeholder="Search by dealer name"
+              placeholder="Tìm theo tên đại lý"
               value={filters.dealerName}
               onChange={(e) =>
                 setFilters({ ...filters, dealerName: e.target.value })
               }
               allowClear
+              size="middle"
             />
           </Col>
           <Col span={6}>
             <Select
-              placeholder="Filter by status"
+              placeholder="Lọc theo trạng thái"
               value={filters.status}
               onChange={(value) => setFilters({ ...filters, status: value })}
               allowClear
               className="w-full"
+              size="middle"
             >
-              <Option value="PENDING">Pending</Option>
-              <Option value="CONFIRMED">Confirmed</Option>
-              <Option value="APPROVED">Approved</Option>
-              <Option value="PROCESSING">Processing</Option>
-              <Option value="SHIPPED">Shipped</Option>
-              <Option value="DELIVERED">Delivered</Option>
-              <Option value="COMPLETED">Completed</Option>
-              <Option value="REJECTED">Rejected</Option>
-              <Option value="CANCELLED">Cancelled</Option>
+              <Option value="PENDING">Chờ duyệt</Option>
+              <Option value="CONFIRMED">Đã xác nhận</Option>
+              <Option value="APPROVED">Đã phê duyệt</Option>
+              <Option value="PROCESSING">Đang xử lý</Option>
+              <Option value="SHIPPED">Đã gửi</Option>
+              <Option value="DELIVERED">Đã giao</Option>
+              <Option value="COMPLETED">Hoàn tất</Option>
+              <Option value="REJECTED">Đã từ chối</Option>
+              <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
           <Col span={6}>
@@ -761,6 +773,7 @@ export default function OrderManagement() {
               onChange={(dates) => setFilters({ ...filters, dateRange: dates })}
               className="w-full"
               format="DD/MM/YYYY"
+              size="middle"
             />
           </Col>
         </Row>
@@ -774,12 +787,13 @@ export default function OrderManagement() {
           rowKey="id"
           loading={loading}
           scroll={{ x: 1600 }}
+          size="middle"
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} orders`,
+              `${range[0]}-${range[1]} của ${total} đơn hàng`,
           }}
         />
       </Card>
@@ -789,7 +803,7 @@ export default function OrderManagement() {
         title={
           <span>
             <EyeOutlined className="mr-2" />
-            Order Details
+            Chi tiết đơn hàng
           </span>
         }
         open={detailModalVisible}
@@ -798,12 +812,10 @@ export default function OrderManagement() {
         footer={
           selectedOrder ? (
             <Space>
-              <Button onClick={() => setDetailModalVisible(false)}>
-                Close
-              </Button>
+              <Button onClick={() => setDetailModalVisible(false)}>Đóng</Button>
 
               {canApproveOrder(selectedOrder.status) && (
-                <>
+                <Space>
                   <Popconfirm
                     title="Phê duyệt đơn hàng"
                     description={
@@ -815,10 +827,7 @@ export default function OrderManagement() {
                         </div>
                       </div>
                     }
-                    onConfirm={() => {
-                      handleApproveOrder(selectedOrder.id);
-                      setDetailModalVisible(false);
-                    }}
+                    onConfirm={() => handleApproveOrder(selectedOrder.id)}
                     okText="Phê duyệt"
                     cancelText="Hủy"
                     okButtonProps={{
@@ -834,16 +843,14 @@ export default function OrderManagement() {
                         (loading) => loading
                       )}
                     >
-                      Phê duyệt đơn hàng
+                      Phê duyệt
                     </Button>
                   </Popconfirm>
+
                   <Popconfirm
                     title="Từ chối đơn hàng"
                     description="Bạn có chắc chắn muốn từ chối đơn hàng này?"
-                    onConfirm={() => {
-                      handleRejectOrder(selectedOrder.id);
-                      setDetailModalVisible(false);
-                    }}
+                    onConfirm={() => handleRejectOrder(selectedOrder.id)}
                     okText="Từ chối"
                     cancelText="Hủy"
                     okButtonProps={{
@@ -859,10 +866,10 @@ export default function OrderManagement() {
                         (loading) => loading
                       )}
                     >
-                      Từ chối đơn hàng
+                      Từ chối
                     </Button>
                   </Popconfirm>
-                </>
+                </Space>
               )}
 
               {canCancelOrder(selectedOrder.status) && (
@@ -877,16 +884,10 @@ export default function OrderManagement() {
                       </div>
                     </div>
                   }
-                  onConfirm={() => {
-                    handleCancelOrder(selectedOrder.id);
-                    setDetailModalVisible(false);
-                  }}
+                  onConfirm={() => handleCancelOrder(selectedOrder.id)}
                   okText="Hủy đơn hàng"
                   cancelText="Không hủy"
-                  okButtonProps={{
-                    loading: approveLoading[selectedOrder.id],
-                    danger: true,
-                  }}
+                  okButtonProps={{ danger: true }}
                 >
                   <Button
                     type="default"
@@ -902,7 +903,7 @@ export default function OrderManagement() {
               )}
             </Space>
           ) : (
-            <Button onClick={() => setDetailModalVisible(false)}>Close</Button>
+            <Button onClick={() => setDetailModalVisible(false)}>Đóng</Button>
           )
         }
       >
@@ -910,33 +911,33 @@ export default function OrderManagement() {
           <div>
             {/* Basic Order Info */}
             <Card className="mb-4">
-              <Descriptions title="Order Information" bordered>
-                <Descriptions.Item label="Order Code" span={2}>
+              <Descriptions title="Thông tin đơn hàng" bordered>
+                <Descriptions.Item label="Mã đơn hàng" span={2}>
                   <Text strong>{selectedOrder.orderCode}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Status">
+                <Descriptions.Item label="Trạng thái">
                   <Tag color={getStatusColor(selectedOrder.status)}>
-                    {selectedOrder.status}
+                    {getStatusLabel(selectedOrder.status)}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Order Date">
+                <Descriptions.Item label="Ngày tạo đơn">
                   {formatDateTime(selectedOrder.orderDate)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Total Amount">
+                <Descriptions.Item label="Tổng tiền">
                   <Text strong className="text-lg">
                     {formatCurrency(selectedOrder.totalAmount)}
                   </Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Payment Progress">
+                <Descriptions.Item label="Tiến độ thanh toán">
                   <Progress percent={selectedOrder.paymentProgress} />
                 </Descriptions.Item>
-                <Descriptions.Item label="Deposit Amount">
+                <Descriptions.Item label="Tiền đặt cọc">
                   {formatCurrency(selectedOrder.depositAmount)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Paid Amount">
+                <Descriptions.Item label="Đã thanh toán">
                   {formatCurrency(selectedOrder.paidAmount)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Remaining Amount">
+                <Descriptions.Item label="Còn lại">
                   <Text
                     type={
                       selectedOrder.remainingAmount > 0 ? "warning" : "success"
@@ -945,18 +946,18 @@ export default function OrderManagement() {
                     {formatCurrency(selectedOrder.remainingAmount)}
                   </Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Payment Type">
+                <Descriptions.Item label="Hình thức thanh toán">
                   <Tag color={selectedOrder.isInstallment ? "blue" : "green"}>
                     {selectedOrder.isInstallment
-                      ? "Installment"
-                      : "Full Payment"}
+                      ? "Trả góp"
+                      : "Thanh toán 1 lần"}
                   </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Full Payment Date">
+                <Descriptions.Item label="Ngày thanh toán đủ">
                   {formatDate(selectedOrder.fullPaymentDate)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Notes" span={3}>
-                  {selectedOrder.notes || "No notes"}
+                <Descriptions.Item label="Ghi chú" span={3}>
+                  {selectedOrder.notes || "Không có ghi chú"}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -966,22 +967,22 @@ export default function OrderManagement() {
               title={
                 <span>
                   <ShopOutlined className="mr-2" />
-                  Dealer Information
+                  Thông tin đại lý
                 </span>
               }
               className="mb-4"
             >
               <Descriptions bordered>
-                <Descriptions.Item label="Dealer Name" span={2}>
+                <Descriptions.Item label="Tên đại lý" span={2}>
                   {selectedOrder.dealer?.name}
                 </Descriptions.Item>
-                <Descriptions.Item label="Dealer Code">
+                <Descriptions.Item label="Mã đại lý">
                   {selectedOrder.dealer?.code}
                 </Descriptions.Item>
-                <Descriptions.Item label="Level">
+                <Descriptions.Item label="Cấp độ">
                   <Tag color="blue">{selectedOrder.dealer?.levelName}</Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Current Debt">
+                <Descriptions.Item label="Công nợ hiện tại">
                   <Text
                     type={
                       selectedOrder.dealer?.currentDebt > 0
@@ -992,7 +993,7 @@ export default function OrderManagement() {
                     {formatCurrency(selectedOrder.dealer?.currentDebt)}
                   </Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Available Credit">
+                <Descriptions.Item label="Hạn mức còn lại">
                   {formatCurrency(selectedOrder.dealer?.availableCredit)}
                 </Descriptions.Item>
               </Descriptions>
@@ -1003,22 +1004,22 @@ export default function OrderManagement() {
               title={
                 <span>
                   <UserOutlined className="mr-2" />
-                  Created By
+                  Người tạo
                 </span>
               }
               className="mb-4"
             >
               <Descriptions bordered>
-                <Descriptions.Item label="Full Name">
+                <Descriptions.Item label="Họ và tên">
                   {selectedOrder.createdBy?.fullName}
                 </Descriptions.Item>
-                <Descriptions.Item label="Username">
+                <Descriptions.Item label="Tài khoản">
                   {selectedOrder.createdBy?.username}
                 </Descriptions.Item>
-                <Descriptions.Item label="Created At">
+                <Descriptions.Item label="Tạo lúc">
                   {formatDateTime(selectedOrder.createdAt)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Updated At">
+                <Descriptions.Item label="Cập nhật lúc">
                   {formatDateTime(selectedOrder.updatedAt)}
                 </Descriptions.Item>
               </Descriptions>
@@ -1029,7 +1030,7 @@ export default function OrderManagement() {
               title={
                 <span>
                   <CarOutlined className="mr-2" />
-                  Order Items
+                  Sản phẩm
                 </span>
               }
               className="mb-4"
@@ -1041,30 +1042,30 @@ export default function OrderManagement() {
                 size="small"
                 columns={[
                   {
-                    title: "Vehicle Model",
+                    title: "Model xe",
                     dataIndex: "vehicleModelName",
                     key: "vehicleModelName",
                   },
                   {
-                    title: "Color",
+                    title: "Màu",
                     dataIndex: "vehicleColorName",
                     key: "vehicleColorName",
                     render: (color) => <Tag>{color}</Tag>,
                   },
                   {
-                    title: "Quantity",
+                    title: "Số lượng",
                     dataIndex: "quantity",
                     key: "quantity",
                     align: "center",
                   },
                   {
-                    title: "Unit Price",
+                    title: "Đơn giá",
                     dataIndex: "unitPrice",
                     key: "unitPrice",
                     render: (price) => formatCurrency(price),
                   },
                   {
-                    title: "Total Price",
+                    title: "Thành tiền",
                     dataIndex: "totalPrice",
                     key: "totalPrice",
                     render: (price) => (
@@ -1082,7 +1083,7 @@ export default function OrderManagement() {
                   title={
                     <span>
                       <CalendarOutlined className="mr-2" />
-                      Installment Plans
+                      Kế hoạch trả góp
                     </span>
                   }
                 >
@@ -1093,36 +1094,38 @@ export default function OrderManagement() {
                     size="small"
                     columns={[
                       {
-                        title: "Installment #",
+                        title: "Kỳ #",
                         dataIndex: "installmentNumber",
                         key: "installmentNumber",
                         align: "center",
                       },
                       {
-                        title: "Amount",
+                        title: "Số tiền",
                         dataIndex: "installmentAmount",
                         key: "installmentAmount",
                         render: (amount) => formatCurrency(amount),
                       },
                       {
-                        title: "Due Date",
+                        title: "Ngày đến hạn",
                         dataIndex: "dueDate",
                         key: "dueDate",
                         render: (date) => formatDate(date),
                       },
                       {
-                        title: "Status",
+                        title: "Trạng thái",
                         dataIndex: "status",
                         key: "status",
                         render: (status, record) => (
                           <Space>
-                            <Tag color={getStatusColor(status)}>{status}</Tag>
-                            {record.isOverdue && <Tag color="red">Overdue</Tag>}
+                            <Tag color={getStatusColor(status)}>
+                              {getStatusLabel(status)}
+                            </Tag>
+                            {record.isOverdue && <Tag color="red">Quá hạn</Tag>}
                           </Space>
                         ),
                       },
                       {
-                        title: "Payment Confirmation",
+                        title: "Xác nhận thanh toán",
                         key: "paymentConfirmation",
                         align: "center",
                         render: (_, record) => {

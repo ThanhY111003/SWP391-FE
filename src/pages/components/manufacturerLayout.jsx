@@ -10,6 +10,7 @@ import {
   FileTextOutlined,
   BgColorsOutlined,
   CarOutlined,
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -60,6 +61,12 @@ export default function ManufacturerLayout({ children }) {
       icon: <DollarCircleOutlined />,
       label: "Bảng giá",
       path: "/manufacturer/priceTable",
+    },
+    {
+      key: "permission-management",
+      icon: <SafetyCertificateOutlined />,
+      label: "Quản lý phân quyền",
+      path: "/manufacturer/permissions",
     },
     {
       key: "price-table1",

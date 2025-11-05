@@ -7,11 +7,12 @@ import {
   message,
   Tag,
   Space,
-  Popconfirm,
   ColorPicker,
+  Switch,
+  Tooltip,
 } from "antd";
 import { useState, useEffect } from "react";
-import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import api from "../../config/axios";
 
 export default function ColorManagement() {
@@ -20,6 +21,18 @@ export default function ColorManagement() {
   const [open, setOpen] = useState(false);
   const [editingColor, setEditingColor] = useState(null);
   const [form] = Form.useForm();
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  // Chuẩn hóa/ngắn gọn thông báo lỗi từ BE
+  const prettifyColorError = (rawMessage) => {
+    if (!rawMessage) return "Có lỗi xảy ra, vui lòng thử lại.";
+    const msg = String(rawMessage);
+    if (msg.includes("Màu đang được gán vào mẫu xe")) {
+      return "Không thể vô hiệu hóa vì màu đang được dùng trong mẫu xe. Vui lòng gỡ màu khỏi các mẫu xe trước.";
+    }
+    return msg;
+  };
 
   const fetchColors = async () => {
     setLoading(true);
@@ -102,73 +115,89 @@ export default function ColorManagement() {
     }
   };
 
-  const handleDeleteColor = async (colorId) => {
-    try {
-      const response = await api.delete(`colors/${colorId}`);
-
-      if (response.data?.success) {
-        message.success("Xóa màu thành công!");
-        fetchColors();
-      } else {
-        throw new Error(response.data?.message || "Failed to delete color");
-      }
-    } catch (error) {
-      console.error("Error deleting color:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to delete color";
-      message.error(errorMessage);
-    }
-  };
+  // Xóa cứng không được hỗ trợ: hệ thống chỉ cho phép bật/tắt (soft delete)
 
   const handleDeactivateColor = async (colorId) => {
     try {
-      console.log("Deactivating color with ID:", colorId);
-
       const response = await api.patch(`colors/${colorId}/deactivate`);
-
-      console.log("Deactivate response:", response.data);
-
-      if (response.data?.success) {
-        message.success("Vô hiệu hóa màu thành công!");
-        fetchColors();
-      } else {
-        throw new Error(response.data?.message || "Failed to deactivate color");
-      }
+      const statusOk = response?.status >= 200 && response?.status < 300;
+      const hasSuccessFlag = Object.prototype.hasOwnProperty.call(
+        response?.data || {},
+        "success"
+      );
+      const success = hasSuccessFlag ? !!response.data.success : statusOk;
+      const messageText = response?.data?.message;
+      const code = response?.data?.code;
+      return { success, message: messageText, code };
     } catch (error) {
-      console.error("Error deactivating color:", error);
-      console.error("Error response:", error.response?.data);
-      const errorMessage =
+      const messageText =
         error.response?.data?.message ||
         error.message ||
         "Failed to deactivate color";
-      message.error(`Lỗi: ${errorMessage}`);
+      const code = error.response?.data?.code;
+      return { success: false, message: messageText, code };
     }
   };
 
   const handleActivateColor = async (colorId) => {
     try {
-      console.log("Activating color with ID:", colorId);
-
-      // Giả sử có API activate tương tự
       const response = await api.patch(`colors/${colorId}/activate`);
-
-      console.log("Activate response:", response.data);
-
-      if (response.data?.success) {
-        message.success("Kích hoạt màu thành công!");
-        fetchColors();
-      } else {
-        throw new Error(response.data?.message || "Failed to activate color");
-      }
+      const statusOk = response?.status >= 200 && response?.status < 300;
+      const hasSuccessFlag = Object.prototype.hasOwnProperty.call(
+        response?.data || {},
+        "success"
+      );
+      const success = hasSuccessFlag ? !!response.data.success : statusOk;
+      const messageText = response?.data?.message;
+      const code = response?.data?.code;
+      return { success, message: messageText, code };
     } catch (error) {
-      console.error("Error activating color:", error);
-      console.error("Error response:", error.response?.data);
-      const errorMessage =
+      const messageText =
         error.response?.data?.message ||
         error.message ||
         "Failed to activate color";
-      message.error(`Lỗi: ${errorMessage}`);
+      const code = error.response?.data?.code;
+      return { success: false, message: messageText, code };
     }
+  };
+
+  const handleToggleStatus = async (record, nextChecked) => {
+    setStatusUpdatingId(record.id);
+    // Optimistic UI
+    setColors((prev) =>
+      prev.map((c) =>
+        c.id === record.id ? { ...c, isActive: nextChecked } : c
+      )
+    );
+
+    const result = nextChecked
+      ? await handleActivateColor(record.id)
+      : await handleDeactivateColor(record.id);
+
+    if (result.success) {
+      messageApi.success(
+        nextChecked
+          ? "Kích hoạt màu thành công!"
+          : "Vô hiệu hóa màu thành công!"
+      );
+      // ensure data consistent with BE
+      await fetchColors();
+    } else {
+      // rollback
+      setColors((prev) =>
+        prev.map((c) =>
+          c.id === record.id ? { ...c, isActive: !nextChecked } : c
+        )
+      );
+      // Ưu tiên dùng code để viết message gọn nếu có
+      const friendly =
+        result.code === "COLOR_ASSIGNED_TO_MODEL"
+          ? "Không thể vô hiệu hóa vì màu đang được dùng trong mẫu xe. Vui lòng gỡ màu khỏi các mẫu xe trước."
+          : prettifyColorError(result.message);
+      messageApi.error(friendly);
+    }
+
+    setStatusUpdatingId(null);
   };
 
   const openCreateModal = () => {
@@ -232,62 +261,54 @@ export default function ColorManagement() {
       title: "Trạng thái",
       dataIndex: "isActive",
       render: (isActive, record) => (
-        <Space direction="vertical" size="small">
-          <Tag color={isActive ? "green" : "red"}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <Tag
+            style={
+              isActive
+                ? {
+                    backgroundColor: "#f6ffed",
+                    color: "#389e0d",
+                    borderColor: "#b7eb8f",
+                  }
+                : {
+                    backgroundColor: "#fff1f0",
+                    color: "#cf1322",
+                    borderColor: "#ffa39e",
+                  }
+            }
+          >
             {isActive ? "Hoạt động" : "Vô hiệu hóa"}
           </Tag>
-          <Space>
-            {isActive ? (
-              <Button
-                size="small"
-                danger
-                onClick={() => handleDeactivateColor(record.id)}
-              >
-                Vô hiệu hóa
-              </Button>
-            ) : (
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => handleActivateColor(record.id)}
-              >
-                Kích hoạt
-              </Button>
-            )}
-          </Space>
-        </Space>
+          <Switch
+            checked={!!isActive}
+            loading={statusUpdatingId === record.id}
+            onChange={(checked) => handleToggleStatus(record, checked)}
+          />
+        </div>
       ),
     },
     {
       title: "Thao tác",
       key: "actions",
-      width: 120,
+      width: 80,
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openEditModal(record)}
-          >
-            Sửa
-          </Button>
-          <Popconfirm
-            title="Xóa màu"
-            description="Bạn có chắc chắn muốn xóa màu này?"
-            onConfirm={() => handleDeleteColor(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-          >
+          <Tooltip title="Chỉnh sửa">
             <Button
-              type="primary"
-              danger
+              type="text"
               size="small"
-              icon={<DeleteOutlined />}
-            >
-              Xóa
-            </Button>
-          </Popconfirm>
+              shape="circle"
+              icon={<EditOutlined />}
+              onClick={() => openEditModal(record)}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -295,6 +316,7 @@ export default function ColorManagement() {
 
   return (
     <>
+      {contextHolder}
       <div className="flex justify-between mb-4">
         <h2 className="text-xl font-bold">Quản lý màu sắc xe</h2>
         <Button

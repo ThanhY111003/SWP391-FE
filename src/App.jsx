@@ -26,6 +26,7 @@ import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
 import DealerLevels from "./pages/admin/dealerLevels";
+import PermissionManagement from "./pages/admin/PermissionManagement";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 import DebugAuth from "./components/DebugAuth";
@@ -69,7 +70,10 @@ function App() {
         <Route path="/dealer/dashboard" element={<DealerDashboard />} />
         <Route path="/dealer/catalog" element={<VehicleCatalog />} />
         <Route path="/dealer/vehicle-list" element={<VehicleList />} />
-        <Route path="/dealer/vehicle-detail/:modelId" element={<VehicleDetail />} />
+        <Route
+          path="/dealer/vehicle-detail/:modelId"
+          element={<VehicleDetail />}
+        />
         <Route path="/dealer/cart" element={<Cart />} />
         <Route path="/dealer/comparison" element={<VehicleComparison />} />
         <Route path="/dealer/orders" element={<ManageOrders />} />
@@ -111,6 +115,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <PriceTable />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/permissions"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <PermissionManagement />
               </ManufacturerLayout>
             </AuthGuard>
           }

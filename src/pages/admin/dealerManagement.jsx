@@ -9,12 +9,12 @@ import {
   Space,
   Tag,
   message,
-  Descriptions,
-  Spin,
-  Tooltip,
   Typography,
   Select,
   Switch,
+  Tooltip,
+  Descriptions,
+  Spin,
 } from "antd";
 import { PlusOutlined, EyeOutlined, EditOutlined } from "@ant-design/icons";
 import api from "../../config/axios";
@@ -28,6 +28,7 @@ const DealerManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit'
   const [currentDealerId, setCurrentDealerId] = useState(null);
+  // State cho modal chi tiết
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailDealer, setDetailDealer] = useState(null);
@@ -39,6 +40,7 @@ const DealerManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [filterRegion, setFilterRegion] = useState();
   const [filterStatus, setFilterStatus] = useState(); // true | false | undefined
+  const [filterLevelNumber, setFilterLevelNumber] = useState(); // cấp đại lý
 
   // Helper: trim string an toàn
   const trimSafe = (v) => (typeof v === "string" ? v.trim() : v);
@@ -89,6 +91,28 @@ const DealerManagement = () => {
 
   const regionLabel = (value) =>
     regionOptions.find((o) => o.value === value)?.label || value || "-";
+
+  // Helper: hiển thị nhãn cấp từ id hoặc levelNumber
+  const levelLabelBy = ({ id, levelNumber }) => {
+    if (id != null) {
+      const lv = dealerLevels.find((x) => x.id === id);
+      if (lv)
+        return (
+          (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
+          (lv.levelName ? ` - ${lv.levelName}` : "")
+        );
+    }
+    if (levelNumber != null) {
+      const lv = dealerLevels.find((x) => x.levelNumber === levelNumber);
+      if (lv)
+        return (
+          (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
+          (lv.levelName ? ` - ${lv.levelName}` : "")
+        );
+      return levelNumber;
+    }
+    return "-";
+  };
 
   // Helper: bỏ dấu tiếng Việt để tìm kiếm dễ hơn
   const stripVN = (s = "") =>
@@ -179,7 +203,6 @@ const DealerManagement = () => {
     setCurrentDealerId(record.id);
     fetchDealerLevels();
     try {
-      // lấy chi tiết để đảm bảo dữ liệu đầy đủ/đồng bộ
       const res = await api.get(`dealers/${record.id}`);
       const payload = res.data;
       const d = payload?.data ?? payload;
@@ -193,7 +216,6 @@ const DealerManagement = () => {
       });
     } catch (e) {
       console.error("Fetch dealer detail for edit failed", e);
-      // nếu lỗi, vẫn set tạm theo record
       form.setFieldsValue({
         name: record.name,
         address: record.address,
@@ -264,9 +286,9 @@ const DealerManagement = () => {
     setDetailLoading(true);
     setDetailDealer(null);
     try {
-      const res = await api.get(`dealers/${record.id}`); // GET /api/dealers/{dealerId}
+      const res = await api.get(`dealers/${record.id}`);
       const payload = res.data;
-      const detail = payload?.data ?? payload; // support both shapes
+      const detail = payload?.data ?? payload;
       setDetailDealer(detail);
     } catch (err) {
       console.error("Fetch dealer detail failed", err);
@@ -299,10 +321,7 @@ const DealerManagement = () => {
           d.id === record.id ? { ...d, isActive: nextActive } : d
         )
       );
-      // cập nhật modal chi tiết nếu đang mở
-      setDetailDealer((prev) =>
-        prev && prev.id === record.id ? { ...prev, isActive: nextActive } : prev
-      );
+      // modal chi tiết đã ẩn nên không cần đồng bộ thêm
       messageApi.success({
         content: nextActive ? "Đã bật hoạt động" : "Đã tắt hoạt động",
         key,
@@ -322,11 +341,34 @@ const DealerManagement = () => {
     }
   };
 
+  // Lấy levelNumber hiển thị cho 1 dòng record
+  const resolveLevelNumber = (record) => {
+    if (record.levelNumber != null) return record.levelNumber;
+    if (record.dealerLevelId != null) {
+      const lv = dealerLevels.find((x) => x.id === record.dealerLevelId);
+      if (lv && lv.levelNumber != null) return lv.levelNumber;
+    }
+    return undefined;
+  };
+
   const columns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 70,
+      align: "center",
+      render: (_v, _r, index) => index + 1,
+    },
     { title: "Tên đại lý", dataIndex: "name", key: "name" },
-    { title: "Địa chỉ", dataIndex: "address", key: "address" },
-    { title: "Số điện thoại", dataIndex: "phoneNumber", key: "phoneNumber" },
-    { title: "Email", dataIndex: "email", key: "email" },
+    {
+      title: "Cấp đại lý",
+      key: "dealerLevel",
+      render: (_, record) =>
+        levelLabelBy({
+          id: record.dealerLevelId,
+          levelNumber: record.levelNumber,
+        }),
+    },
     {
       title: "Khu vực",
       dataIndex: "region",
@@ -337,8 +379,9 @@ const DealerManagement = () => {
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
+      width: 160,
       render: (isActive, record) => (
-        <Space size="small">
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Tag color={isActive ? "green" : "default"}>
             {isActive ? "Hoạt động" : "Ngừng"}
           </Tag>
@@ -348,14 +391,16 @@ const DealerManagement = () => {
             loading={togglingIds.has(record.id)}
             onChange={(checked) => handleToggleActive(record, checked)}
           />
-        </Space>
+        </div>
       ),
     },
     {
       title: "Thao tác",
       key: "actions",
+      width: 110,
+      align: "center",
       render: (_, record) => (
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
           <Tooltip title="Xem chi tiết">
             <Button
               type="text"
@@ -379,6 +424,12 @@ const DealerManagement = () => {
   const filteredDealers = dealers.filter((d) => {
     // Lọc theo khu vực
     if (filterRegion && d.region !== filterRegion) return false;
+    // Lọc theo cấp đại lý
+    if (
+      filterLevelNumber != null &&
+      resolveLevelNumber(d) !== filterLevelNumber
+    )
+      return false;
     // Lọc theo trạng thái
     if (typeof filterStatus === "boolean" && d.isActive !== filterStatus)
       return false;
@@ -432,6 +483,20 @@ const DealerManagement = () => {
           />
           <Select
             allowClear
+            placeholder="Lọc theo cấp đại lý"
+            style={{ width: 200 }}
+            value={filterLevelNumber}
+            onChange={setFilterLevelNumber}
+            loading={levelsLoading}
+            options={dealerLevels.map((lv) => ({
+              label:
+                (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
+                (lv.levelName ? ` - ${lv.levelName}` : ""),
+              value: lv.levelNumber,
+            }))}
+          />
+          <Select
+            allowClear
             placeholder="Lọc theo trạng thái"
             style={{ width: 180 }}
             value={filterStatus}
@@ -445,6 +510,7 @@ const DealerManagement = () => {
             onClick={() => {
               setSearchText("");
               setFilterRegion(undefined);
+              setFilterLevelNumber(undefined);
               setFilterStatus(undefined);
               fetchDealers();
             }}
@@ -573,19 +639,13 @@ const DealerManagement = () => {
             <Descriptions.Item label="Email">
               {detailDealer.email}
             </Descriptions.Item>
-            {detailDealer.levelNumber !== undefined && (
+            {(detailDealer.dealerLevelId !== undefined ||
+              detailDealer.levelNumber !== undefined) && (
               <Descriptions.Item label="Cấp đại lý">
-                {(() => {
-                  const lv = dealerLevels.find(
-                    (x) => x.levelNumber === detailDealer.levelNumber
-                  );
-                  if (lv)
-                    return (
-                      (lv.levelNumber ? `Cấp ${lv.levelNumber}` : "Cấp") +
-                      (lv.levelName ? ` - ${lv.levelName}` : "")
-                    );
-                  return detailDealer.levelNumber;
-                })()}
+                {levelLabelBy({
+                  id: detailDealer.dealerLevelId,
+                  levelNumber: detailDealer.levelNumber,
+                })}
               </Descriptions.Item>
             )}
             <Descriptions.Item label="Khu vực">

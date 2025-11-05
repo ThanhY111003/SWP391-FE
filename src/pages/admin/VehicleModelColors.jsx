@@ -5,13 +5,13 @@ import {
   Form,
   Input,
   message,
-  Tag,
   Space,
   Popconfirm,
   Select,
   InputNumber,
   Card,
   Breadcrumb,
+  Tooltip,
 } from "antd";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -34,6 +34,7 @@ export default function VehicleModelColors() {
   const [open, setOpen] = useState(false);
   const [editingModelColor, setEditingModelColor] = useState(null);
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchModelColors = async () => {
     if (!modelId) return;
@@ -101,20 +102,19 @@ export default function VehicleModelColors() {
   const handleAddColorToModel = async (values) => {
     try {
       console.log("Adding color to model:", modelId, values);
-
-      // Sử dụng query parameters thay vì request body
-      const params = new URLSearchParams();
-      params.append("colorId", values.colorId);
-      if (values.priceAdjustment) {
-        params.append("priceAdjustment", values.priceAdjustment);
-      }
-
       const response = await api.post(
-        `vehicle-models/${modelId}/colors?${params.toString()}`
+        `vehicle-models/${modelId}/colors`,
+        null,
+        {
+          params: {
+            colorId: values.colorId,
+            priceAdjustment: values.priceAdjustment || 0,
+          },
+        }
       );
 
       if (response.data?.success) {
-        message.success("Thêm màu cho model thành công!");
+        messageApi.success("Thêm màu cho model thành công!");
         form.resetFields();
         setOpen(false);
         setEditingModelColor(null);
@@ -128,7 +128,7 @@ export default function VehicleModelColors() {
       console.error("Error adding color to model:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to add color to model";
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     }
   };
 
@@ -136,21 +136,34 @@ export default function VehicleModelColors() {
     try {
       console.log("Updating model color:", editingModelColor, values);
 
-      // Sử dụng query parameter newAdjustment thay vì request body
-      const params = new URLSearchParams();
-      params.append("newAdjustment", values.priceAdjustment || 0);
+      const payload = {
+        priceAdjustment: Number(values.priceAdjustment ?? 0),
+      };
 
       const response = await api.patch(
-        `vehicle-models/${modelId}/colors/${
-          editingModelColor.colorId
-        }/price-adjustment?${params.toString()}`
+        `vehicle-models/${modelId}/colors/${editingModelColor.colorId}`,
+        payload
       );
 
       if (response.data?.success) {
-        message.success("Cập nhật phần chênh lệch giá thành công!");
+        messageApi.success("Cập nhật phần chênh lệch giá thành công!");
+        const updated = response?.data?.data;
+        const nextPrice =
+          typeof updated?.priceAdjustment === "number"
+            ? updated.priceAdjustment
+            : payload.priceAdjustment;
+        // Optimistic update local state
+        setModelColors((prev) =>
+          (prev || []).map((mc) =>
+            mc.colorId === editingModelColor.colorId
+              ? { ...mc, priceAdjustment: nextPrice }
+              : mc
+          )
+        );
         form.resetFields();
         setOpen(false);
         setEditingModelColor(null);
+        // Optionally refresh to ensure consistency
         fetchModelColors();
       } else {
         throw new Error(
@@ -161,21 +174,30 @@ export default function VehicleModelColors() {
       console.error("Error updating model color:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to update model color";
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     }
   };
 
   const handleDeleteModelColor = async (modelColor) => {
     try {
+      // Optimistic remove
+      const snapshot = modelColors;
+      setModelColors((prev) =>
+        (prev || []).filter((mc) => mc.colorId !== modelColor.colorId)
+      );
+
       // Sử dụng colorId thay vì id của record
       const response = await api.delete(
         `vehicle-models/${modelId}/colors/${modelColor.colorId}`
       );
 
       if (response.data?.success) {
-        message.success("Xóa màu khỏi model thành công!");
+        messageApi.success("Xóa màu khỏi model thành công!");
+        // Optionally refresh
         fetchModelColors();
       } else {
+        // rollback
+        setModelColors(snapshot);
         throw new Error(
           response.data?.message || "Failed to delete model color"
         );
@@ -184,37 +206,11 @@ export default function VehicleModelColors() {
       console.error("Error deleting model color:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to delete model color";
-      message.error(errorMessage);
+      messageApi.error(errorMessage);
     }
   };
 
-  const handleToggleModelColorStatus = async (modelColor, currentStatus) => {
-    try {
-      const endpoint = currentStatus
-        ? `vehicle-models/${modelId}/colors/${modelColor.colorId}/deactivate`
-        : `vehicle-models/${modelId}/colors/${modelColor.colorId}/activate`;
-
-      const response = await api.patch(endpoint);
-
-      if (response.data?.success) {
-        message.success(
-          `${
-            !currentStatus ? "Kích hoạt" : "Vô hiệu hóa"
-          } màu model thành công!`
-        );
-        fetchModelColors();
-      } else {
-        throw new Error(
-          response.data?.message || "Failed to update model color status"
-        );
-      }
-    } catch (error) {
-      console.error("Error updating model color status:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to update model color status";
-      message.error(errorMessage);
-    }
-  };
+  // No toggle status API for model colors; status column removed per request
 
   const openCreateModal = () => {
     setEditingModelColor(null);
@@ -245,6 +241,7 @@ export default function VehicleModelColors() {
       fetchAvailableColors();
       fetchModelInfo();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modelId]);
 
   const columns = [
@@ -299,50 +296,22 @@ export default function VehicleModelColors() {
       dataIndex: "vehicleModelId",
       width: 120,
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "isActive",
-      render: (isActive, record) => (
-        <Space direction="vertical" size="small">
-          <Tag color={isActive ? "green" : "red"}>
-            {isActive ? "Hoạt động" : "Vô hiệu hóa"}
-          </Tag>
-          <Space>
-            {isActive ? (
-              <Button
-                size="small"
-                danger
-                onClick={() => handleToggleModelColorStatus(record, isActive)}
-              >
-                Vô hiệu hóa
-              </Button>
-            ) : (
-              <Button
-                size="small"
-                type="primary"
-                onClick={() => handleToggleModelColorStatus(record, isActive)}
-              >
-                Kích hoạt
-              </Button>
-            )}
-          </Space>
-        </Space>
-      ),
-    },
+    // Trạng thái tạm thời không hiển thị vì chưa có API bật/tắt
     {
       title: "Thao tác",
       key: "actions",
       width: 120,
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openEditModal(record)}
-          >
-            Sửa
-          </Button>
+          <Tooltip title="Chỉnh sửa chênh lệch giá">
+            <Button
+              type="text"
+              size="small"
+              shape="circle"
+              icon={<EditOutlined />}
+              onClick={() => openEditModal(record)}
+            />
+          </Tooltip>
           <Popconfirm
             title="Xóa màu khỏi model"
             description="Bạn có chắc chắn muốn xóa màu này khỏi model?"
@@ -350,14 +319,15 @@ export default function VehicleModelColors() {
             okText="Xóa"
             cancelText="Hủy"
           >
-            <Button
-              type="primary"
-              danger
-              size="small"
-              icon={<DeleteOutlined />}
-            >
-              Xóa
-            </Button>
+            <Tooltip title="Xóa màu khỏi model">
+              <Button
+                type="text"
+                danger
+                size="small"
+                shape="circle"
+                icon={<DeleteOutlined />}
+              />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -396,10 +366,11 @@ export default function VehicleModelColors() {
         </div>
       </Card>
 
+      {contextHolder}
       <Table
         dataSource={modelColors || []}
         columns={columns}
-        rowKey="id"
+        rowKey={(r) => r?.id ?? `${r?.vehicleModelId}-${r?.colorId}`}
         loading={loading}
         pagination={{
           pageSize: 10,
@@ -444,23 +415,28 @@ export default function VehicleModelColors() {
                 filterOption={(input, option) =>
                   option?.label?.toLowerCase().includes(input.toLowerCase())
                 }
-                options={availableColors.map((color) => ({
-                  value: color.id,
-                  label: (
-                    <Space>
-                      <div
-                        style={{
-                          width: 20,
-                          height: 20,
-                          backgroundColor: color.hexCode,
-                          border: "1px solid #d9d9d9",
-                          borderRadius: 2,
-                        }}
-                      />
-                      {color.colorName} ({color.hexCode})
-                    </Space>
-                  ),
-                }))}
+                options={(availableColors || [])
+                  .filter(
+                    (color) =>
+                      !(modelColors || []).some((mc) => mc.colorId === color.id)
+                  )
+                  .map((color) => ({
+                    value: color.id,
+                    label: (
+                      <Space>
+                        <div
+                          style={{
+                            width: 20,
+                            height: 20,
+                            backgroundColor: color.hexCode,
+                            border: "1px solid #d9d9d9",
+                            borderRadius: 2,
+                          }}
+                        />
+                        {color.colorName} ({color.hexCode})
+                      </Space>
+                    ),
+                  }))}
               />
             </Form.Item>
           ) : (
