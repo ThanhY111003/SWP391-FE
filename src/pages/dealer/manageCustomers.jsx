@@ -46,10 +46,14 @@ export default function ManageCustomers() {
       const res = await apiClient.get("/api/customers");
       if (res.data.success) {
         setCustomers(res.data.data || []);
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách khách hàng!");
       }
     } catch (err) {
       console.error("Error fetching customers:", err);
-      message.error("Không thể tải danh sách khách hàng!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách khách hàng!";
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -80,10 +84,17 @@ export default function ManageCustomers() {
       if (res.data.success) {
         setSelectedCustomer(res.data.data);
         setDetailModalOpen(true);
+        if (res.data.message) {
+          message.success(res.data.message);
+        }
+      } else {
+        message.error(res.data.message || "Không thể tải chi tiết khách hàng!");
       }
     } catch (err) {
       console.error("Error fetching customer detail:", err);
-      message.error("Không thể tải chi tiết khách hàng!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải chi tiết khách hàng!";
+      message.error(errorMsg);
     }
   };
 
@@ -98,19 +109,30 @@ export default function ManageCustomers() {
           : undefined,
       };
 
+      let res;
       if (editingCustomer) {
         // Update
-        await apiClient.put(`/api/customers/${editingCustomer.id}`, payload);
-        message.success("Cập nhật khách hàng thành công!");
+        res = await apiClient.put(`/api/customers/${editingCustomer.id}`, payload);
+        if (res.data.success) {
+          message.success(res.data.message || "Cập nhật khách hàng thành công!");
+          setModalOpen(false);
+          form.resetFields();
+          fetchCustomers();
+        } else {
+          message.error(res.data.message || "Không thể cập nhật khách hàng!");
+        }
       } else {
         // Create
-        await apiClient.post("/api/customers", payload);
-        message.success("Tạo khách hàng mới thành công!");
+        res = await apiClient.post("/api/customers", payload);
+        if (res.data.success) {
+          message.success(res.data.message || "Tạo khách hàng mới thành công!");
+          setModalOpen(false);
+          form.resetFields();
+          fetchCustomers();
+        } else {
+          message.error(res.data.message || "Không thể tạo khách hàng mới!");
+        }
       }
-
-      setModalOpen(false);
-      form.resetFields();
-      fetchCustomers();
     } catch (err) {
       console.error("Error saving customer:", err);
       const errorMsg =
@@ -122,24 +144,36 @@ export default function ManageCustomers() {
   //  5. Vô hiệu hóa khách hàng
   const handleDeactivate = async (id) => {
     try {
-      await apiClient.patch(`/api/customers/${id}/deactivate`);
-      message.success("Vô hiệu hóa khách hàng thành công!");
-      fetchCustomers();
+      const res = await apiClient.patch(`/api/customers/${id}/deactivate`);
+      if (res.data.success) {
+        message.success(res.data.message || "Vô hiệu hóa khách hàng thành công!");
+        fetchCustomers();
+      } else {
+        message.error(res.data.message || "Không thể vô hiệu hóa khách hàng!");
+      }
     } catch (err) {
       console.error("Error deactivating customer:", err);
-      message.error("Không thể vô hiệu hóa khách hàng!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể vô hiệu hóa khách hàng!";
+      message.error(errorMsg);
     }
   };
 
   //  6. Kích hoạt lại khách hàng
   const handleActivate = async (id) => {
     try {
-      await apiClient.patch(`/api/customers/${id}/activate`);
-      message.success("Kích hoạt lại khách hàng thành công!");
-      fetchCustomers();
+      const res = await apiClient.patch(`/api/customers/${id}/activate`);
+      if (res.data.success) {
+        message.success(res.data.message || "Kích hoạt lại khách hàng thành công!");
+        fetchCustomers();
+      } else {
+        message.error(res.data.message || "Không thể kích hoạt lại khách hàng!");
+      }
     } catch (err) {
       console.error("Error activating customer:", err);
-      message.error("Không thể kích hoạt lại khách hàng!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể kích hoạt lại khách hàng!";
+      message.error(errorMsg);
     }
   };
 

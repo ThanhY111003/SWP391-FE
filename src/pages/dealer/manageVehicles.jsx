@@ -62,10 +62,17 @@ export default function ManageVehicles() {
       );
       if (res.data.success) {
         setVehicles(res.data.data || []);
+        if (res.data.message) {
+          message.success(res.data.message);
+        }
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách xe!");
       }
     } catch (err) {
       console.error("Error fetching vehicles:", err);
-      message.error("Không thể tải danh sách xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách xe!";
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -78,10 +85,14 @@ export default function ManageVehicles() {
       const res = await apiClient.get("/api/customers");
       if (res.data.success) {
         setCustomers(res.data.data || []);
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách khách hàng!");
       }
     } catch (err) {
       console.error("Error fetching customers:", err);
-      message.error("Không thể tải danh sách khách hàng!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách khách hàng!";
+      message.error(errorMsg);
     } finally {
       setLoadingCustomers(false);
     }
@@ -104,34 +115,53 @@ export default function ManageVehicles() {
       if (res.data.success) {
         setSelectedVehicle(res.data.data);
         setDetailModalOpen(true);
+        if (res.data.message) {
+          message.success(res.data.message);
+        }
+      } else {
+        message.error(res.data.message || "Không thể tải chi tiết xe!");
       }
     } catch (err) {
       console.error("Error fetching vehicle detail:", err);
-      message.error("Không thể tải chi tiết xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải chi tiết xe!";
+      message.error(errorMsg);
     }
   };
 
   //  4. Vô hiệu hóa xe
   const handleDeactivate = async (id) => {
     try {
-      await apiClient.patch(`/api/vehicle-instances/${id}/deactivate`);
-      message.success("Vô hiệu hóa xe thành công!");
-      fetchVehicles();
+      const res = await apiClient.patch(`/api/vehicle-instances/${id}/deactivate`);
+      if (res.data.success) {
+        message.success(res.data.message || "Vô hiệu hóa xe thành công!");
+        fetchVehicles();
+      } else {
+        message.error(res.data.message || "Không thể vô hiệu hóa xe!");
+      }
     } catch (err) {
       console.error("Error deactivating vehicle:", err);
-      message.error("Không thể vô hiệu hóa xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể vô hiệu hóa xe!";
+      message.error(errorMsg);
     }
   };
 
   //  5. Kích hoạt lại xe
   const handleActivate = async (id) => {
     try {
-      await apiClient.patch(`/api/vehicle-instances/${id}/activate`);
-      message.success("Kích hoạt lại xe thành công!");
-      fetchVehicles();
+      const res = await apiClient.patch(`/api/vehicle-instances/${id}/activate`);
+      if (res.data.success) {
+        message.success(res.data.message || "Kích hoạt lại xe thành công!");
+        fetchVehicles();
+      } else {
+        message.error(res.data.message || "Không thể kích hoạt lại xe!");
+      }
     } catch (err) {
       console.error("Error activating vehicle:", err);
-      message.error("Không thể kích hoạt lại xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể kích hoạt lại xe!";
+      message.error(errorMsg);
     }
   };
 
@@ -164,11 +194,15 @@ export default function ManageVehicles() {
           : undefined,
       };
 
-      await apiClient.post("/api/vehicle-instances/assign-customer", payload);
-      message.success("Gán xe cho khách hàng thành công!");
-      setAssignModalOpen(false);
-      assignForm.resetFields();
-      fetchVehicles();
+      const res = await apiClient.post("/api/vehicle-instances/assign-customer", payload);
+      if (res.data.success) {
+        message.success(res.data.message || "Gán xe cho khách hàng thành công!");
+        setAssignModalOpen(false);
+        assignForm.resetFields();
+        fetchVehicles();
+      } else {
+        message.error(res.data.message || "Không thể gán xe cho khách hàng!");
+      }
     } catch (err) {
       console.error("Error assigning vehicle:", err);
       const errorMsg =
@@ -191,13 +225,17 @@ export default function ManageVehicles() {
   const handleUpdateStatus = async () => {
     try {
       const values = await statusForm.validateFields();
-      await apiClient.put(
+      const res = await apiClient.put(
         `/api/vehicle-instances/${updatingStatusVehicle.id}/status?status=${values.status}`
       );
-      message.success("Cập nhật trạng thái xe thành công!");
-      setStatusModalOpen(false);
-      statusForm.resetFields();
-      fetchVehicles();
+      if (res.data.success) {
+        message.success(res.data.message || "Cập nhật trạng thái xe thành công!");
+        setStatusModalOpen(false);
+        statusForm.resetFields();
+        fetchVehicles();
+      } else {
+        message.error(res.data.message || "Không thể cập nhật trạng thái xe!");
+      }
     } catch (err) {
       console.error("Error updating status:", err);
       const errorMsg =

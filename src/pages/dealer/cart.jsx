@@ -42,12 +42,21 @@ export default function Cart() {
       const res = await apiClient.get("/api/cart");
       if (res.data.success) {
         setCart(res.data.data);
+        if (res.data.message) {
+          message.success(res.data.message);
+        }
       } else {
+        message.error(res.data.message || "Không thể tải giỏ hàng!");
         setCart(null);
       }
     } catch (err) {
       console.error("Error fetching cart:", err);
       // Nếu giỏ hàng trống, API có thể trả về lỗi
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải giỏ hàng!";
+      if (err.response?.status !== 404) {
+        message.error(errorMsg);
+      }
       setCart(null);
     } finally {
       setLoading(false);
@@ -66,11 +75,16 @@ export default function Cart() {
     }
 
     try {
-      await apiClient.put(
+      const res = await apiClient.put(
         `/api/cart/items/${itemId}/quantity?quantity=${newQuantity}`
       );
-      message.success("Cập nhật số lượng thành công!");
-      fetchCart();
+      if (res.data.success) {
+        message.success(res.data.message || "Cập nhật số lượng thành công!");
+        fetchCart();
+      } else {
+        message.error(res.data.message || "Không thể cập nhật số lượng!");
+        fetchCart(); // Reload để lấy dữ liệu mới nhất
+      }
     } catch (err) {
       console.error("Error updating quantity:", err);
       const errorMsg =
@@ -83,9 +97,13 @@ export default function Cart() {
   //  3. Xóa item khỏi giỏ hàng
   const handleRemoveItem = async (itemId) => {
     try {
-      await apiClient.delete(`/api/cart/items/${itemId}`);
-      message.success("Đã xóa khỏi giỏ hàng!");
-      fetchCart();
+      const res = await apiClient.delete(`/api/cart/items/${itemId}`);
+      if (res.data.success) {
+        message.success(res.data.message || "Đã xóa khỏi giỏ hàng!");
+        fetchCart();
+      } else {
+        message.error(res.data.message || "Không thể xóa khỏi giỏ hàng!");
+      }
     } catch (err) {
       console.error("Error removing item:", err);
       const errorMsg =
@@ -97,9 +115,13 @@ export default function Cart() {
   //  4. Xóa toàn bộ giỏ hàng
   const handleClearCart = async () => {
     try {
-      await apiClient.delete("/api/cart/clear");
-      message.success("Đã xóa toàn bộ giỏ hàng!");
-      fetchCart();
+      const res = await apiClient.delete("/api/cart/clear");
+      if (res.data.success) {
+        message.success(res.data.message || "Đã xóa toàn bộ giỏ hàng!");
+        fetchCart();
+      } else {
+        message.error(res.data.message || "Không thể xóa giỏ hàng!");
+      }
     } catch (err) {
       console.error("Error clearing cart:", err);
       const errorMsg =
@@ -131,7 +153,10 @@ export default function Cart() {
         setCreateOrderModalOpen(false);
         createOrderForm.resetFields();
         // Xóa giỏ hàng sau khi tạo đơn thành công
-        await apiClient.delete("/api/cart/clear");
+        const clearRes = await apiClient.delete("/api/cart/clear");
+        if (clearRes.data.success && clearRes.data.message) {
+          message.success(clearRes.data.message);
+        }
         fetchCart();
         // Chuyển đến trang quản lý đơn hàng
         navigate("/dealer/orders");

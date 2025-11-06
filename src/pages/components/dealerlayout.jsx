@@ -14,6 +14,7 @@ import {
   ExclamationCircleOutlined,
   BgColorsOutlined, // New icon for colors
   ToolOutlined, // Icon for vehicle management
+  DollarOutlined, // Icon for price management
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -76,6 +77,12 @@ export default function DealerLayout({ children }) {
       icon: <TeamOutlined />,
       label: "Customers",
       path: "/dealer/customers",
+    },
+    {
+      key: "vehicle-prices",
+      icon: <DollarOutlined />,
+      label: "Bảng giá xe",
+      path: "/dealer/vehicle-prices",
     },
     // {
     //   key: "sales-report",

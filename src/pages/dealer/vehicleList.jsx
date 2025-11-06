@@ -55,10 +55,14 @@ export default function VehicleList() {
       if (res.data.success) {
         // Chỉ hiển thị các xe đang active
         setVehicles(res.data.data.filter((v) => v.isActive));
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách xe!");
       }
     } catch (err) {
       console.error("Error fetching vehicles:", err);
-      message.error("Không thể tải danh sách xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách xe!";
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -75,10 +79,14 @@ export default function VehicleList() {
       if (res.data.success) {
         // Chỉ lấy các màu active
         setVehicleColors(res.data.data.filter((c) => c.isActive));
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách màu!");
       }
     } catch (err) {
       console.error("Error fetching vehicle colors:", err);
-      message.error("Không thể tải danh sách màu!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách màu!";
+      message.error(errorMsg);
     }
   };
 
@@ -104,9 +112,11 @@ export default function VehicleList() {
 
       const res = await apiClient.post("/api/cart/items", payload);
       if (res.data.success) {
-        message.success("Đã thêm vào giỏ hàng thành công!");
+        message.success(res.data.message || "Đã thêm vào giỏ hàng thành công!");
         setAddToCartModalOpen(false);
         addToCartForm.resetFields();
+      } else {
+        message.error(res.data.message || "Không thể thêm vào giỏ hàng!");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);

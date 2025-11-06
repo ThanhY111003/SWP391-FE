@@ -42,10 +42,15 @@ export default function VehicleDetail() {
       const res = await apiClient.get(`/api/vehicle-models/${modelId}`);
       if (res.data.success) {
         setVehicle(res.data.data);
+      } else {
+        message.error(res.data.message || "Không thể tải chi tiết xe!");
+        navigate("/dealer/vehicle-list");
       }
     } catch (err) {
       console.error("Error fetching vehicle detail:", err);
-      message.error("Không thể tải chi tiết xe!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải chi tiết xe!";
+      message.error(errorMsg);
       navigate("/dealer/vehicle-list");
     } finally {
       setLoading(false);
@@ -58,10 +63,14 @@ export default function VehicleDetail() {
       const res = await apiClient.get(`/api/vehicle-models/${modelId}/colors`);
       if (res.data.success) {
         setVehicleColors(res.data.data.filter((c) => c.isActive));
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách màu!");
       }
     } catch (err) {
       console.error("Error fetching vehicle colors:", err);
-      message.error("Không thể tải danh sách màu!");
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách màu!";
+      message.error(errorMsg);
     }
   };
 
@@ -94,10 +103,12 @@ export default function VehicleDetail() {
 
       const res = await apiClient.post("/api/cart/items", payload);
       if (res.data.success) {
-        message.success("Đã thêm vào giỏ hàng thành công!");
+        message.success(res.data.message || "Đã thêm vào giỏ hàng thành công!");
         setAddToCartModalOpen(false);
         addToCartForm.resetFields();
         setSelectedColor(null);
+      } else {
+        message.error(res.data.message || "Không thể thêm vào giỏ hàng!");
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
