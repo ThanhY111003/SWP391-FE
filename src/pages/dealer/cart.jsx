@@ -87,8 +87,13 @@ export default function Cart() {
       }
     } catch (err) {
       console.error("Error updating quantity:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể cập nhật số lượng!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Không thể cập nhật số lượng!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
       fetchCart(); // Reload để lấy dữ liệu mới nhất
     }
@@ -106,8 +111,13 @@ export default function Cart() {
       }
     } catch (err) {
       console.error("Error removing item:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể xóa khỏi giỏ hàng!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Không thể xóa khỏi giỏ hàng!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };
@@ -124,8 +134,13 @@ export default function Cart() {
       }
     } catch (err) {
       console.error("Error clearing cart:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể xóa giỏ hàng!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Không thể xóa giỏ hàng!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };
@@ -165,8 +180,13 @@ export default function Cart() {
       }
     } catch (err) {
       console.error("Error creating order:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể tạo đơn hàng!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Không thể tạo đơn hàng!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };

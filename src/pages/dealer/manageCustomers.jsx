@@ -38,6 +38,7 @@ export default function ManageCustomers() {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   //  1. Load danh sách khách hàng
   const fetchCustomers = async () => {
@@ -47,13 +48,13 @@ export default function ManageCustomers() {
       if (res.data.success) {
         setCustomers(res.data.data || []);
       } else {
-        message.error(res.data.message || "Không thể tải danh sách khách hàng!");
+        messageApi.error(res.data.message || "Không thể tải danh sách khách hàng!");
       }
     } catch (err) {
       console.error("Error fetching customers:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể tải danh sách khách hàng!";
-      message.error(errorMsg);
+      messageApi.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -85,16 +86,16 @@ export default function ManageCustomers() {
         setSelectedCustomer(res.data.data);
         setDetailModalOpen(true);
         if (res.data.message) {
-          message.success(res.data.message);
+          messageApi.success(res.data.message);
         }
       } else {
-        message.error(res.data.message || "Không thể tải chi tiết khách hàng!");
+        messageApi.error(res.data.message || "Không thể tải chi tiết khách hàng!");
       }
     } catch (err) {
       console.error("Error fetching customer detail:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể tải chi tiết khách hàng!";
-      message.error(errorMsg);
+      messageApi.error(errorMsg);
     }
   };
 
@@ -114,30 +115,47 @@ export default function ManageCustomers() {
         // Update
         res = await apiClient.put(`/api/customers/${editingCustomer.id}`, payload);
         if (res.data.success) {
-          message.success(res.data.message || "Cập nhật khách hàng thành công!");
+          messageApi.success(res.data.message || "Cập nhật khách hàng thành công!");
           setModalOpen(false);
           form.resetFields();
           fetchCustomers();
         } else {
-          message.error(res.data.message || "Không thể cập nhật khách hàng!");
+          messageApi.error(res.data.message || "Không thể cập nhật khách hàng!");
         }
       } else {
         // Create
         res = await apiClient.post("/api/customers", payload);
         if (res.data.success) {
-          message.success(res.data.message || "Tạo khách hàng mới thành công!");
+          messageApi.success(res.data.message || "Tạo khách hàng mới thành công!");
           setModalOpen(false);
           form.resetFields();
           fetchCustomers();
         } else {
-          message.error(res.data.message || "Không thể tạo khách hàng mới!");
+          messageApi.error(res.data.message || "Không thể tạo khách hàng mới!");
         }
       }
     } catch (err) {
       console.error("Error saving customer:", err);
-      const errorMsg =
-        err.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại!";
-      message.error(errorMsg);
+      console.error("Error response:", err.response);
+      console.error("Error response data:", err.response?.data);
+      
+      // Kiểm tra nhiều cách để lấy message
+      let errorMsg = "Đã xảy ra lỗi, vui lòng thử lại!";
+      
+      if (err.response?.data) {
+        // Nếu có response data
+        if (err.response.data.message) {
+          errorMsg = err.response.data.message;
+        } else if (err.response.data.error) {
+          errorMsg = err.response.data.error;
+        } else if (typeof err.response.data === 'string') {
+          errorMsg = err.response.data;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      messageApi.error(errorMsg);
     }
   };
 
@@ -146,16 +164,16 @@ export default function ManageCustomers() {
     try {
       const res = await apiClient.patch(`/api/customers/${id}/deactivate`);
       if (res.data.success) {
-        message.success(res.data.message || "Vô hiệu hóa khách hàng thành công!");
+        messageApi.success(res.data.message || "Vô hiệu hóa khách hàng thành công!");
         fetchCustomers();
       } else {
-        message.error(res.data.message || "Không thể vô hiệu hóa khách hàng!");
+        messageApi.error(res.data.message || "Không thể vô hiệu hóa khách hàng!");
       }
     } catch (err) {
       console.error("Error deactivating customer:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể vô hiệu hóa khách hàng!";
-      message.error(errorMsg);
+      messageApi.error(errorMsg);
     }
   };
 
@@ -164,16 +182,16 @@ export default function ManageCustomers() {
     try {
       const res = await apiClient.patch(`/api/customers/${id}/activate`);
       if (res.data.success) {
-        message.success(res.data.message || "Kích hoạt lại khách hàng thành công!");
+        messageApi.success(res.data.message || "Kích hoạt lại khách hàng thành công!");
         fetchCustomers();
       } else {
-        message.error(res.data.message || "Không thể kích hoạt lại khách hàng!");
+        messageApi.error(res.data.message || "Không thể kích hoạt lại khách hàng!");
       }
     } catch (err) {
       console.error("Error activating customer:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể kích hoạt lại khách hàng!";
-      message.error(errorMsg);
+      messageApi.error(errorMsg);
     }
   };
 
@@ -299,6 +317,7 @@ export default function ManageCustomers() {
 
   return (
     <DealerLayout>
+      {contextHolder}
       <div className="p-6">
         <Card>
           <div className="flex justify-between items-center mb-4">

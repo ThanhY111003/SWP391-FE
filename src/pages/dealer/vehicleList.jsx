@@ -120,8 +120,13 @@ export default function VehicleList() {
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể thêm vào giỏ hàng!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Không thể thêm vào giỏ hàng!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };

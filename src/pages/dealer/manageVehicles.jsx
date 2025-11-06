@@ -205,8 +205,13 @@ export default function ManageVehicles() {
       }
     } catch (err) {
       console.error("Error assigning vehicle:", err);
-      const errorMsg =
-        err.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Đã xảy ra lỗi, vui lòng thử lại!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };
@@ -238,8 +243,13 @@ export default function ManageVehicles() {
       }
     } catch (err) {
       console.error("Error updating status:", err);
-      const errorMsg =
-        err.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại!";
+      console.error("Error response:", err.response);
+      let errorMsg = "Đã xảy ra lỗi, vui lòng thử lại!";
+      if (err.response?.data) {
+        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
       message.error(errorMsg);
     }
   };
