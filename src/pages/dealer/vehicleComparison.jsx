@@ -162,23 +162,23 @@ export default function VehicleComparison() {
 
   return (
     <DealerLayout>
-      <div className="p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">
+      <div className="p-3 sm:p-6">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 text-gray-800">
             <SwapOutlined className="mr-2" />
             Vehicle Comparison
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Compare up to 3 vehicle models side by side
           </p>
         </div>
 
         {/* Vehicle Selection */}
-        <Card title="Select Vehicles to Compare" className="mb-6">
+        <Card title="Select Vehicles to Compare" className="mb-4 sm:mb-6">
           <Spin spinning={loading}>
-            <Row gutter={16}>
+            <Row gutter={[16, 16]}>
               {[0, 1, 2].map((slot) => (
-                <Col span={8} key={slot}>
+                <Col xs={24} sm={24} md={8} key={slot}>
                   <div className="border rounded-lg p-4 h-80">
                     {selectedVehicles[slot] ? (
                       <div className="text-center">
@@ -263,7 +263,7 @@ export default function VehicleComparison() {
             <Table
               dataSource={comparisonData}
               pagination={false}
-              scroll={{ x: 800 }}
+              scroll={{ x: 'max-content' }}
               columns={[
                 {
                   title: "Specification",
@@ -354,11 +354,11 @@ export default function VehicleComparison() {
 
         {/* Summary Cards */}
         {selectedVehicles.filter((v) => v).length > 1 && (
-          <Row gutter={16} className="mt-6">
-            <Col span={8}>
+          <Row gutter={[16, 16]} className="mt-4 sm:mt-6">
+            <Col xs={24} sm={24} md={8}>
               <Card title="Price Range" size="small">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
                     {(
                       Math.max(
                         ...selectedVehicles
@@ -377,10 +377,10 @@ export default function VehicleComparison() {
                 </div>
               </Card>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={24} md={8}>
               <Card title="Range Comparison" size="small">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
                     {Math.max(
                       ...selectedVehicles.filter((v) => v).map((v) => v.rangeKm)
                     )}{" "}
@@ -390,10 +390,10 @@ export default function VehicleComparison() {
                 </div>
               </Card>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={24} md={8}>
               <Card title="Battery Capacity" size="small">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
                     {Math.max(
                       ...selectedVehicles
                         .filter((v) => v)

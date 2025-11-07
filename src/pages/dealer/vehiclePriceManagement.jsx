@@ -268,15 +268,16 @@ export default function VehiclePriceManagement() {
 
   return (
     <DealerLayout>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Quản lý bảng giá xe</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Quản lý bảng giá xe</h2>
             <Space>
               <Button
                 icon={<ReloadOutlined />}
                 onClick={fetchPrices}
                 loading={loading}
+                className="w-full sm:w-auto"
               >
                 Làm mới
               </Button>
@@ -286,8 +287,8 @@ export default function VehiclePriceManagement() {
           {/* Filters Section */}
           <Card className="mb-4" size="small">
             <Space direction="vertical" style={{ width: "100%" }} size="middle">
-              <div className="flex flex-wrap gap-4">
-                <div style={{ minWidth: "200px" }}>
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+                <div className="w-full sm:flex-1" style={{ minWidth: "200px" }}>
                   <label className="block mb-2 text-sm font-medium">
                     Cấp đại lý
                   </label>
@@ -306,7 +307,7 @@ export default function VehiclePriceManagement() {
                   </Select>
                 </div>
 
-                <div style={{ minWidth: "300px" }}>
+                <div className="w-full sm:flex-1" style={{ minWidth: "200px" }}>
                   <label className="block mb-2 text-sm font-medium">
                     Khoảng thời gian
                   </label>
@@ -323,17 +324,18 @@ export default function VehiclePriceManagement() {
                   />
                 </div>
 
-                <div className="flex items-end">
-                  <Space>
+                <div className="flex items-end w-full sm:w-auto">
+                  <Space className="w-full sm:w-auto">
                     <Button
                       type="primary"
                       icon={<SearchOutlined />}
                       onClick={fetchPrices}
                       loading={loading}
+                      className="flex-1 sm:flex-none"
                     >
                       Tìm kiếm
                     </Button>
-                    <Button onClick={handleResetFilters}>Đặt lại</Button>
+                    <Button onClick={handleResetFilters} className="flex-1 sm:flex-none">Đặt lại</Button>
                   </Space>
                 </div>
               </div>
@@ -354,11 +356,12 @@ export default function VehiclePriceManagement() {
                 dataSource={prices}
                 loading={loading}
                 bordered
-                scroll={{ x: 1200 }}
+                scroll={{ x: 'max-content' }}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
                   showTotal: (total) => `Tổng ${total} bảng giá`,
+                  responsive: true,
                 }}
               />
             )}
@@ -378,10 +381,10 @@ export default function VehiclePriceManagement() {
               Đóng
             </Button>,
           ]}
-          width={800}
+          width={{ xs: '90%', sm: 800 }}
         >
           {selectedPrice && (
-            <Descriptions bordered column={2}>
+            <Descriptions bordered column={{ xs: 1, sm: 2 }}>
               <Descriptions.Item label="ID">{selectedPrice.id}</Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 <Tag color={selectedPrice.isActive ? "green" : "red"}>

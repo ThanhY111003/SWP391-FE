@@ -413,37 +413,39 @@ export default function ManageVehicles() {
 
   return (
     <DealerLayout>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Quản lý xe</h2>
-            <Space>
-              <Select
-                style={{ width: 200 }}
-                placeholder="Lọc theo trạng thái"
-                allowClear
-                value={filters.status}
-                onChange={(value) =>
-                  setFilters({ ...filters, status: value })
-                }
-              >
-                <Option value="IN_STOCK">Trong kho</Option>
-                <Option value="RESERVED">Đã đặt</Option>
-                <Option value="SOLD">Đã bán</Option>
-              </Select>
-              <Select
-                style={{ width: 150 }}
-                value={filters.activeOnly}
-                onChange={(value) =>
-                  setFilters({ ...filters, activeOnly: value })
-                }
-              >
-                <Option value={true}>Chỉ xe hoạt động</Option>
-                <Option value={false}>Tất cả</Option>
-              </Select>
-              <Button icon={<SearchOutlined />} onClick={fetchVehicles}>
-                Tìm kiếm
-              </Button>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Quản lý xe</h2>
+            <Space direction="vertical" size="small" className="w-full sm:w-auto">
+              <Space wrap className="w-full sm:w-auto">
+                <Select
+                  style={{ width: "100%", minWidth: 200 }}
+                  placeholder="Lọc theo trạng thái"
+                  allowClear
+                  value={filters.status}
+                  onChange={(value) =>
+                    setFilters({ ...filters, status: value })
+                  }
+                >
+                  <Option value="IN_STOCK">Trong kho</Option>
+                  <Option value="RESERVED">Đã đặt</Option>
+                  <Option value="SOLD">Đã bán</Option>
+                </Select>
+                <Select
+                  style={{ width: "100%", minWidth: 150 }}
+                  value={filters.activeOnly}
+                  onChange={(value) =>
+                    setFilters({ ...filters, activeOnly: value })
+                  }
+                >
+                  <Option value={true}>Chỉ xe hoạt động</Option>
+                  <Option value={false}>Tất cả</Option>
+                </Select>
+                <Button icon={<SearchOutlined />} onClick={fetchVehicles} className="w-full sm:w-auto">
+                  Tìm kiếm
+                </Button>
+              </Space>
             </Space>
           </div>
 
@@ -453,11 +455,12 @@ export default function ManageVehicles() {
             dataSource={vehicles}
             loading={loading}
             bordered
-            scroll={{ x: 1500 }}
+            scroll={{ x: 'max-content' }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
               showTotal: (total) => `Tổng ${total} xe`,
+              responsive: true,
             }}
           />
         </Card>
@@ -475,10 +478,10 @@ export default function ManageVehicles() {
               Đóng
             </Button>,
           ]}
-          width={800}
+          width={{ xs: '90%', sm: 800 }}
         >
           {selectedVehicle && (
-            <Descriptions bordered column={2}>
+            <Descriptions bordered column={{ xs: 1, sm: 2 }}>
               <Descriptions.Item label="ID">{selectedVehicle.id}</Descriptions.Item>
               <Descriptions.Item label="VIN">
                 {selectedVehicle.vin}
@@ -562,7 +565,7 @@ export default function ManageVehicles() {
           onOk={handleAssignToCustomer}
           okText="Xác nhận bán"
           cancelText="Hủy"
-          width={600}
+          width={{ xs: '90%', sm: 600 }}
           destroyOnClose
         >
           <Form form={assignForm} layout="vertical">
@@ -681,7 +684,7 @@ export default function ManageVehicles() {
           onOk={handleUpdateStatus}
           okText="Cập nhật"
           cancelText="Hủy"
-          width={500}
+          width={{ xs: '90%', sm: 500 }}
           destroyOnClose
         >
           <Form form={statusForm} layout="vertical">

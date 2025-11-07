@@ -228,7 +228,7 @@ export default function VehicleDetail() {
 
   return (
     <DealerLayout>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => navigate("/dealer/vehicle-list")}
@@ -237,9 +237,9 @@ export default function VehicleDetail() {
           Quay lại
         </Button>
 
-        <Row gutter={24}>
+        <Row gutter={[24, 24]}>
           {/* Thông tin chi tiết xe */}
-          <Col span={16}>
+          <Col xs={24} lg={16}>
             <Card title={vehicle.name} className="mb-4">
               {vehicle.imageUrl && (
                 <div className="mb-4">
@@ -254,7 +254,7 @@ export default function VehicleDetail() {
                 </div>
               )}
 
-              <Descriptions bordered column={2}>
+              <Descriptions bordered column={{ xs: 1, sm: 1, md: 2 }}>
                 <Descriptions.Item label="Thương hiệu">
                   {vehicle.brand}
                 </Descriptions.Item>
@@ -317,7 +317,7 @@ export default function VehicleDetail() {
           </Col>
 
           {/* Danh sách màu và thêm vào giỏ hàng */}
-          <Col span={8}>
+          <Col xs={24} lg={8}>
             <Card title="Màu sắc có sẵn" className="mb-4">
               {vehicleColors.length > 0 ? (
                 <Table
@@ -326,6 +326,7 @@ export default function VehicleDetail() {
                   rowKey="id"
                   pagination={false}
                   size="small"
+                  scroll={{ x: 600 }}
                 />
               ) : (
                 <p className="text-gray-500 text-center py-4">
@@ -348,7 +349,7 @@ export default function VehicleDetail() {
           onOk={handleAddToCart}
           okText="Thêm vào giỏ"
           cancelText="Hủy"
-          width={400}
+          width={{ xs: '90%', sm: 400 }}
           destroyOnClose
         >
           <Form form={addToCartForm} layout="vertical">

@@ -312,10 +312,10 @@ export default function Cart() {
 
   return (
     <DealerLayout>
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Card
           title={
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <span>
                 <ShoppingCartOutlined /> Giỏ hàng
               </span>
@@ -326,14 +326,14 @@ export default function Cart() {
                 okText="Xóa"
                 cancelText="Hủy"
               >
-                <Button type="primary" danger icon={<DeleteOutlined />}>
+                <Button type="primary" danger icon={<DeleteOutlined />} className="w-full sm:w-auto">
                   Xóa toàn bộ
                 </Button>
               </Popconfirm>
             </div>
           }
         >
-          <Descriptions bordered column={2} className="mb-4">
+          <Descriptions bordered column={{ xs: 1, sm: 2 }} className="mb-4">
             <Descriptions.Item label="Đại lý">
               {cart.dealerName || "N/A"}
             </Descriptions.Item>
@@ -360,6 +360,7 @@ export default function Cart() {
             columns={columns}
             dataSource={cart.items}
             pagination={false}
+            scroll={{ x: 'max-content' }}
             summary={(pageData) => {
               const total = cart.cartTotal || 0;
               return (
@@ -384,7 +385,7 @@ export default function Cart() {
           />
 
           {/* Nút tạo đơn hàng */}
-          <div className="mt-6 text-right">
+          <div className="mt-4 sm:mt-6 text-center sm:text-right">
             <Button
               type="primary"
               size="large"
@@ -396,6 +397,7 @@ export default function Cart() {
                 });
                 setCreateOrderModalOpen(true);
               }}
+              className="w-full sm:w-auto"
               style={{ height: "48px", paddingLeft: "32px", paddingRight: "32px" }}
             >
               Tạo đơn hàng
@@ -414,7 +416,7 @@ export default function Cart() {
           onOk={handleCreateOrder}
           okText="Tạo đơn hàng"
           cancelText="Hủy"
-          width={600}
+          width={{ xs: '90%', sm: 600 }}
         >
           <Form form={createOrderForm} layout="vertical">
             <Form.Item
