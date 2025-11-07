@@ -23,6 +23,7 @@ import OrderManagement from "./pages/admin/orderManagement";
 import AdminColorManagement from "./pages/admin/ColorManagement";
 import VehicleModelColors from "./pages/admin/VehicleModelColors";
 import VehicleModels from "./pages/admin/VehicleModels";
+import VehicleInstances from "./pages/admin/VehicleInstances";
 import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
@@ -82,7 +83,10 @@ function App() {
         <Route path="/dealer/inventory" element={<Inventory />} />
         <Route path="/dealer/vehicles" element={<ManageVehicles />} />
         <Route path="/dealer/customers" element={<ManageCustomers />} />
-        <Route path="/dealer/vehicle-prices" element={<VehiclePriceManagement />} />
+        <Route
+          path="/dealer/vehicle-prices"
+          element={<VehiclePriceManagement />}
+        />
         <Route path="/dealer/customer-history" element={<CustomerHistory />} />
         <Route path="/dealer/sales-report" element={<SalesReport />} />
         <Route path="/dealer/debt-report" element={<DebtReport />} />
@@ -177,6 +181,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <VehicleModels />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/vehicle-instances"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <VehicleInstances />
               </ManufacturerLayout>
             </AuthGuard>
           }

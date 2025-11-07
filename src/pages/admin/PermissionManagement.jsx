@@ -677,7 +677,7 @@ export default function PermissionManagement() {
                 </Tag>
               </div>
             }
-            bodyStyle={{ padding: 0 }}
+            styles={{ body: { padding: 0 } }}
           >
             <div className="p-3">
               <Input.Search

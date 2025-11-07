@@ -630,7 +630,7 @@ export default function OrderManagement() {
       {/* Statistics */}
       <Row gutter={16} className="mb-6" align="stretch">
         <Col span={4} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Tổng số đơn"
               value={statistics.totalOrders}
@@ -639,7 +639,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={4} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Tổng doanh số"
               value={statistics.totalAmount}
@@ -649,7 +649,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={3} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Chờ duyệt"
               value={statistics.pendingOrders}
@@ -659,7 +659,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={3} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Đã phê duyệt"
               value={statistics.approvedOrders}
@@ -669,7 +669,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={3} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Hoàn tất"
               value={statistics.completedOrders}
@@ -678,7 +678,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={2} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Từ chối"
               value={statistics.rejectedOrders}
@@ -688,7 +688,7 @@ export default function OrderManagement() {
           </Card>
         </Col>
         <Col span={2} style={{ display: "flex" }}>
-          <Card style={{ width: "100%" }} bodyStyle={{ padding: 16 }}>
+          <Card style={{ width: "100%" }} styles={{ body: { padding: 16 } }}>
             <Statistic
               title="Đã hủy"
               value={statistics.cancelledOrders}
@@ -701,7 +701,7 @@ export default function OrderManagement() {
           <Card
             className="bg-gradient-to-r from-blue-50 to-green-50"
             style={{ width: "100%" }}
-            bodyStyle={{ padding: 16 }}
+            styles={{ body: { padding: 16 } }}
           >
             <Statistic
               title="Tỉ lệ thành công"

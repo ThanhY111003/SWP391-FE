@@ -123,7 +123,8 @@ export default function VehicleList() {
       console.error("Error response:", err.response);
       let errorMsg = "Không thể thêm vào giỏ hàng!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -135,9 +136,7 @@ export default function VehicleList() {
   const filteredVehicles = vehicles.filter((vehicle) => {
     const matchesBrand = brandFilter === "All" || vehicle.brand === brandFilter;
     const matchesSearch =
-      (vehicle.name?.toLowerCase() || "").includes(
-        searchTerm.toLowerCase()
-      ) ||
+      (vehicle.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (vehicle.brand?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
       (vehicle.modelCode?.toLowerCase() || "").includes(
         searchTerm.toLowerCase()
@@ -156,8 +155,8 @@ export default function VehicleList() {
             🚗 Showroom Xe Điện
           </Title>
           <Text type="secondary">
-            Khám phá bộ sưu tập xe điện với công nghệ tiên tiến và thiết kế
-            hiện đại
+            Khám phá bộ sưu tập xe điện với công nghệ tiên tiến và thiết kế hiện
+            đại
           </Text>
         </div>
 
@@ -309,9 +308,19 @@ export default function VehicleList() {
                             marginBottom: "8px",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <EnvironmentOutlined style={{ color: "#1890ff", fontSize: "16px" }} />
-                            <Text style={{ fontSize: "14px" }}>Quãng đường</Text>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <EnvironmentOutlined
+                              style={{ color: "#1890ff", fontSize: "16px" }}
+                            />
+                            <Text style={{ fontSize: "14px" }}>
+                              Quãng đường
+                            </Text>
                           </div>
                           <Text strong>{vehicle.rangeKm || "N/A"} km</Text>
                         </div>
@@ -323,8 +332,16 @@ export default function VehicleList() {
                             marginBottom: "8px",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <PoweroffOutlined style={{ color: "#52c41a", fontSize: "16px" }} />
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <PoweroffOutlined
+                              style={{ color: "#52c41a", fontSize: "16px" }}
+                            />
                             <Text style={{ fontSize: "14px" }}>Pin</Text>
                           </div>
                           <Text strong>
@@ -338,8 +355,16 @@ export default function VehicleList() {
                             justifyContent: "space-between",
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <ThunderboltOutlined style={{ color: "#faad14", fontSize: "16px" }} />
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                            }}
+                          >
+                            <ThunderboltOutlined
+                              style={{ color: "#faad14", fontSize: "16px" }}
+                            />
                             <Text style={{ fontSize: "14px" }}>Sạc</Text>
                           </div>
                           <Text strong>
@@ -386,7 +411,11 @@ export default function VehicleList() {
                       </div>
 
                       {/* Actions */}
-                      <Space direction="vertical" style={{ width: "100%" }} size="small">
+                      <Space
+                        direction="vertical"
+                        style={{ width: "100%" }}
+                        size="small"
+                      >
                         <Button
                           type="primary"
                           block
@@ -446,9 +475,7 @@ export default function VehicleList() {
             <Form.Item
               label="Chọn màu"
               name="vehicleModelColorId"
-              rules={[
-                { required: true, message: "Vui lòng chọn màu!" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn màu!" }]}
             >
               <Select placeholder="Chọn màu xe">
                 {vehicleColors.map((color) => (
@@ -465,7 +492,8 @@ export default function VehicleList() {
                           {new Intl.NumberFormat("vi-VN", {
                             style: "currency",
                             currency: "VND",
-                          }).format(color.priceAdjustment)})
+                          }).format(color.priceAdjustment)}
+                          )
                         </span>
                       )}
                     </div>
@@ -500,4 +528,3 @@ export default function VehicleList() {
     </DealerLayout>
   );
 }
-

@@ -20,17 +20,31 @@ export default function ManufacturerLayout({ children }) {
   const location = useLocation();
 
   const menuItems = [
+    // Nhóm tính năng quản trị hãng (ưu tiên)
     {
       key: "dealer-management",
       icon: <TeamOutlined />,
       label: "Quản lý đại lý",
       path: "/manufacturer/dealerManagement",
     },
+    // Đặt "Cấp đại lý" ngay cạnh "Đại lý" như yêu cầu
+    {
+      key: "dealer-levels",
+      icon: <CrownOutlined />,
+      label: "Quản lý cấp đại lý",
+      path: "/manufacturer/dealer-levels",
+    },
     {
       key: "user-management",
       icon: <UserOutlined />,
       label: "Quản lý người dùng",
       path: "/manufacturer/users",
+    },
+    {
+      key: "permission-management",
+      icon: <SafetyCertificateOutlined />,
+      label: "Quản lý phân quyền",
+      path: "/manufacturer/permissions",
     },
     {
       key: "order-management",
@@ -45,16 +59,16 @@ export default function ManufacturerLayout({ children }) {
       path: "/manufacturer/vehicle-models",
     },
     {
+      key: "vehicle-instances",
+      icon: <CarOutlined />,
+      label: "Danh sách xe vật lý",
+      path: "/manufacturer/vehicle-instances",
+    },
+    {
       key: "color-management",
       icon: <BgColorsOutlined />,
       label: "Quản lý màu sắc",
       path: "/manufacturer/colors",
-    },
-    {
-      key: "dealer-levels",
-      icon: <CrownOutlined />,
-      label: "Quản lý cấp đại lý",
-      path: "/manufacturer/dealer-levels",
     },
     {
       key: "price-table",
@@ -62,18 +76,16 @@ export default function ManufacturerLayout({ children }) {
       label: "Bảng giá",
       path: "/manufacturer/priceTable",
     },
-    {
-      key: "permission-management",
-      icon: <SafetyCertificateOutlined />,
-      label: "Quản lý phân quyền",
-      path: "/manufacturer/permissions",
-    },
+    // Ngăn cách khu vực khác hệ
+    { type: "divider" },
+    // Liên kết sang portal đại lý (nếu cần)
     {
       key: "price-table1",
       icon: <FileTextOutlined />,
       label: "Dealer dashboard",
       path: "/dealer/dashboard",
     },
+    { type: "divider" },
     {
       key: "logout",
       icon: <LogoutOutlined />,

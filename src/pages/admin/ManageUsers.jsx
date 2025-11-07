@@ -10,7 +10,7 @@ import {
   Space,
   DatePicker,
 } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import api from "../../config/axios";
 
 export default function ManageUsers() {
@@ -18,7 +18,7 @@ export default function ManageUsers() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
-  const [dealers, setDealers] = useState([]);
+  const [dealers, setDealers] = useState([]); // danh sách đại lý để có thể mở rộng filter sau
   const [selectedRole, setSelectedRole] = useState(null);
 
   const fetchUsers = async () => {
@@ -52,15 +52,25 @@ export default function ManageUsers() {
   const fetchDealers = async () => {
     try {
       const res = await api.get("dealers");
-      if (res.data && Array.isArray(res.data)) {
-        setDealers(res.data);
-      } else if (res.data?.data) {
-        setDealers(res.data.data);
-      }
+      const payload = res.data;
+      let list = [];
+      if (Array.isArray(payload)) list = payload;
+      else if (Array.isArray(payload?.data)) list = payload.data;
+      else if (Array.isArray(payload?.content)) list = payload.content;
+      setDealers(list);
     } catch (error) {
       console.error("Error fetching dealers:", error);
+      setDealers([]);
     }
   };
+  // Map dealerId->name nhanh (chuẩn bị cho filter tương lai)
+  const dealerNameById = useMemo(() => {
+    const map = new Map();
+    dealers.forEach((d) => {
+      if (d?.id != null) map.set(String(d.id), d?.name || `Dealer #${d.id}`);
+    });
+    return map;
+  }, [dealers]);
 
   const handleCreateUser = async (values) => {
     try {
@@ -115,6 +125,21 @@ export default function ManageUsers() {
       title: "Email",
       dataIndex: "email",
       sorter: (a, b) => a.email.localeCompare(b.email),
+    },
+    {
+      title: "Đại lý",
+      key: "dealer",
+      render: (_, record) => {
+        const name =
+          record?.dealerName ||
+          dealerNameById.get(String(record?.dealerId)) ||
+          null;
+        return name ? (
+          <Tag color="blue">{name}</Tag>
+        ) : (
+          <Tag color="default">EVM</Tag>
+        );
+      },
     },
     {
       title: "Roles",
