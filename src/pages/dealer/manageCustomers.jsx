@@ -318,14 +318,15 @@ export default function ManageCustomers() {
   return (
     <DealerLayout>
       {contextHolder}
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">Quản lý khách hàng</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Quản lý khách hàng</h2>
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => openModal()}
+              className="w-full sm:w-auto"
             >
               Thêm khách hàng
             </Button>
@@ -337,10 +338,12 @@ export default function ManageCustomers() {
             dataSource={customers}
             loading={loading}
             bordered
+            scroll={{ x: 'max-content' }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
               showTotal: (total) => `Tổng ${total} khách hàng`,
+              responsive: true,
             }}
           />
         </Card>
@@ -356,7 +359,7 @@ export default function ManageCustomers() {
           onOk={handleSubmit}
           okText="Lưu"
           cancelText="Hủy"
-          width={700}
+          width={{ xs: '90%', sm: 700 }}
           destroyOnClose
         >
           <Form form={form} layout="vertical">
@@ -476,11 +479,11 @@ export default function ManageCustomers() {
               Đóng
             </Button>,
           ]}
-          width={800}
+          width={{ xs: '90%', sm: 800 }}
         >
           {selectedCustomer && (
             <div>
-              <Descriptions bordered column={2}>
+              <Descriptions bordered column={{ xs: 1, sm: 2 }}>
                 <Descriptions.Item label="ID">{selectedCustomer.id}</Descriptions.Item>
                 <Descriptions.Item label="Họ tên">
                   {selectedCustomer.fullName}
@@ -541,6 +544,7 @@ export default function ManageCustomers() {
                       rowKey="id"
                       pagination={false}
                       size="small"
+                      scroll={{ x: 'max-content' }}
                       columns={[
                         {
                           title: "VIN",

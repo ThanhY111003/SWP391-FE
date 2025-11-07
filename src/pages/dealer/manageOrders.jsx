@@ -235,20 +235,13 @@ export default function ManageOrders() {
 
   return (
     <DealerLayout>
-      <div style={{ padding: "24px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "16px",
-          }}
-        >
+      <div className="p-3 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
           <div>
-            <h2 style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}>
+            <h2 className="text-xl sm:text-2xl font-bold m-0">
               Quản lý đơn hàng
             </h2>
-            <p style={{ fontSize: "14px", color: "#666", marginTop: "4px" }}>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               Xem danh sách tất cả đơn hàng thuộc dealer hiện tại
             </p>
           </div>
@@ -256,6 +249,7 @@ export default function ManageOrders() {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => navigate("/dealer/cart")}
+            className="w-full sm:w-auto"
           >
             Tạo đơn hàng mới
           </Button>
@@ -285,13 +279,14 @@ export default function ManageOrders() {
                 dataSource={orders}
                 loading={loading}
                 bordered
-                scroll={{ x: 1400 }}
+                scroll={{ x: 'max-content' }}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
                   showQuickJumper: true,
                   showTotal: (total, range) =>
                     `${range[0]}-${range[1]} của ${total} đơn hàng`,
+                  responsive: true,
                 }}
                 locale={{
                   emptyText: loading ? "Đang tải..." : "Chưa có đơn hàng nào",

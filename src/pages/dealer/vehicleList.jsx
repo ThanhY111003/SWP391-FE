@@ -148,10 +148,10 @@ export default function VehicleList() {
 
   return (
     <DealerLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
         {/* Header Section */}
-        <div className="mb-6">
-          <Title level={2} className="mb-2">
+        <div className="mb-4 sm:mb-6">
+          <Title level={2} className="mb-2 text-xl sm:text-2xl">
             🚗 Showroom Xe Điện
           </Title>
           <Text type="secondary">
@@ -161,9 +161,9 @@ export default function VehicleList() {
         </div>
 
         {/* Filters Section */}
-        <Card className="mb-6 shadow-sm">
+        <Card className="mb-4 sm:mb-6 shadow-sm">
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={10}>
+            <Col xs={24} sm={24} md={10} lg={10}>
               <Search
                 placeholder="Tìm kiếm theo tên, thương hiệu, mã model..."
                 allowClear
@@ -173,7 +173,7 @@ export default function VehicleList() {
                 prefix={<SearchOutlined />}
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={24} md={8} lg={8}>
               <Select
                 placeholder="Lọc theo thương hiệu"
                 style={{ width: "100%" }}
@@ -189,8 +189,8 @@ export default function VehicleList() {
                 ))}
               </Select>
             </Col>
-            <Col xs={24} sm={24} md={6}>
-              <Text className="text-gray-500">
+            <Col xs={24} sm={24} md={6} lg={6}>
+              <Text className="text-gray-500 text-sm sm:text-base">
                 Tìm thấy <strong>{filteredVehicles.length}</strong> sản phẩm
               </Text>
             </Col>
@@ -468,7 +468,7 @@ export default function VehicleList() {
           onOk={handleAddToCart}
           okText="Thêm vào giỏ"
           cancelText="Hủy"
-          width={500}
+          width={{ xs: "90%", sm: 500 }}
           destroyOnClose
         >
           <Form form={addToCartForm} layout="vertical">
