@@ -52,3 +52,18 @@ button,
 .ant-switch {
   cursor: pointer;
 }
+
+/* Remove default bottom padding in AntD Sider and make children a flex column
+   so the account panel can stick to the bottom with no gap. */
+.sider-tight .ant-layout-sider-children {
+  /* Slight bottom breathing room so the account panel isn't glued to the edge */
+  padding-bottom: 8px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the menu can scroll if needed and the bottom account block stays flush */
+.sider-tight .ant-menu {
+  flex: 1 1 auto;
+  overflow: auto;
+}

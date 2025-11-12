@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Login from "./pages/login/login";
-import DealerDashboard from "./pages/dealer/dashboard";
 import ManageStaff from "./pages/dealer/manageStaff";
 import ManageOrders from "./pages/dealer/manageOrders";
 import Inventory from "./pages/dealer/inventory";
@@ -69,7 +68,7 @@ function App() {
         {/* <Route path="/admin/ManageUsers" element={<ManageUsers />} /> */}
 
         {/* Dealer */}
-        <Route path="/dealer/dashboard" element={<DealerDashboard />} />
+        {/* Dealer dashboard route removed as requested */}
         <Route path="/dealer/catalog" element={<VehicleCatalog />} />
         <Route path="/dealer/vehicle-list" element={<VehicleList />} />
         <Route
