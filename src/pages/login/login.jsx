@@ -133,14 +133,14 @@ export default function Login() {
             navigate("/manufacturer/dealerManagement");
             break;
           case "EVM_STAFF":
-            navigate("/dealer/dashboard");
+            navigate("/dealer/vehicle-list");
             break;
           case "MANUFACTURER":
             navigate("/manufacturer/dealerManagement");
             break;
           default:
             message.warning("Unknown role, redirecting to default page");
-            navigate("/dealer/dashboard");
+            navigate("/dealer/vehicle-list");
         }
         message.success(raw?.message || "Login successfully!");
       } else {
@@ -190,14 +190,14 @@ export default function Login() {
           navigate("/manufacturer/dealerManagement");
           break;
         case "EVM_STAFF":
-          navigate("/dealer/dashboard");
+          navigate("/dealer/vehicle-list");
           break;
         case "MANUFACTURER":
           navigate("/manufacturer/dealerManagement");
           break;
         default:
           message.warning("Unknown role, redirecting to default page");
-          navigate("/dealer/dashboard");
+          navigate("/dealer/vehicle-list");
       }
     }
   };

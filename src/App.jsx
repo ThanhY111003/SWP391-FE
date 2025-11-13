@@ -17,6 +17,7 @@ import VehicleList from "./pages/dealer/vehicleList";
 import VehicleDetail from "./pages/dealer/vehicleDetail";
 import Cart from "./pages/dealer/cart";
 import VehiclePriceManagement from "./pages/dealer/vehiclePriceManagement";
+import WarrantyManagement from "./pages/dealer/warrantyManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
 import OrderManagement from "./pages/admin/orderManagement";
 import AdminColorManagement from "./pages/admin/ColorManagement";
@@ -85,6 +86,10 @@ function App() {
         <Route
           path="/dealer/vehicle-prices"
           element={<VehiclePriceManagement />}
+        />
+        <Route
+          path="/dealer/warranty"
+          element={<WarrantyManagement />}
         />
         <Route path="/dealer/customer-history" element={<CustomerHistory />} />
         <Route path="/dealer/sales-report" element={<SalesReport />} />
