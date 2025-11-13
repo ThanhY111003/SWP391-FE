@@ -36,50 +36,50 @@ export default function ManufacturerLayout({ children }) {
     {
       key: "dealer-management",
       icon: <TeamOutlined />,
-      label: "Quản lý đại lý",
+      label: "Đại lý",
       path: "/manufacturer/dealerManagement",
     },
     // Đặt "Cấp đại lý" ngay cạnh "Đại lý" như yêu cầu
     {
       key: "dealer-levels",
       icon: <CrownOutlined />,
-      label: "Quản lý cấp đại lý",
+      label: "Cấp đại lý",
       path: "/manufacturer/dealer-levels",
     },
     {
       key: "user-management",
       icon: <UserOutlined />,
-      label: "Quản lý người dùng",
+      label: "Người dùng",
       path: "/manufacturer/users",
     },
     {
       key: "permission-management",
       icon: <SafetyCertificateOutlined />,
-      label: "Quản lý phân quyền",
+      label: "Phân quyền",
       path: "/manufacturer/permissions",
     },
     {
       key: "order-management",
       icon: <FileTextOutlined />,
-      label: "Quản lý đơn hàng",
+      label: "Đơn hàng",
       path: "/manufacturer/orders",
     },
     {
       key: "vehicle-models",
       icon: <CarOutlined />,
-      label: "Quản lý Vehicle Models",
+      label: "Mẫu xe",
       path: "/manufacturer/vehicle-models",
     },
     {
       key: "vehicle-instances",
       icon: <CarOutlined />,
-      label: "Danh sách xe vật lý",
+      label: "Danh sách xe",
       path: "/manufacturer/vehicle-instances",
     },
     {
       key: "color-management",
       icon: <BgColorsOutlined />,
-      label: "Quản lý màu sắc",
+      label: "Màu sắc",
       path: "/manufacturer/colors",
     },
     {

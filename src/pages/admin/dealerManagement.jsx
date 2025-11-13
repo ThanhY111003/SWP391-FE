@@ -190,42 +190,72 @@ const DealerManagement = () => {
   };
 
   const showAddModal = () => {
-    form.resetFields();
     setModalMode("create");
     setCurrentDealerId(null);
     // Luôn gọi để cập nhật mới nhất từ server
     fetchDealerLevels();
     setIsModalVisible(true);
+    // Đợi Form mount trong Modal rồi mới reset để tránh cảnh báo useForm
+    setTimeout(() => {
+      form.resetFields();
+    }, 0);
   };
 
   const showEditModal = async (record) => {
     setModalMode("edit");
     setCurrentDealerId(record.id);
-    fetchDealerLevels();
+    // Mở modal trước để đảm bảo Form đã gắn kết với instance
+    setIsModalVisible(true);
+    // Đảm bảo danh sách cấp đại lý đã sẵn sàng để map dealerLevelId -> levelNumber
+    try {
+      await fetchDealerLevels();
+    } catch (e) {
+      // không chặn mở modal nếu lỗi, chỉ log cảnh báo
+      console.warn("fetchDealerLevels before edit failed", e);
+    }
     try {
       const res = await api.get(`dealers/${record.id}`);
       const payload = res.data;
       const d = payload?.data ?? payload;
+      const findLevelNumber = (obj) => {
+        if (!obj) return undefined;
+        if (obj.levelNumber != null) return obj.levelNumber;
+        if (obj.dealerLevelId != null) {
+          const lv = dealerLevels.find((x) => x.id === obj.dealerLevelId);
+          if (lv && lv.levelNumber != null) return lv.levelNumber;
+        }
+        return undefined;
+      };
+      const levelNumberInit =
+        findLevelNumber(d) ?? findLevelNumber(record) ?? undefined;
       form.setFieldsValue({
         name: d?.name ?? record.name,
         address: d?.address ?? record.address,
         phoneNumber: d?.phoneNumber ?? record.phoneNumber,
         email: d?.email ?? record.email,
         region: d?.region ?? record.region ?? undefined,
-        levelNumber: d?.levelNumber,
+        levelNumber: levelNumberInit,
       });
     } catch (e) {
       console.error("Fetch dealer detail for edit failed", e);
+      const findLevelNumber = (obj) => {
+        if (!obj) return undefined;
+        if (obj.levelNumber != null) return obj.levelNumber;
+        if (obj.dealerLevelId != null) {
+          const lv = dealerLevels.find((x) => x.id === obj.dealerLevelId);
+          if (lv && lv.levelNumber != null) return lv.levelNumber;
+        }
+        return undefined;
+      };
       form.setFieldsValue({
         name: record.name,
         address: record.address,
         phoneNumber: record.phoneNumber,
         email: record.email,
         region: record.region,
-        levelNumber: record.levelNumber,
+        levelNumber: findLevelNumber(record),
       });
     }
-    setIsModalVisible(true);
   };
 
   const handleSubmit = async () => {
@@ -379,12 +409,21 @@ const DealerManagement = () => {
       title: "Trạng thái",
       dataIndex: "isActive",
       key: "isActive",
-      width: 160,
+      width: 220,
       render: (isActive, record) => (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Tag color={isActive ? "green" : "default"}>
-            {isActive ? "Hoạt động" : "Ngừng"}
-          </Tag>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <div style={{ width: 96, display: "flex", justifyContent: "center" }}>
+            <Tag color={isActive ? "green" : "default"} style={{ margin: 0 }}>
+              {isActive ? "Hoạt động" : "Ngừng"}
+            </Tag>
+          </div>
           <Switch
             size="small"
             checked={!!isActive}
