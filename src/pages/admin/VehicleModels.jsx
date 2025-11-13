@@ -27,6 +27,15 @@ import {
 import api from "../../config/axios";
 
 export default function VehicleModels() {
+  // Chuẩn hóa URL ảnh để chạy tốt ở dev qua proxy /api và cả prod
+  const resolveImageUrl = (url) => {
+    if (!url) return "";
+    const s = String(url).trim();
+    if (/^(data:|blob:|https?:\/\/)/i.test(s)) return s; // đã là URL tuyệt đối
+    if (s.startsWith("/api/")) return s; // đã đi qua proxy
+    if (s.startsWith("/")) return "/api" + s; // thêm prefix /api cho đường dẫn tuyệt đối
+    return "/api/" + s.replace(/^\/+/, ""); // đường dẫn tương đối -> /api/<path>
+  };
   const navigate = useNavigate();
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -903,11 +912,24 @@ export default function VehicleModels() {
               <Descriptions.Item label="Hình ảnh" span={2}>
                 {detailRecord.imageUrl ? (
                   <Image
-                    src={detailRecord.imageUrl}
+                    src={resolveImageUrl(detailRecord.imageUrl)}
                     alt={detailRecord.name}
                     width={320}
-                    crossOrigin="anonymous"
                     fallback="https://via.placeholder.com/320x180?text=No+Image"
+                    onError={(e) => {
+                      const img = e?.currentTarget;
+                      if (
+                        img &&
+                        img.src !== img.getAttribute("data-fallback")
+                      ) {
+                        img.setAttribute(
+                          "data-fallback",
+                          "https://via.placeholder.com/320x180?text=No+Image"
+                        );
+                        img.src =
+                          "https://via.placeholder.com/320x180?text=No+Image";
+                      }
+                    }}
                   />
                 ) : (
                   <div
