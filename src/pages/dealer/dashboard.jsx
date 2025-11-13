@@ -1,4 +1,4 @@
-// src/pages/dealer/dashboard.jsx
+// src/pages/dealer/vehicle-list.jsx
 import { Card, Statistic, Row, Col, Skeleton } from "antd";
 import { useEffect, useState } from "react";
 import DealerLayout from "../components/dealerlayout";

@@ -15,6 +15,7 @@ import {
   BgColorsOutlined, // New icon for colors
   ToolOutlined, // Icon for vehicle management
   DollarOutlined, // Icon for price management
+  SafetyOutlined, // Icon for warranty management
 } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
@@ -24,12 +25,12 @@ export default function DealerLayout({ children }) {
   const location = useLocation();
 
   const menuItems = [
-    {
-      key: "dashboard",
-      icon: <HomeOutlined />,
-      label: "Dashboard",
-      path: "/dealer/dashboard",
-    },
+    // {
+    //   key: "dashboard",
+    //   icon: <HomeOutlined />,
+    //   label: "Dashboard",
+    //   path: "/dealer/vehicle-list",
+    // },
     // {
     //   key: "catalog",
     //   icon: <AppstoreOutlined />,
@@ -83,6 +84,12 @@ export default function DealerLayout({ children }) {
       icon: <DollarOutlined />,
       label: "Bảng giá xe",
       path: "/dealer/vehicle-prices",
+    },
+    {
+      key: "warranty",
+      icon: <SafetyOutlined />,
+      label: "Yêu cầu bảo hành",
+      path: "/dealer/warranty",
     },
     // {
     //   key: "sales-report",

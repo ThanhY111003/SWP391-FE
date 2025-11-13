@@ -35,8 +35,16 @@
       "description": "Các API xác thực & quản trị tài khoản nội bộ (Admin/EVM/Dealer)"
     },
     {
+      "name": "Admin Report",
+      "description": "Báo cáo dành cho hãng (ADMIN)"
+    },
+    {
       "name": "Quản lý đơn hàng (Dealer)",
       "description": "Các API để Dealer tạo và xem các đơn hàng của chính mình"
+    },
+    {
+      "name": "Xe lỗi (Admin/EVM)",
+      "description": "Hãng phê duyệt, xem và xác nhận sửa xe lỗi"
     },
     {
       "name": "Quản lý cấp độ đại lý (Dealer Level)",
@@ -55,8 +63,16 @@
       "description": "Giỏ hàng tạm của Dealer"
     },
     {
+      "name": "Xe lỗi (Dealer)",
+      "description": "Dealer báo cáo, xem và xác nhận xe lỗi sau khi sửa"
+    },
+    {
       "name": "Inventory Management",
       "description": "Quản lý tồn kho xe"
+    },
+    {
+      "name": "Vehicle damaged",
+      "description": "Xử lý yêu cầu bảo hành/sửa chữa từ Dealer"
     },
     {
       "name": "Quản lý màu xe theo Model",
@@ -81,6 +97,10 @@
     {
       "name": "Quản lý màu xe (Color)",
       "description": "Các API dành cho quản trị viên hoặc nhân viên EVM để tạo, chỉnh sửa, và quản lý màu xe"
+    },
+    {
+      "name": "Dealer Manager report",
+      "description": "Báo cáo dành cho đại lý (DEALER MANAGER)"
     },
     {
       "name": "Quản lý đơn hàng (Admin)",
@@ -796,6 +816,46 @@
         }
       }
     },
+    "/api/warranty/dealer/{vehicleId}/request": {
+      "post": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Tạo yêu cầu bảo hành/sửa chữa cho xe(dealer)",
+        "operationId": "createRequest",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/vehicle-prices": {
       "get": {
         "tags": [
@@ -1171,6 +1231,56 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defects/dealer/orders/{orderId}/vehicles/{vehicleId}/report": {
+      "post": {
+        "tags": [
+          "Xe lỗi (Dealer)"
+        ],
+        "summary": "Báo cáo xe lỗi",
+        "description": "Dealer gửi báo cáo xe lỗi cho hãng trong đơn hàng đang giao (xe chưa về kho)",
+        "operationId": "createReport",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDefectiveVehicleReportResponse"
                 }
               }
             }
@@ -1746,6 +1856,166 @@
         }
       }
     },
+    "/api/warranty/dealer/{id}/reject": {
+      "patch": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Từ chối yêu cầu bảo hành/sửa chữa (hãng)",
+        "operationId": "reject",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/{id}/confirm": {
+      "patch": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Dealer xác nhận đã nhận lại xe sau sửa chữa(dealer)",
+        "operationId": "confirm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/{id}/complete": {
+      "patch": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Hoàn tất sửa chữa xe(hãng)",
+        "operationId": "complete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/{id}/cancel": {
+      "patch": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Huỷ yêu cầu bảo hành/sửa chữa (dealer)",
+        "operationId": "cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/{id}/approve": {
+      "patch": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Phê duyệt yêu cầu bảo hành/sửa chữa(hãng)",
+        "operationId": "approve",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/vehicle-prices/{id}/deactivate": {
       "patch": {
         "tags": [
@@ -2032,6 +2302,114 @@
         }
       }
     },
+    "/api/defects/dealer/orders/{orderId}/vehicles/{vehicleId}/confirm-repaired": {
+      "patch": {
+        "tags": [
+          "Xe lỗi (Dealer)"
+        ],
+        "summary": "Xác nhận xe đã được sửa xong",
+        "description": "Dealer xác nhận đã nhận lại xe sửa xong từ hãng",
+        "operationId": "confirmRepairedVehicle",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRepairedVehicleResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defects/admin/{reportId}/complete-repair": {
+      "patch": {
+        "tags": [
+          "Xe lỗi (Admin/EVM)"
+        ],
+        "summary": "Xác nhận sửa xe lỗi hoàn tất",
+        "description": "Hãng xác nhận xe lỗi đã được sửa xong, chuẩn bị gửi lại dealer",
+        "operationId": "completeRepair",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defects/admin/{reportId}/approve": {
+      "patch": {
+        "tags": [
+          "Xe lỗi (Admin/EVM)"
+        ],
+        "summary": "Phê duyệt báo cáo xe lỗi",
+        "description": "Hãng xác nhận báo cáo xe lỗi là hợp lệ để tiến hành sửa chữa",
+        "operationId": "approveReport",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dealers/{dealerId}/deactivate": {
       "patch": {
         "tags": [
@@ -2091,6 +2469,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseDealerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dealer/orders/{orderId}/confirm-received": {
+      "patch": {
+        "tags": [
+          "Quản lý đơn hàng (Dealer)"
+        ],
+        "summary": "Dealer xác nhận đã nhận xe",
+        "description": "Dealer xác nhận đơn hàng SHIPPING, xe đạt chuẩn và thêm vào kho.",
+        "operationId": "dealerConfirmReceived",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
                 }
               }
             }
@@ -2335,6 +2746,39 @@
         }
       }
     },
+    "/api/admin/orders/{orderId}/shipping": {
+      "patch": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Xác nhận giao hàng (Mark as Shipping)",
+        "description": "Hãng chuyển đơn CONFIRMED sang SHIPPING khi bắt đầu vận chuyển",
+        "operationId": "markAsShipping",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/orders/{orderId}/cancel": {
       "patch": {
         "tags": [
@@ -2375,7 +2819,7 @@
         ],
         "summary": "Duyệt đơn hàng (Approve)",
         "description": "Phê duyệt đơn hàng, tự động tạo VIN/Engine và nhập hàng vào kho Dealer tương ứng",
-        "operationId": "approve",
+        "operationId": "approve_1",
         "parameters": [
           {
             "name": "orderId",
@@ -2394,6 +2838,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseOrderApproveResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/my": {
+      "get": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Lấy danh sách yêu cầu bảo hành/sửa chữa của dealer hiện tại(dealer)",
+        "operationId": "getMyRequests",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDealerWarrantyRepairResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warranty/dealer/dealer/{dealerId}": {
+      "get": {
+        "tags": [
+          "Vehicle damaged"
+        ],
+        "summary": "Hãng xem danh sách yêu cầu bảo hành/sửa chữa của một dealer cụ thể(hãng)",
+        "operationId": "getRequestsByDealer",
+        "parameters": [
+          {
+            "name": "dealerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDealerWarrantyRepairResponse"
                 }
               }
             }
@@ -2449,6 +2946,8 @@
               "enum": [
                 "IN_STOCK",
                 "RESERVED",
+                "REPAIRING",
+                "SHIPPING",
                 "SOLD"
               ]
             }
@@ -2606,6 +3105,414 @@
         }
       }
     },
+    "/api/reports/dealer/top-models": {
+      "get": {
+        "tags": [
+          "Dealer Manager report"
+        ],
+        "summary": "Top mẫu xe bán chạy",
+        "description": "Thống kê mẫu xe bán nhiều nhất đại lý.",
+        "operationId": "getTopModels",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopModelResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/dealer/top-customers": {
+      "get": {
+        "tags": [
+          "Dealer Manager report"
+        ],
+        "summary": "Top khách hàng mua xe nhiều nhất",
+        "description": "Thống kê khách hàng mua xe nhiều nhất.",
+        "operationId": "getTopCustomers",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopCustomerResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/dealer/sales-trend": {
+      "get": {
+        "tags": [
+          "Dealer Manager report"
+        ],
+        "summary": "Doanh thu đai lý",
+        "description": "Thống kê doanh thu đại lý theo thời gian.",
+        "operationId": "getSalesTrend",
+        "parameters": [
+          {
+            "name": "groupBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SalesTrendResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/dealer/inventory-status": {
+      "get": {
+        "tags": [
+          "Dealer Manager report"
+        ],
+        "summary": "Tổng hợp tồn kho",
+        "description": "Thống kê tồn kho toàn hệ thống theo mẫu xe và màu.",
+        "operationId": "getInventoryStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryStatusResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/admin/top-models": {
+      "get": {
+        "tags": [
+          "Admin Report"
+        ],
+        "summary": "Top mẫu xe bán chạy",
+        "description": "Thống kê mẫu xe bán nhiều nhất toàn hệ thống.",
+        "operationId": "getTopModels_1",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListTopModelResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/admin/top-dealers": {
+      "get": {
+        "tags": [
+          "Admin Report"
+        ],
+        "summary": "Top đại lý mua nhiều nhất",
+        "description": "Thống kê các đại lý chi tiêu cao nhất.",
+        "operationId": "getTopDealers",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListTopDealerResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/admin/sales-trend": {
+      "get": {
+        "tags": [
+          "Admin Report"
+        ],
+        "summary": "Doanh thu hệ thống",
+        "description": "Thống kê doanh thu toàn hệ thống theo thời gian.",
+        "operationId": "getSalesTrend_1",
+        "parameters": [
+          {
+            "name": "groupBy",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListSalesTrendResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/admin/inventory-summary": {
+      "get": {
+        "tags": [
+          "Admin Report"
+        ],
+        "summary": "Tổng hợp tồn kho",
+        "description": "Thống kê tồn kho toàn hệ thống theo mẫu xe và màu.",
+        "operationId": "getInventorySummary",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListInventorySummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/admin/dealer-performance": {
+      "get": {
+        "tags": [
+          "Admin Report"
+        ],
+        "summary": "Hiệu suất đại lý",
+        "description": "Thống kê hiệu suất hoạt động của từng đại lý.",
+        "operationId": "getDealerPerformance",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDealerPerformanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/inventories": {
       "get": {
         "tags": [
@@ -2671,6 +3578,72 @@
         }
       }
     },
+    "/api/defects/dealer/order/{orderId}": {
+      "get": {
+        "tags": [
+          "Xe lỗi (Dealer)"
+        ],
+        "summary": "Xem danh sách báo cáo xe lỗi của đơn hàng",
+        "description": "Dealer xem các xe bị lỗi trong đơn hàng của mình",
+        "operationId": "getReportsByOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defects/admin/order/{orderId}": {
+      "get": {
+        "tags": [
+          "Xe lỗi (Admin/EVM)"
+        ],
+        "summary": "Lấy danh sách báo cáo xe lỗi theo đơn hàng",
+        "description": "Admin/EVM xem tất cả báo cáo xe lỗi trong đơn hàng cụ thể",
+        "operationId": "getReportsByOrder_1",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dealer/orders/{orderId}": {
       "get": {
         "tags": [
@@ -2697,6 +3670,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dealer/orders/{orderId}/vehicles": {
+      "get": {
+        "tags": [
+          "Quản lý đơn hàng (Dealer)"
+        ],
+        "summary": "Lấy danh sách xe trong đơn hàng",
+        "description": "Trả về danh sách các xe (VehicleInstance) thuộc đơn hàng của Dealer hiện tại",
+        "operationId": "getVehiclesByOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
                 }
               }
             }
@@ -2780,6 +3786,39 @@
         }
       }
     },
+    "/api/admin/orders/{orderId}/vehicles": {
+      "get": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Lấy danh sách xe trong đơn hàng",
+        "description": "Admin/EVM xem tất cả xe (VehicleInstance) thuộc đơn hàng cụ thể",
+        "operationId": "getVehiclesByOrder_1",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/roles/{roleId}/permissions/remove": {
       "delete": {
         "tags": [
@@ -2816,6 +3855,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseRoleDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dealer/orders/{orderId}/cancel": {
+      "delete": {
+        "tags": [
+          "Quản lý đơn hàng (Dealer)"
+        ],
+        "summary": "Huỷ đơn hàng (Dealer)",
+        "description": "Chỉ huỷ được đơn đang ở trạng thái PENDING.",
+        "operationId": "cancelOrder_1",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -3305,8 +4377,8 @@
             "type": "number"
           },
           "maxInstallmentMonths": {
-            "maximum": 36,
-            "minimum": 1,
+            "maximum": 12,
+            "minimum": 0,
             "type": "integer",
             "format": "int32"
           },
@@ -3692,6 +4764,59 @@
           }
         }
       },
+      "ApiResponseDealerWarrantyRepairResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DealerWarrantyRepairResponse"
+          }
+        }
+      },
+      "DealerWarrantyRepairResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vehicleId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ApiResponseVehicleModelColorResponse": {
         "type": "object",
         "properties": {
@@ -3960,6 +5085,61 @@
           }
         }
       },
+      "ApiResponseDefectiveVehicleReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DefectiveVehicleReportResponse"
+          }
+        }
+      },
+      "DefectiveVehicleReportResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vehicleId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "isApproved": {
+            "type": "boolean"
+          },
+          "isRepairCompleted": {
+            "type": "boolean"
+          },
+          "reportedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateOrderRequest": {
         "required": [
           "isInstallment",
@@ -3971,7 +5151,7 @@
             "type": "boolean"
           },
           "installmentMonths": {
-            "maximum": 60,
+            "maximum": 12,
             "minimum": 0,
             "type": "integer",
             "format": "int32"
@@ -4092,6 +5272,12 @@
           },
           "totalPrice": {
             "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "resolutionNote": {
+            "type": "string"
           }
         }
       },
@@ -4219,8 +5405,8 @@
             "type": "number"
           },
           "maxInstallmentMonths": {
-            "maximum": 36,
-            "minimum": 1,
+            "maximum": 12,
+            "minimum": 0,
             "type": "integer",
             "format": "int32"
           },
@@ -4494,6 +5680,50 @@
           }
         }
       },
+      "ApiResponseRepairedVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RepairedVehicleResponse"
+          }
+        }
+      },
+      "RepairedVehicleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "currentDealerName": {
+            "type": "string"
+          }
+        }
+      },
       "ApiResponseObject": {
         "type": "object",
         "properties": {
@@ -4544,6 +5774,26 @@
           "created": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ApiResponseListDealerWarrantyRepairResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealerWarrantyRepairResponse"
+            }
           }
         }
       },
@@ -4715,6 +5965,262 @@
           }
         }
       },
+      "TopModelResponse": {
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalRevenue": {
+            "type": "number"
+          }
+        }
+      },
+      "TopCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "totalVehicles": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalSpent": {
+            "type": "number"
+          },
+          "lastPurchase": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "SalesTrendResponse": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalRevenue": {
+            "type": "number"
+          }
+        }
+      },
+      "InventoryStatusResponse": {
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "totalStock": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reserved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soldCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ApiResponseListTopModelResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopModelResponse"
+            }
+          }
+        }
+      },
+      "ApiResponseListTopDealerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopDealerResponse"
+            }
+          }
+        }
+      },
+      "TopDealerResponse": {
+        "type": "object",
+        "properties": {
+          "dealerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dealerName": {
+            "type": "string"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalVehicles": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalAmount": {
+            "type": "number"
+          }
+        }
+      },
+      "ApiResponseListSalesTrendResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SalesTrendResponse"
+            }
+          }
+        }
+      },
+      "ApiResponseListInventorySummaryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventorySummaryResponse"
+            }
+          }
+        }
+      },
+      "InventorySummaryResponse": {
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "available": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reserved": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ApiResponseListDealerPerformanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealerPerformanceResponse"
+            }
+          }
+        }
+      },
+      "DealerPerformanceResponse": {
+        "type": "object",
+        "properties": {
+          "dealerName": {
+            "type": "string"
+          },
+          "totalOrders": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "completedOrders": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cancelledOrders": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "successRate": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ApiResponseListInventoryResponse": {
         "type": "object",
         "properties": {
@@ -4765,6 +6271,26 @@
           },
           "isActive": {
             "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseListDefectiveVehicleReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DefectiveVehicleReportResponse"
+            }
           }
         }
       },
@@ -4998,7 +6524,3 @@
     }
   }
 }
-Beta
-0 / 0
-used queries
-1

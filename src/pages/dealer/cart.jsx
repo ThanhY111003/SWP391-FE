@@ -457,11 +457,6 @@ export default function Cart() {
                       <Select.Option value={3}>3 tháng</Select.Option>
                       <Select.Option value={6}>6 tháng</Select.Option>
                       <Select.Option value={12}>12 tháng</Select.Option>
-                      <Select.Option value={18}>18 tháng</Select.Option>
-                      <Select.Option value={24}>24 tháng</Select.Option>
-                      <Select.Option value={36}>36 tháng</Select.Option>
-                      <Select.Option value={48}>48 tháng</Select.Option>
-                      <Select.Option value={60}>60 tháng</Select.Option>
                     </Select>
                   </Form.Item>
                 ) : null
