@@ -28,7 +28,7 @@ export default function DealerLayout({ children }) {
     {
       key: "dashboard",
       icon: <HomeOutlined />,
-      label: "Dashboard",
+      label: "Thống kê",
       path: "/dealer/dashboard",
     },
     // {
@@ -46,13 +46,13 @@ export default function DealerLayout({ children }) {
     {
       key: "comparison",
       icon: <SwapOutlined />,
-      label: "Vehicle Comparison",
+      label: "So sánh xe",
       path: "/dealer/comparison",
     },
     {
       key: "orders",
       icon: <ShoppingCartOutlined />,
-      label: "Orders",
+      label: "Đơn hàng",
       path: "/dealer/orders",
     },
     {
@@ -76,19 +76,19 @@ export default function DealerLayout({ children }) {
     {
       key: "customers",
       icon: <TeamOutlined />,
-      label: "Customers",
+      label: "Khách hàng",
       path: "/dealer/customers",
     },
     {
       key: "vehicle-prices",
       icon: <DollarOutlined />,
-      label: "Bảng giá xe",
+      label: "Bảng giá",
       path: "/dealer/vehicle-prices",
     },
     {
       key: "warranty",
       icon: <SafetyOutlined />,
-      label: "Yêu cầu bảo hành",
+      label: "Bảo hành",
       path: "/dealer/warranty",
     },
     // {

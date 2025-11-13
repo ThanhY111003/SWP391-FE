@@ -13,7 +13,8 @@ import {
   Typography,
 } from "antd";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+// eslint-disable-next-line no-unused-vars
+import { motion } from "framer-motion"; // used for animations in heading and button
 import api from "../../config/axios";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ForgotPasswordModal from "../../components/ForgotPasswordModal";
@@ -71,7 +72,8 @@ export default function Login() {
         payload?.username || payload?.userName || payload?.user?.username;
 
       // Kiểm tra mustChangePassword
-      const mustChangePassword = payload?.mustChangePassword || raw?.mustChangePassword;
+      const mustChangePassword =
+        payload?.mustChangePassword || raw?.mustChangePassword;
 
       // Điều kiện thành công: có 'token' là đủ
       if (token) {
@@ -89,24 +91,31 @@ export default function Login() {
         console.log("Must Change Password:", mustChangePassword);
 
         // Kiểm tra nếu user vừa reset password thành công
-        const passwordResetSuccess = localStorage.getItem('passwordResetSuccess');
-        const resetEmail = localStorage.getItem('resetEmail');
-        
+        const passwordResetSuccess = localStorage.getItem(
+          "passwordResetSuccess"
+        );
+        const resetEmail = localStorage.getItem("resetEmail");
+
         // Nếu vừa reset password và email khớp, bỏ qua yêu cầu đổi mật khẩu
-        if (passwordResetSuccess === 'true' && resetEmail === (responseUsername || username)) {
+        if (
+          passwordResetSuccess === "true" &&
+          resetEmail === (responseUsername || username)
+        ) {
           // Xóa flag reset password
-          localStorage.removeItem('passwordResetSuccess');
-          localStorage.removeItem('resetEmail');
-          
-          console.log("Skipping password change requirement - user just reset password");
+          localStorage.removeItem("passwordResetSuccess");
+          localStorage.removeItem("resetEmail");
+
+          console.log(
+            "Skipping password change requirement - user just reset password"
+          );
           // Bỏ qua mustChangePassword và tiếp tục redirect
         } else if (mustChangePassword === true) {
           // Lưu thông tin đăng nhập để sử dụng sau khi đổi mật khẩu
-          setLoginCredentials({ 
-            token, 
-            roleName, 
+          setLoginCredentials({
+            token,
+            roleName,
             username: responseUsername || username,
-            refreshToken 
+            refreshToken,
           });
           setShowChangePasswordModal(true);
           return; // Dừng lại ở đây, không redirect
@@ -130,13 +139,13 @@ export default function Login() {
         // 🔹 Điều hướng chính xác theo roleName từ API
         switch (roleName) {
           case "ADMIN":
-            navigate("/manufacturer/dealerManagement");
+            navigate("/manufacturer/reports");
             break;
           case "EVM_STAFF":
             navigate("/dealer/vehicle-list");
             break;
           case "MANUFACTURER":
-            navigate("/manufacturer/dealerManagement");
+            navigate("/manufacturer/reports");
             break;
           default:
             message.warning("Unknown role, redirecting to default page");
@@ -165,35 +174,38 @@ export default function Login() {
   const handleChangePasswordSuccess = () => {
     // Đóng modal
     setShowChangePasswordModal(false);
-    
+
     // Hiển thị thông báo thành công
-    toast.success(`Đổi mật khẩu thành công! Welcome back, ${loginCredentials?.username}!`, {
-      duration: 2500,
-      style: {
-        background: "linear-gradient(to right, #10b981, #059669)",
-        color: "white",
-        borderRadius: "10px",
-        fontWeight: "500",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-      },
-      iconTheme: {
-        primary: "white",
-        secondary: "#047857",
-      },
-    });
+    toast.success(
+      `Đổi mật khẩu thành công! Welcome back, ${loginCredentials?.username}!`,
+      {
+        duration: 2500,
+        style: {
+          background: "linear-gradient(to right, #10b981, #059669)",
+          color: "white",
+          borderRadius: "10px",
+          fontWeight: "500",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        },
+        iconTheme: {
+          primary: "white",
+          secondary: "#047857",
+        },
+      }
+    );
 
     // Redirect theo role
     if (loginCredentials) {
       const { roleName } = loginCredentials;
       switch (roleName) {
         case "ADMIN":
-          navigate("/manufacturer/dealerManagement");
+          navigate("/manufacturer/reports");
           break;
         case "EVM_STAFF":
           navigate("/dealer/vehicle-list");
           break;
         case "MANUFACTURER":
-          navigate("/manufacturer/dealerManagement");
+          navigate("/manufacturer/reports");
           break;
         default:
           message.warning("Unknown role, redirecting to default page");
@@ -247,7 +259,7 @@ export default function Login() {
         >
           <Card
             className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl p-6"
-            bordered={false}
+            variant="borderless"
           >
             <Title
               level={2}
@@ -268,7 +280,10 @@ export default function Login() {
                 name="username"
                 rules={[
                   { required: true, message: "Please enter your username!" },
-                  { min: 3, message: "Username must be at least 3 characters!" },
+                  {
+                    min: 3,
+                    message: "Username must be at least 3 characters!",
+                  },
                 ]}
               >
                 <Input
@@ -283,7 +298,10 @@ export default function Login() {
                 name="password"
                 rules={[
                   { required: true, message: "Please enter your password!" },
-                  { min: 6, message: "Password must be at least 6 characters!" },
+                  {
+                    min: 6,
+                    message: "Password must be at least 6 characters!",
+                  },
                 ]}
               >
                 <Input.Password

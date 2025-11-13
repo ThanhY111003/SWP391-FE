@@ -16,6 +16,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   CrownOutlined,
+  LineChartOutlined,
   FileTextOutlined,
   BgColorsOutlined,
   CarOutlined,
@@ -32,6 +33,13 @@ export default function ManufacturerLayout({ children }) {
   const location = useLocation();
 
   const menuItems = [
+    // Thống kê đặt ở đầu danh sách
+    {
+      key: "reports",
+      icon: <LineChartOutlined />,
+      label: "Thống kê",
+      path: "/manufacturer/reports",
+    },
     // Nhóm tính năng quản trị hãng (ưu tiên)
     {
       key: "dealer-management",
@@ -116,7 +124,7 @@ export default function ManufacturerLayout({ children }) {
     const currentPath = location.pathname;
     const activeItem = menuItems.find((item) => item.path === currentPath);
     // Default highlight first item when at /manufacturer root (handled by redirect as well)
-    if (currentPath === "/manufacturer") return ["dealer-management"];
+    if (currentPath === "/manufacturer") return ["reports"];
     return activeItem ? [activeItem.key] : [];
   };
 

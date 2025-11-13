@@ -29,6 +29,7 @@ import ManageDealers from "./pages/evm/ManageDealers";
 import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
 import DealerLevels from "./pages/admin/dealerLevels";
+import Reports from "./pages/admin/Reports";
 import PermissionManagement from "./pages/admin/PermissionManagement";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
@@ -88,10 +89,7 @@ function App() {
           path="/dealer/vehicle-prices"
           element={<VehiclePriceManagement />}
         />
-        <Route
-          path="/dealer/warranty"
-          element={<WarrantyManagement />}
-        />
+        <Route path="/dealer/warranty" element={<WarrantyManagement />} />
         <Route path="/dealer/customer-history" element={<CustomerHistory />} />
         <Route path="/dealer/sales-report" element={<SalesReport />} />
         <Route path="/dealer/debt-report" element={<DebtReport />} />
@@ -110,6 +108,16 @@ function App() {
         />
 
         {/* Manufacturer */}
+        <Route
+          path="/manufacturer/reports"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <Reports />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
         <Route
           path="/manufacturer/dealerManagement"
           element={
@@ -211,10 +219,10 @@ function App() {
           }
         />
 
-        {/* Redirect manufacturer root to dealerManagement */}
+        {/* Redirect manufacturer root to Reports */}
         <Route
           path="/manufacturer"
-          element={<Navigate to="/manufacturer/dealerManagement" replace />}
+          element={<Navigate to="/manufacturer/reports" replace />}
         />
 
         {/* Default route (fallback) */}
