@@ -164,17 +164,46 @@ export default function Cart() {
 
       const res = await apiClient.post("/api/dealer/orders", orderData);
       if (res.data.success) {
-        message.success("Tạo đơn hàng thành công!");
+        const orderInfo = res.data.data;
+        const orderCode = orderInfo?.orderCode || "N/A";
+        const totalAmount = orderInfo?.totalAmount || cart.cartTotal || 0;
+        
+        // Thông báo thành công với thông tin chi tiết
+        message.success({
+          content: (
+            <div>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                ✅ Đặt xe thành công!
+              </div>
+              <div style={{ fontSize: '14px' }}>
+                <div>Mã đơn hàng: <strong>{orderCode}</strong></div>
+                <div>Tổng tiền: <strong>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(totalAmount)}
+                </strong></div>
+                <div style={{ marginTop: '4px', color: '#666' }}>
+                  Đơn hàng đã được tạo và đang chờ xử lý.
+                </div>
+              </div>
+            </div>
+          ),
+          duration: 5,
+        });
+        
         setCreateOrderModalOpen(false);
         createOrderForm.resetFields();
         // Xóa giỏ hàng sau khi tạo đơn thành công
         const clearRes = await apiClient.delete("/api/cart/clear");
         if (clearRes.data.success && clearRes.data.message) {
-          message.success(clearRes.data.message);
+          // Không hiển thị thông báo xóa giỏ hàng nữa vì đã có thông báo chính
         }
         fetchCart();
-        // Chuyển đến trang quản lý đơn hàng
-        navigate("/dealer/orders");
+        // Chuyển đến trang quản lý đơn hàng sau 1 giây để người dùng đọc thông báo
+        setTimeout(() => {
+          navigate("/dealer/orders");
+        }, 1000);
       } else {
         message.error(res.data.message || "Tạo đơn hàng thất bại!");
       }
