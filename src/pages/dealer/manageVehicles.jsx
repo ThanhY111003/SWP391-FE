@@ -25,6 +25,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -196,12 +197,18 @@ export default function ManageVehicles() {
 
       const res = await apiClient.post("/api/vehicle-instances/assign-customer", payload);
       if (res.data.success) {
-        message.success(res.data.message || "Gán xe cho khách hàng thành công!");
+        const responseMessage = res.data.message || "Gán xe cho khách hàng thành công!";
+        toast.success(responseMessage, {
+          position: 'top-right',
+          duration: 4000,
+        });
         setAssignModalOpen(false);
         assignForm.resetFields();
         fetchVehicles();
       } else {
-        message.error(res.data.message || "Không thể gán xe cho khách hàng!");
+        toast.error(res.data.message || "Không thể gán xe cho khách hàng!", {
+          position: 'top-right',
+        });
       }
     } catch (err) {
       console.error("Error assigning vehicle:", err);
@@ -212,7 +219,9 @@ export default function ManageVehicles() {
       } else if (err.message) {
         errorMsg = err.message;
       }
-      message.error(errorMsg);
+      toast.error(errorMsg, {
+        position: 'top-right',
+      });
     }
   };
 

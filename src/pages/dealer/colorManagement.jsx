@@ -87,13 +87,14 @@ export default function ColorManagement() {
         // Create color
         const response = await apiClient.post("/api/colors", values);
         if (response.data.success) {
-          toast.success("Color created successfully!", {
+          const responseMessage = response.data.message || "Tạo màu thành công!";
+          toast.success(responseMessage, {
             position: "top-right",
-            duration: 3000,
+            duration: 4000,
           });
           fetchColors();
         } else {
-          toast.error(response.data.message || "Failed to create color!", {
+          toast.error(response.data.message || "Không thể tạo màu!", {
             position: "top-right",
             duration: 3000,
           });

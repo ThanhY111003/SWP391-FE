@@ -10,6 +10,7 @@ import {
   message,
   Popconfirm,
 } from "antd";
+import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -75,8 +76,17 @@ export default function ManageStaff() {
         message.success("Update staff successfully!");
       } else {
         // create
-        await apiClient.post("/api/dealer/staff", values);
-        message.success("Create staff successfully!");
+        const res = await apiClient.post("/api/dealer/staff", values);
+        if (res.data?.success) {
+          toast.success(res.data.message || "Tạo nhân viên thành công!", {
+            position: 'top-right',
+            duration: 4000,
+          });
+        } else {
+          toast.error(res.data?.message || "Không thể tạo nhân viên!", {
+            position: 'top-right',
+          });
+        }
       }
 
       setOpen(false);

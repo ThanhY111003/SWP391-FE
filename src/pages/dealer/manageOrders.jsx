@@ -25,6 +25,7 @@ import {
   FileTextOutlined,
   SafetyOutlined,
 } from "@ant-design/icons";
+import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -191,19 +192,27 @@ export default function ManageOrders() {
         `/api/defects/dealer/orders/${selectedOrderId}/vehicles/${values.vehicleId}/report?${params.toString()}`
       );
       if (res.data.success) {
-        message.success(res.data.message || "Báo cáo xe lỗi thành công!");
+        const responseMessage = res.data.message || "Báo cáo xe lỗi thành công!";
+        toast.success(responseMessage, {
+          position: 'top-right',
+          duration: 4000,
+        });
         setReportModalOpen(false);
         reportForm.resetFields();
         // Refresh danh sách đơn hàng
         fetchOrders();
       } else {
-        message.error(res.data.message || "Không thể báo cáo xe lỗi!");
+        toast.error(res.data.message || "Không thể báo cáo xe lỗi!", {
+          position: 'top-right',
+        });
       }
     } catch (err) {
       console.error("Error reporting defect:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể báo cáo xe lỗi!";
-      message.error(errorMsg);
+      toast.error(errorMsg, {
+        position: 'top-right',
+      });
     }
   };
 
@@ -253,19 +262,27 @@ export default function ManageOrders() {
         `/api/warranty/dealer/${values.vehicleId}/request?${params.toString()}`
       );
       if (res.data.success) {
-        message.success(res.data.message || "Tạo yêu cầu bảo hành thành công!");
+        const responseMessage = res.data.message || "Tạo yêu cầu bảo hành thành công!";
+        toast.success(responseMessage, {
+          position: 'top-right',
+          duration: 4000,
+        });
         setWarrantyModalOpen(false);
         warrantyForm.resetFields();
         // Refresh danh sách đơn hàng
         fetchOrders();
       } else {
-        message.error(res.data.message || "Không thể tạo yêu cầu bảo hành!");
+        toast.error(res.data.message || "Không thể tạo yêu cầu bảo hành!", {
+          position: 'top-right',
+        });
       }
     } catch (err) {
       console.error("Error creating warranty request:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể tạo yêu cầu bảo hành!";
-      message.error(errorMsg);
+      toast.error(errorMsg, {
+        position: 'top-right',
+      });
     }
   };
 

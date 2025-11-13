@@ -24,6 +24,7 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -126,12 +127,18 @@ export default function ManageCustomers() {
         // Create
         res = await apiClient.post("/api/customers", payload);
         if (res.data.success) {
-          messageApi.success(res.data.message || "Tạo khách hàng mới thành công!");
+          const responseMessage = res.data.message || "Tạo khách hàng mới thành công!";
+          toast.success(responseMessage, {
+            position: 'top-right',
+            duration: 4000,
+          });
           setModalOpen(false);
           form.resetFields();
           fetchCustomers();
         } else {
-          messageApi.error(res.data.message || "Không thể tạo khách hàng mới!");
+          toast.error(res.data.message || "Không thể tạo khách hàng mới!", {
+            position: 'top-right',
+          });
         }
       }
     } catch (err) {
