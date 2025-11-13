@@ -117,8 +117,10 @@ export default function DealerLayout({ children }) {
     // },
     {
       key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Logout",
+      icon: <LogoutOutlined style={{ color: "#ff4d4f" }} />,
+      label: (
+        <span style={{ color: "#ff4d4f", fontWeight: 600 }}>Đăng xuất</span>
+      ),
       path: "/login",
     },
   ];
