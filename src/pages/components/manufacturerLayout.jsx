@@ -22,6 +22,7 @@ import {
   CarOutlined,
   SafetyCertificateOutlined,
   MoreOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import api from "../../config/axios";
@@ -95,6 +96,12 @@ export default function ManufacturerLayout({ children }) {
       icon: <DollarCircleOutlined />,
       label: "Bảng giá",
       path: "/manufacturer/priceTable",
+    },
+    {
+      key: "inventories",
+      icon: <DatabaseOutlined />,
+      label: "Hàng tồn kho",
+      path: "/manufacturer/inventories",
     },
     // Divider trước khi đăng xuất
     { type: "divider" },

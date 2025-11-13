@@ -30,6 +30,7 @@ import PriceTable from "./pages/admin/priceTable";
 import DealerManagement from "./pages/admin/dealerManagement";
 import DealerLevels from "./pages/admin/dealerLevels";
 import Reports from "./pages/admin/Reports";
+import Inventories from "./pages/admin/Inventories";
 import PermissionManagement from "./pages/admin/PermissionManagement";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
@@ -204,6 +205,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <VehicleInstances />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/inventories"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <Inventories />
               </ManufacturerLayout>
             </AuthGuard>
           }
