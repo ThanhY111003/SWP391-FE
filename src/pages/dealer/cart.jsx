@@ -25,6 +25,7 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -167,30 +168,66 @@ export default function Cart() {
         const orderInfo = res.data.data;
         const orderCode = orderInfo?.orderCode || "N/A";
         const totalAmount = orderInfo?.totalAmount || cart.cartTotal || 0;
+        const responseMessage = res.data.message || "Tạo đơn hàng thành công!";
         
-        // Thông báo thành công với thông tin chi tiết
-        message.success({
-          content: (
-            <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                ✅ Đặt xe thành công!
+        // Thông báo thành công với thông tin chi tiết từ response bằng toast
+        toast.success(
+          (t) => (
+            <div style={{ maxWidth: '400px' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px', color: '#fff' }}>
+                ✅ {responseMessage}
               </div>
-              <div style={{ fontSize: '14px' }}>
-                <div>Mã đơn hàng: <strong>{orderCode}</strong></div>
-                <div>Tổng tiền: <strong>
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(totalAmount)}
-                </strong></div>
-                <div style={{ marginTop: '4px', color: '#666' }}>
-                  Đơn hàng đã được tạo và đang chờ xử lý.
+              <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#e0e0e0' }}>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ color: '#b0b0b0' }}>Mã đơn hàng:</span>{' '}
+                  <strong style={{ color: '#4fc3f7' }}>{orderCode}</strong>
                 </div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ color: '#b0b0b0' }}>Tổng tiền:</span>{' '}
+                  <strong style={{ color: '#4caf50', fontSize: '15px' }}>
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(totalAmount)}
+                  </strong>
+                </div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ color: '#b0b0b0' }}>Trạng thái:</span>{' '}
+                  <strong style={{ color: orderInfo?.status === 'PENDING' ? '#ffb74d' : '#4fc3f7' }}>
+                    {orderInfo?.status || 'PENDING'}
+                  </strong>
+                </div>
+                {orderInfo?.orderDetails && orderInfo.orderDetails.length > 0 && (
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+                    <div style={{ color: '#b0b0b0', fontSize: '13px', marginBottom: '4px' }}>
+                      Sản phẩm đã đặt:
+                    </div>
+                    {orderInfo.orderDetails.map((detail, index) => (
+                      <div key={index} style={{ fontSize: '13px', marginLeft: '8px', color: '#e0e0e0' }}>
+                        • {detail.vehicleModelName} - {detail.vehicleColorName} (x{detail.quantity})
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ),
-          duration: 5,
-        });
+          {
+            duration: 6000,
+            position: 'top-right',
+            style: {
+              background: '#363636',
+              color: '#fff',
+              padding: '16px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            },
+            iconTheme: {
+              primary: '#4caf50',
+              secondary: '#fff',
+            },
+          }
+        );
         
         setCreateOrderModalOpen(false);
         createOrderForm.resetFields();
