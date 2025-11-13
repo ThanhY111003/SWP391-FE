@@ -16,6 +16,7 @@ import ManageVehicles from "./pages/dealer/manageVehicles";
 import VehicleList from "./pages/dealer/vehicleList";
 import VehicleDetail from "./pages/dealer/vehicleDetail";
 import Cart from "./pages/dealer/cart";
+import DealerDashboard from "./pages/dealer/dashboard";
 import VehiclePriceManagement from "./pages/dealer/vehiclePriceManagement";
 import WarrantyManagement from "./pages/dealer/warrantyManagement";
 import ManageUsers from "./pages/admin/ManageUsers";
@@ -69,7 +70,7 @@ function App() {
         {/* <Route path="/admin/ManageUsers" element={<ManageUsers />} /> */}
 
         {/* Dealer */}
-        {/* Dealer dashboard route removed as requested */}
+        <Route path="/dealer/dashboard" element={<DealerDashboard />} />
         <Route path="/dealer/catalog" element={<VehicleCatalog />} />
         <Route path="/dealer/vehicle-list" element={<VehicleList />} />
         <Route

@@ -25,12 +25,12 @@ export default function DealerLayout({ children }) {
   const location = useLocation();
 
   const menuItems = [
-    // {
-    //   key: "dashboard",
-    //   icon: <HomeOutlined />,
-    //   label: "Dashboard",
-    //   path: "/dealer/vehicle-list",
-    // },
+    {
+      key: "dashboard",
+      icon: <HomeOutlined />,
+      label: "Dashboard",
+      path: "/dealer/dashboard",
+    },
     // {
     //   key: "catalog",
     //   icon: <AppstoreOutlined />,
