@@ -8,10 +8,11 @@ import {
   Input,
   Space,
   Button,
-  Checkbox,
   Divider,
   Tag,
   Table,
+  Checkbox,
+  Switch,
   message,
   Popconfirm,
 } from "antd";
@@ -108,12 +109,13 @@ export default function PermissionManagement() {
   const [rolePerms, setRolePerms] = useState(new Set());
   const [originalPerms, setOriginalPerms] = useState(new Set());
   const [saving, setSaving] = useState(false);
-  const [loadingPerms, setLoadingPerms] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const [permissionCatalog, setPermissionCatalog] =
-    useState(PERMISSION_CATALOG);
-  const [actionsByModule, setActionsByModule] = useState(null);
+  // Removed dynamic module catalog (tree view) — flat permissions list is enough
   const [keyToPermissionId, setKeyToPermissionId] = useState({});
+  const [rawPermissions, setRawPermissions] = useState([]); // flat list of all active permissions
+  const [permissionSearch, setPermissionSearch] = useState("");
+  const [permPage, setPermPage] = useState(1); // current page for STT numbering
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false); // filter to only permissions currently granted
 
   // Derived
   const filteredRoles = useMemo(() => {
@@ -223,60 +225,60 @@ export default function PermissionManagement() {
       if (res?.data?.success) {
         const list = Array.isArray(res.data.data) ? res.data.data : [];
 
-        const moduleSet = new Set();
-        const actionsMap = {};
         const keyIdMap = {};
+        const flat = [];
+        const seen = new Set();
 
         for (const p of list) {
           const resource = normalizeResource(p.resource);
           const action = normalizeAction(p.action);
-          const active = p.isActive !== false; // treat undefined as active
+          const active = p.isActive !== false;
           if (!active) continue;
-
-          moduleSet.add(resource);
-          if (!actionsMap[resource]) actionsMap[resource] = new Set();
-          actionsMap[resource].add(action);
-          keyIdMap[`${resource}:${action}`] = p.id;
+          const key = `${resource}:${action}`;
+          // Skip duplicates after normalization (backend may have multiple aliases for same logical permission)
+          if (seen.has(key)) {
+            // If first record lacked description but this one has, update existing flat item
+            const existingIndex = flat.findIndex((item) => item.key === key);
+            if (
+              existingIndex !== -1 &&
+              !flat[existingIndex].description &&
+              p.description
+            ) {
+              flat[existingIndex].description = p.description;
+            }
+            continue;
+          }
+          seen.add(key);
+          keyIdMap[key] = p.id; // latest id kept (first occurrence)
+          flat.push({
+            id: p.id,
+            key,
+            resource,
+            action,
+            name: p.name,
+            displayName: p.displayName,
+            description: p.description,
+            isActive: active,
+          });
         }
 
-        // Build catalog from modules (preserve known order by using PERMISSION_CATALOG as guide)
-        const knownOrder = PERMISSION_CATALOG.map((m) => m.key);
-        const modules = Array.from(moduleSet);
-        modules.sort((a, b) => {
-          const ia = knownOrder.indexOf(a);
-          const ib = knownOrder.indexOf(b);
-          if (ia === -1 && ib === -1) return a.localeCompare(b);
-          if (ia === -1) return 1;
-          if (ib === -1) return -1;
-          return ia - ib;
+        // Optional: sort for stable order (module then action then description)
+        flat.sort((a, b) => {
+          if (a.resource !== b.resource)
+            return a.resource.localeCompare(b.resource);
+          if (a.action !== b.action) return a.action.localeCompare(b.action);
+          return (a.description || "").localeCompare(b.description || "");
         });
 
-        const catalog = modules.map((m) => ({
-          key: m,
-          label: MODULE_LABEL_MAP[m] || m,
-          icon: MODULE_ICON_MAP[m] || <SafetyCertificateOutlined />,
-        }));
-
-        const actionsByMod = {};
-        for (const m of modules) {
-          const acts = Array.from(actionsMap[m] || []);
-          actionsByMod[m] = acts.map((k) => ({
-            key: k,
-            label: ACTION_LABEL_MAP[k] || k,
-          }));
-        }
-
-        setPermissionCatalog(catalog);
-        setActionsByModule(actionsByMod);
         setKeyToPermissionId(keyIdMap);
+        setRawPermissions(flat);
       }
     } catch {
-      // ignore, fallback to static catalog
+      // ignore
     }
   };
 
   const fetchRolePermissions = async (roleId) => {
-    setLoadingPerms(true);
     try {
       // Use role detail API: GET /roles/{id}
       const res = await api.get(`/roles/${roleId}`);
@@ -286,21 +288,11 @@ export default function PermissionManagement() {
           ? detail.permissions
           : [];
         const keysRaw = new Set();
-        const unionActions = { ...(actionsByModule || {}) };
         for (const p of perms) {
           const resource = normalizeResource(p.resource);
           const action = normalizeAction(p.action);
           keysRaw.add(`${resource}:${action}`);
-          // Ensure current role's actions are visible even if not in global catalog
-          if (!unionActions[resource]) unionActions[resource] = [];
-          if (!unionActions[resource].some((a) => (a.key || a) === action)) {
-            unionActions[resource] = [
-              ...unionActions[resource],
-              { key: action, label: ACTION_LABEL_MAP[action] || action },
-            ];
-          }
         }
-        if (actionsByModule) setActionsByModule(unionActions);
         setRolePerms(keysRaw);
         setOriginalPerms(new Set(Array.from(keysRaw)));
       } else {
@@ -367,8 +359,6 @@ export default function PermissionManagement() {
         ].forEach((k) => samplePerms.add(k));
       }
       setRolePerms(samplePerms);
-    } finally {
-      setLoadingPerms(false);
     }
   };
 
@@ -490,140 +480,101 @@ export default function PermissionManagement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRole?.id]);
 
-  const togglePermission = (permKey, checked) => {
-    setRolePerms((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(permKey);
-      else next.delete(permKey);
-      return next;
-    });
-  };
+  // Old per-module quick toggles removed in Tree layout for simplicity.
 
-  const toggleModuleAll = (moduleKey, checked) => {
-    setRolePerms((prev) => {
-      const next = new Set(prev);
-      const acts =
-        actionsByModule?.[moduleKey] ||
-        ACTIONS.filter((a) => !(a.optional && !["orders"].includes(moduleKey)));
-      for (const act of acts) {
-        const key = act.key || act; // support both object and string
-        const k = `${moduleKey}:${key}`;
-        if (checked) next.add(k);
-        else next.delete(k);
-      }
-      return next;
-    });
-  };
+  // NOTE: Previously used a Table with checkbox columns. Replaced by a Tree for clarity.
 
-  const setModulePreset = (moduleKey, preset) => {
-    // presets: all | view-only | none
-    setRolePerms((prev) => {
-      const next = new Set(prev);
-      // clear all of module first
-      const clearActs =
-        actionsByModule?.[moduleKey] ||
-        ACTIONS.filter((a) => !(a.optional && !["orders"].includes(moduleKey)));
-      for (const act of clearActs) {
-        const key = act.key || act;
-        next.delete(`${moduleKey}:${key}`);
-      }
-      if (preset === "all") {
-        for (const act of clearActs) {
-          const key = act.key || act;
-          next.add(`${moduleKey}:${key}`);
-        }
-      } else if (preset === "view-only") {
-        next.add(`${moduleKey}:view`);
-      }
-      return next;
+  // Filter + prepare flat permissions list for table
+  const filteredPermissions = useMemo(() => {
+    const q = permissionSearch.trim().toLowerCase();
+    let base = rawPermissions;
+    if (showSelectedOnly) {
+      base = base.filter((p) => rolePerms.has(p.key));
+    }
+    if (!q) return base;
+    return base.filter((p) => {
+      const desc = (
+        p.description ||
+        p.displayName ||
+        p.name ||
+        ""
+      ).toLowerCase();
+      return (
+        desc.includes(q) ||
+        p.resource.toLowerCase().includes(q) ||
+        p.action.toLowerCase().includes(q)
+      );
     });
-  };
+  }, [rawPermissions, permissionSearch, showSelectedOnly, rolePerms]);
 
-  const columns = [
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    setPermPage(1);
+  }, [permissionSearch, showSelectedOnly]);
+
+  const permissionColumns = [
     {
-      title: "Module",
-      dataIndex: "label",
-      key: "label",
-      width: 220,
+      title: "STT",
+      key: "stt",
+      width: 70,
+      align: "center",
+      render: (_, __, index) => index + 1 + (permPage - 1) * 10,
+    },
+    {
+      title: "Quyền (mô tả)",
+      dataIndex: "description",
+      key: "description",
       render: (_, record) => (
-        <Space>
-          {record.icon}
-          <Text strong>{record.label}</Text>
+        <Space direction="vertical" size={0}>
+          <Text strong>
+            {record.description ||
+              record.displayName ||
+              record.name ||
+              record.key}
+          </Text>
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            {record.name}
+          </Text>
         </Space>
       ),
     },
     {
-      title: "Quyền",
-      key: "actions",
-      render: (_, record) => {
-        const acts =
-          actionsByModule?.[record.key] ||
-          ACTIONS.filter(
-            (a) => !(a.optional && !["orders"].includes(record.key))
-          );
-        return (
-          <Space wrap size="middle">
-            {acts.map((a) => {
-              const actionKey = a.key || a;
-              const label = a.label || ACTION_LABEL_MAP[actionKey] || actionKey;
-              const permKey = `${record.key}:${actionKey}`;
-              const checked = rolePerms.has(permKey);
-              return (
-                <Checkbox
-                  key={permKey}
-                  checked={checked}
-                  onChange={(e) => togglePermission(permKey, e.target.checked)}
-                >
-                  {label}
-                </Checkbox>
-              );
-            })}
-          </Space>
-        );
-      },
+      title: "Module",
+      dataIndex: "resource",
+      key: "resource",
+      width: 140,
+      render: (v) => (
+        <Tag color="blue" style={{ margin: 0 }}>
+          {MODULE_LABEL_MAP[v] || v}
+        </Tag>
+      ),
     },
     {
-      title: "Tùy chọn nhanh",
-      key: "quick",
-      width: 260,
+      title: "Hành động",
+      dataIndex: "action",
+      key: "action",
+      width: 120,
+      render: (v) => <Tag color="geekblue">{ACTION_LABEL_MAP[v] || v}</Tag>,
+    },
+    {
+      title: "Chọn",
+      key: "checked",
+      width: 100,
       render: (_, record) => {
-        const acts =
-          actionsByModule?.[record.key] ||
-          ACTIONS.filter(
-            (a) => !(a.optional && !["orders"].includes(record.key))
-          );
-        const allChecked = acts.every((a) => {
-          const k = a.key || a;
-          return rolePerms.has(`${record.key}:${k}`);
-        });
-        const someChecked =
-          !allChecked &&
-          acts.some((a) => {
-            const k = a.key || a;
-            return rolePerms.has(`${record.key}:${k}`);
-          });
+        const checked = rolePerms.has(record.key);
         return (
-          <Space wrap>
-            <Checkbox
-              indeterminate={someChecked && !allChecked}
-              checked={allChecked}
-              onChange={(e) => toggleModuleAll(record.key, e.target.checked)}
-            >
-              Chọn tất cả
-            </Checkbox>
-            <Button
-              size="small"
-              onClick={() => setModulePreset(record.key, "view-only")}
-            >
-              Chỉ xem
-            </Button>
-            <Button
-              size="small"
-              onClick={() => setModulePreset(record.key, "none")}
-            >
-              Bỏ chọn
-            </Button>
-          </Space>
+          <Checkbox
+            checked={checked}
+            onChange={(e) => {
+              const isChecked = e.target.checked;
+              setRolePerms((prev) => {
+                const next = new Set(prev);
+                if (isChecked) next.add(record.key);
+                else next.delete(record.key);
+                return next;
+              });
+            }}
+          />
         );
       },
     },
@@ -753,49 +704,50 @@ export default function PermissionManagement() {
               </Space>
             }
           >
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <Input.Search
+                placeholder="Tìm mô tả, module hoặc hành động..."
+                allowClear
+                value={permissionSearch}
+                onChange={(e) => setPermissionSearch(e.target.value)}
+                style={{ maxWidth: 360 }}
+              />
+              <Space wrap>
+                <Switch
+                  checked={showSelectedOnly}
+                  onChange={(v) => setShowSelectedOnly(v)}
+                  size="small"
+                />
+                <span style={{ fontSize: 12, marginRight: 8 }}>
+                  {showSelectedOnly ? "Chỉ quyền đã chọn" : "Tất cả quyền"}
+                </span>
+                <Button onClick={() => setRolePerms(new Set())}>
+                  Bỏ chọn tất cả
+                </Button>
+                <Button
+                  onClick={() => {
+                    const s = new Set();
+                    rawPermissions.forEach((p) => s.add(p.key));
+                    setRolePerms(s);
+                  }}
+                >
+                  Chọn tất cả
+                </Button>
+              </Space>
+            </div>
             <Table
+              size="small"
               rowKey={(r) => r.key}
-              dataSource={permissionCatalog}
-              columns={columns}
-              pagination={false}
-              loading={loadingPerms}
+              dataSource={filteredPermissions}
+              columns={permissionColumns}
+              pagination={{
+                pageSize: 10,
+                current: permPage,
+                showSizeChanger: false,
+                onChange: (p) => setPermPage(p),
+                showTotal: (total) => `${total} quyền`,
+              }}
             />
-            <Divider />
-            <Space>
-              <Button onClick={() => setRolePerms(new Set())}>
-                Bỏ chọn tất cả
-              </Button>
-              <Button
-                onClick={() => {
-                  const s = new Set();
-                  const modules = permissionCatalog?.length
-                    ? permissionCatalog
-                    : PERMISSION_CATALOG;
-                  for (const mod of modules) {
-                    const acts =
-                      actionsByModule?.[mod.key] ||
-                      ACTIONS.filter(
-                        (a) => !(a.optional && !["orders"].includes(mod.key))
-                      );
-                    for (const a of acts) {
-                      const key = a.key || a;
-                      s.add(`${mod.key}:${key}`);
-                    }
-                  }
-                  setRolePerms(s);
-                }}
-              >
-                Chọn tất cả
-              </Button>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                loading={saving}
-                onClick={savePermissions}
-              >
-                Lưu thay đổi
-              </Button>
-            </Space>
           </Card>
         </Col>
       </Row>
