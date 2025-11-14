@@ -17,6 +17,7 @@ import {
   Form,
   Input,
   Select,
+  Popconfirm,
 } from "antd";
 import {
   EyeOutlined,
@@ -24,6 +25,7 @@ import {
   WarningOutlined,
   FileTextOutlined,
   SafetyOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
@@ -122,13 +124,28 @@ export default function ManageOrders() {
       PENDING: "orange",
       CONFIRMED: "blue",
       PROCESSING: "gold",
+      SHIPPING: "orange",
       SHIPPED: "purple",
       DELIVERED: "green",
       COMPLETED: "cyan",
       CANCELLED: "red",
     };
+    
+    const labelMap = {
+      PENDING: "Chờ duyệt",
+      CONFIRMED: "Đã xác nhận",
+      PROCESSING: "Đang xử lý",
+      SHIPPING: "Đang vận chuyển",
+      SHIPPED: "Đã gửi",
+      DELIVERED: "Đã giao",
+      COMPLETED: "Hoàn tất",
+      CANCELLED: "Đã hủy",
+    };
+    
     return (
-      <Tag color={colorMap[status] || "default"}>{status}</Tag>
+      <Tag color={colorMap[status] || "default"}>
+        {labelMap[status] || status}
+      </Tag>
     );
   };
 
@@ -280,6 +297,38 @@ export default function ManageOrders() {
       console.error("Error creating warranty request:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể tạo yêu cầu bảo hành!";
+      toast.error(errorMsg, {
+        position: 'top-right',
+      });
+    }
+  };
+
+  // 9. Xác nhận nhận hàng
+  const handleConfirmReceived = async (orderId) => {
+    try {
+      const res = await apiClient.patch(`/api/dealer/orders/${orderId}/confirm-received`);
+      
+      if (res.data && res.data.success) {
+        const orderData = res.data.data;
+        toast.success(
+          `Xác nhận nhận hàng thành công! Đơn hàng ${orderData.orderCode} đã được cập nhật trạng thái.`,
+          {
+            position: 'top-right',
+            duration: 5000,
+          }
+        );
+        
+        // Refresh danh sách đơn hàng
+        await fetchOrders();
+      } else {
+        toast.error(res.data.message || "Không thể xác nhận nhận hàng!", {
+          position: 'top-right',
+        });
+      }
+    } catch (err) {
+      console.error("Error confirming received order:", err);
+      const errorMsg =
+        err.response?.data?.message || "Có lỗi xảy ra khi xác nhận nhận hàng!";
       toast.error(errorMsg, {
         position: 'top-right',
       });
@@ -450,6 +499,38 @@ export default function ManageOrders() {
           >
             Tạo yêu cầu bảo hành
           </Button>
+          {record.status === "SHIPPING" && (
+            <Popconfirm
+              title="Xác nhận nhận hàng"
+              description={
+                <div>
+                  <div>Bạn xác nhận đã nhận được xe từ hãng?</div>
+                  <div className="mt-2 text-sm text-gray-600">
+                    • Xe đạt chuẩn chất lượng
+                    <br />• Xe sẽ được thêm vào kho dealer
+                    <br />• Trạng thái đơn hàng sẽ được cập nhật
+                  </div>
+                </div>
+              }
+              onConfirm={() => handleConfirmReceived(record.id)}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              okButtonProps={{
+                type: "primary",
+                style: { backgroundColor: "#52c41a", borderColor: "#52c41a" }
+              }}
+            >
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                size="small"
+                block
+                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+              >
+                Xác nhận nhận hàng
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },

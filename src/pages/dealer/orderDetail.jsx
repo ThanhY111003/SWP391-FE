@@ -12,8 +12,9 @@ import {
   Spin,
   Space,
   Typography,
+  Popconfirm,
 } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import DealerLayout from "../components/dealerlayout";
 import apiClient from "../../utils/axiosConfig";
 
@@ -53,7 +54,31 @@ const OrderDetail = () => {
     }
   }, [id]);
 
-  //  2. Format currency
+  // 2. Xác nhận nhận hàng
+  const handleConfirmReceived = async () => {
+    try {
+      const res = await apiClient.patch(`/api/dealer/orders/${id}/confirm-received`);
+      
+      if (res.data && res.data.success) {
+        const orderData = res.data.data;
+        message.success(
+          `Xác nhận nhận hàng thành công! Đơn hàng ${orderData.orderCode} đã được cập nhật trạng thái.`
+        );
+        
+        // Refresh order detail
+        setOrder(orderData);
+      } else {
+        message.error(res.data.message || "Không thể xác nhận nhận hàng!");
+      }
+    } catch (err) {
+      console.error("Error confirming received order:", err);
+      const errorMsg =
+        err.response?.data?.message || "Có lỗi xảy ra khi xác nhận nhận hàng!";
+      message.error(errorMsg);
+    }
+  };
+
+  //  3. Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -82,12 +107,27 @@ const OrderDetail = () => {
       PENDING: "orange",
       CONFIRMED: "blue",
       PROCESSING: "gold",
+      SHIPPING: "orange",
       SHIPPED: "purple",
       DELIVERED: "green",
       COMPLETED: "cyan",
       CANCELLED: "red",
     };
-    return <Tag color={colorMap[status] || "default"}>{status}</Tag>;
+    
+    const labelMap = {
+      PENDING: "Chờ duyệt",
+      CONFIRMED: "Đã xác nhận",
+      PROCESSING: "Đang xử lý",
+      SHIPPING: "Đang vận chuyển",
+      SHIPPED: "Đã gửi",
+      DELIVERED: "Đã giao",
+      COMPLETED: "Hoàn tất",
+      CANCELLED: "Đã hủy",
+    };
+    
+    return <Tag color={colorMap[status] || "default"}>
+      {labelMap[status] || status}
+    </Tag>;
   };
 
   if (loading) {
@@ -132,7 +172,43 @@ const OrderDetail = () => {
         </div>
 
         {/* Thông tin đơn hàng */}
-        <Card title={`Chi tiết đơn hàng - ${order.orderCode}`} style={{ marginBottom: "16px" }}>
+        <Card 
+          title={`Chi tiết đơn hàng - ${order.orderCode}`} 
+          style={{ marginBottom: "16px" }}
+          extra={
+            order.status === "SHIPPING" && (
+              <Popconfirm
+                title="Xác nhận nhận hàng"
+                description={
+                  <div>
+                    <div>Bạn xác nhận đã nhận được xe từ hãng?</div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      • Xe đạt chuẩn chất lượng
+                      <br />• Xe sẽ được thêm vào kho dealer
+                      <br />• Trạng thái đơn hàng sẽ được cập nhật
+                    </div>
+                  </div>
+                }
+                onConfirm={handleConfirmReceived}
+                okText="Xác nhận"
+                cancelText="Hủy"
+                okButtonProps={{
+                  type: "primary",
+                  style: { backgroundColor: "#52c41a", borderColor: "#52c41a" }
+                }}
+              >
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  size="default"
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                  Xác nhận nhận hàng
+                </Button>
+              </Popconfirm>
+            )
+          }
+        >
           <Descriptions bordered column={2}>
             <Descriptions.Item label="Mã đơn hàng">
               <Text strong>{order.orderCode}</Text>

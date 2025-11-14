@@ -108,7 +108,7 @@ export default function OrderManagement() {
         0
       ),
       pendingOrders: ordersData.filter((order) =>
-        ["PENDING", "CONFIRMED"].includes(order.status)
+        ["PENDING", "CONFIRMED", "SHIPPING"].includes(order.status)
       ).length,
       approvedOrders: ordersData.filter((order) => order.status === "APPROVED")
         .length,
@@ -136,7 +136,9 @@ export default function OrderManagement() {
       PENDING: "orange",
       CONFIRMED: "blue",
       APPROVED: "green",
+      INSTALLMENT_ACTIVE: "purple",
       PROCESSING: "cyan",
+      SHIPPING: "orange",
       SHIPPED: "purple",
       DELIVERED: "green",
       COMPLETED: "green",
@@ -153,7 +155,9 @@ export default function OrderManagement() {
       PENDING: "Chờ duyệt",
       CONFIRMED: "Đã xác nhận",
       APPROVED: "Đã phê duyệt",
+      INSTALLMENT_ACTIVE: "Đang trả góp",
       PROCESSING: "Đang xử lý",
+      SHIPPING: "Đang vận chuyển",
       SHIPPED: "Đã gửi",
       DELIVERED: "Đã giao",
       COMPLETED: "Hoàn tất",
@@ -286,6 +290,82 @@ export default function OrderManagement() {
     }
   };
 
+  // Handle order shipping
+  const handleShipOrder = async (orderId) => {
+    setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
+
+    try {
+      const response = await api.patch(`/admin/orders/${orderId}/shipping`);
+
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
+        message.success({
+          content: (
+            <div>
+              <div>
+                <strong>Đã bắt đầu vận chuyển đơn hàng!</strong>
+              </div>
+              <div>Order Code: {orderData.orderCode}</div>
+              <div>Status: {getStatusLabel(orderData.status)}</div>
+              <div>Đơn hàng đã được chuyển sang trạng thái vận chuyển</div>
+            </div>
+          ),
+          duration: 5,
+        });
+
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        message.error(response.data?.message || "Bắt đầu vận chuyển thất bại!");
+      }
+    } catch (error) {
+      console.error("Error shipping order:", error);
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi bắt đầu vận chuyển!";
+      message.error(errorMessage);
+    } finally {
+      setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle activate installment
+  const handleActivateInstallment = async (orderId) => {
+    setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
+
+    try {
+      const response = await api.patch(`/admin/orders/${orderId}/activate-installment`);
+
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
+        message.success({
+          content: (
+            <div>
+              <div>
+                <strong>Đã kích hoạt trả góp thành công!</strong>
+              </div>
+              <div>Order Code: {orderData.orderCode}</div>
+              <div>Status: {getStatusLabel(orderData.status)}</div>
+              <div>Đơn hàng đã chuyển sang trạng thái trả góp</div>
+            </div>
+          ),
+          duration: 5,
+        });
+
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        message.error(response.data?.message || "Kích hoạt trả góp thất bại!");
+      }
+    } catch (error) {
+      console.error("Error activating installment:", error);
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi kích hoạt trả góp!";
+      message.error(errorMessage);
+    } finally {
+      setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
   // Check if order can be approved/rejected
   const canApproveOrder = (status) => {
     return status === "PENDING";
@@ -303,6 +383,16 @@ export default function OrderManagement() {
     ].includes(status);
   };
 
+  // Check if order can be shipped
+  const canShipOrder = (status) => {
+    return status === "CONFIRMED";
+  };
+
+  // Check if order can activate installment
+  const canActivateInstallment = (status, isInstallment) => {
+    return status === "DELIVERED" && isInstallment;
+  };
+
   // Handle installment payment confirmation
   const handleConfirmInstallmentPayment = async (
     orderId,
@@ -312,12 +402,30 @@ export default function OrderManagement() {
     setConfirmPaymentLoading((prev) => ({ ...prev, [loadingKey]: true }));
 
     try {
-      const response = await api.post(
-        `/admin/orders/${orderId}/installments/${installmentNumber}/confirm`
-      );
+      console.log(`Confirming payment for order ${orderId}, installment ${installmentNumber}`);
+      
+      // Try direct axios call to debug
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:8080/api/admin/orders/${orderId}/installments/${installmentNumber}/confirm`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      console.log("Direct fetch response:", { status: response.status, data });
 
-      if (response.data && response.data.success) {
-        const orderData = response.data.data;
+      // Handle non-200 responses
+      if (!response.ok) {
+        throw new Error(data?.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      if (data && data.success) {
+        const orderData = data.data;
+        console.log("Order data from response:", orderData);
+        
         message.success({
           content: (
             <div>
@@ -340,16 +448,21 @@ export default function OrderManagement() {
           setSelectedOrder(orderData);
         }
       } else {
+        console.error("API returned success=false:", data);
         message.error(
-          response.data?.message || "Xác nhận thanh toán thất bại!"
+          data?.message || "Xác nhận thanh toán thất bại!"
         );
       }
     } catch (error) {
       console.error("Error confirming installment payment:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        "Có lỗi xảy ra khi xác nhận thanh toán!";
-      message.error(errorMessage);
+      
+      // Handle fetch API errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        message.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+      } else {
+        const errorMessage = error.message || "Có lỗi xảy ra khi xác nhận thanh toán!";
+        message.error(errorMessage);
+      }
     } finally {
       setConfirmPaymentLoading((prev) => ({ ...prev, [loadingKey]: false }));
     }
@@ -398,7 +511,7 @@ export default function OrderManagement() {
       title: "Mã đơn hàng",
       dataIndex: "orderCode",
       key: "orderCode",
-      width: 150,
+      width: 200,
       render: (text, record) => (
         <Button
           type="link"
@@ -413,11 +526,12 @@ export default function OrderManagement() {
       title: "Đại lý",
       dataIndex: "dealer",
       key: "dealer",
-      width: 200,
+      width: 250,
+      ellipsis: true,
       render: (dealer) => (
         <div>
-          <div className="font-medium">{dealer?.name}</div>
-          <Text type="secondary" className="text-xs">
+          <div className="font-medium truncate" title={dealer?.name}>{dealer?.name}</div>
+          <Text type="secondary" className="text-xs truncate">
             Mã: {dealer?.code} | Cấp: {dealer?.levelName}
           </Text>
         </div>
@@ -436,7 +550,7 @@ export default function OrderManagement() {
       title: "Tổng tiền",
       dataIndex: "totalAmount",
       key: "totalAmount",
-      width: 150,
+      width: 180,
       render: (amount) => <Text strong>{formatCurrency(amount)}</Text>,
       sorter: (a, b) => a.totalAmount - b.totalAmount,
     },
@@ -444,17 +558,18 @@ export default function OrderManagement() {
       title: "Tiến độ thanh toán",
       dataIndex: "paymentProgress",
       key: "paymentProgress",
-      width: 150,
+      width: 200,
       render: (progress, record) => (
-        <div>
+        <div className="min-w-0">
           <Progress
             percent={progress}
             size="small"
             strokeColor={progress === 100 ? "#52c41a" : "#1890ff"}
+            className="mb-1"
           />
-          <Text className="text-xs">
-            Đã thanh toán: {formatCurrency(record.paidAmount)}
-          </Text>
+          <div className="text-xs text-gray-600 truncate" title={`Đã thanh toán: ${formatCurrency(record.paidAmount)}`}>
+            Đã TT: {formatCurrency(record.paidAmount)}
+          </div>
         </div>
       ),
     },
@@ -470,11 +585,12 @@ export default function OrderManagement() {
       title: "Người tạo",
       dataIndex: "createdBy",
       key: "createdBy",
-      width: 150,
+      width: 180,
+      ellipsis: true,
       render: (createdBy) => (
         <div>
-          <div className="font-medium">{createdBy?.fullName}</div>
-          <Text type="secondary" className="text-xs">
+          <div className="font-medium truncate" title={createdBy?.fullName}>{createdBy?.fullName}</div>
+          <Text type="secondary" className="text-xs truncate">
             @{createdBy?.username}
           </Text>
         </div>
@@ -483,7 +599,7 @@ export default function OrderManagement() {
     {
       title: "Thao tác",
       key: "actions",
-      width: 280,
+      width: 320,
       fixed: "right",
       render: (_, record) => (
         <Space direction="vertical" size="small" className="w-full">
@@ -560,6 +676,42 @@ export default function OrderManagement() {
             </Space>
           )}
 
+          {canShipOrder(record.status) && (
+            <Space>
+              <Popconfirm
+                title="Bắt đầu vận chuyển"
+                description={
+                  <div>
+                    <div>Bạn có chắc chắn muốn bắt đầu vận chuyển đơn hàng này?</div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      • Chuyển trạng thái từ "Đã xác nhận" sang "Đang vận chuyển"
+                      <br />• Dealer sẽ được thông báo về việc giao hàng
+                    </div>
+                  </div>
+                }
+                onConfirm={() => handleShipOrder(record.id)}
+                okText="Bắt đầu vận chuyển"
+                cancelText="Hủy"
+                okButtonProps={{
+                  loading: approveLoading[record.id],
+                  type: "primary",
+                }}
+              >
+                <Button
+                  type="primary"
+                  icon={<CarOutlined />}
+                  size="small"
+                  loading={approveLoading[record.id]}
+                  disabled={Object.values(approveLoading).some(
+                    (loading) => loading
+                  )}
+                >
+                  Bắt đầu vận chuyển
+                </Button>
+              </Popconfirm>
+            </Space>
+          )}
+
           {canCancelOrder(record.status) && (
             <Space>
               <Popconfirm
@@ -596,17 +748,59 @@ export default function OrderManagement() {
             </Space>
           )}
 
+          {canActivateInstallment(record.status, record.isInstallment) && (
+            <Space>
+              <Popconfirm
+                title="Kích hoạt trả góp"
+                description={
+                  <div>
+                    <div>Bạn có chắc chắn muốn kích hoạt trả góp cho đơn hàng này?</div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      • Chuyển từ "Đã giao" sang "Đang trả góp"
+                      <br />• Cho phép xác nhận thanh toán các kỳ trả góp
+                    </div>
+                  </div>
+                }
+                onConfirm={() => handleActivateInstallment(record.id)}
+                okText="Kích hoạt"
+                cancelText="Hủy"
+                okButtonProps={{
+                  loading: approveLoading[record.id],
+                  type: "primary",
+                }}
+              >
+                <Button
+                  type="primary"
+                  icon={<DollarCircleOutlined />}
+                  size="small"
+                  loading={approveLoading[record.id]}
+                  disabled={Object.values(approveLoading).some(
+                    (loading) => loading
+                  )}
+                >
+                  Kích hoạt trả góp
+                </Button>
+              </Popconfirm>
+            </Space>
+          )}
+
           {!canApproveOrder(record.status) &&
-            !canCancelOrder(record.status) && (
+            !canCancelOrder(record.status) && 
+            !canShipOrder(record.status) &&
+            !canActivateInstallment(record.status, record.isInstallment) && (
               <Tag color="default" className="text-xs">
                 {record.status === "APPROVED"
                   ? "Đã phê duyệt"
+                  : record.status === "INSTALLMENT_ACTIVE"
+                  ? "Đang trả góp"
+                  : record.status === "SHIPPING"
+                  ? "Đang vận chuyển"
+                  : record.status === "DELIVERED"
+                  ? "Đã giao xe"
                   : record.status === "REJECTED"
                   ? "Đã từ chối"
                   : record.status === "CANCELLED"
                   ? "Đã hủy"
-                  : record.status === "DELIVERED"
-                  ? "Đã giao xe"
                   : record.status === "COMPLETED"
                   ? "Đã hoàn tất"
                   : "Không thể thao tác"}
@@ -759,7 +953,9 @@ export default function OrderManagement() {
               <Option value="PENDING">Chờ duyệt</Option>
               <Option value="CONFIRMED">Đã xác nhận</Option>
               <Option value="APPROVED">Đã phê duyệt</Option>
+              <Option value="INSTALLMENT_ACTIVE">Đang trả góp</Option>
               <Option value="PROCESSING">Đang xử lý</Option>
+              <Option value="SHIPPING">Đang vận chuyển</Option>
               <Option value="SHIPPED">Đã gửi</Option>
               <Option value="DELIVERED">Đã giao</Option>
               <Option value="COMPLETED">Hoàn tất</Option>
@@ -781,21 +977,23 @@ export default function OrderManagement() {
 
       {/* Orders Table */}
       <Card>
-        <Table
-          columns={columns}
-          dataSource={filteredOrders}
-          rowKey="id"
-          loading={loading}
-          scroll={{ x: 1600 }}
-          size="middle"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} của ${total} đơn hàng`,
-          }}
-        />
+        <div className="overflow-x-auto">
+          <Table
+            columns={columns}
+            dataSource={filteredOrders}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: 1800 }}
+            size="middle"
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} của ${total} đơn hàng`,
+            }}
+          />
+        </div>
       </Card>
 
       {/* Order Detail Modal */}
@@ -870,6 +1068,72 @@ export default function OrderManagement() {
                     </Button>
                   </Popconfirm>
                 </Space>
+              )}
+
+              {canShipOrder(selectedOrder.status) && (
+                <Popconfirm
+                  title="Bắt đầu vận chuyển"
+                  description={
+                    <div>
+                      <div>Bạn có chắc chắn muốn bắt đầu vận chuyển đơn hàng này?</div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        • Chuyển trạng thái từ "Đã xác nhận" sang "Đang vận chuyển"
+                        <br />• Dealer sẽ được thông báo về việc giao hàng
+                      </div>
+                    </div>
+                  }
+                  onConfirm={() => handleShipOrder(selectedOrder.id)}
+                  okText="Bắt đầu vận chuyển"
+                  cancelText="Hủy"
+                  okButtonProps={{
+                    loading: approveLoading[selectedOrder.id],
+                    type: "primary",
+                  }}
+                >
+                  <Button
+                    type="primary"
+                    icon={<CarOutlined />}
+                    loading={approveLoading[selectedOrder.id]}
+                    disabled={Object.values(approveLoading).some(
+                      (loading) => loading
+                    )}
+                  >
+                    Bắt đầu vận chuyển
+                  </Button>
+                </Popconfirm>
+              )}
+
+              {canActivateInstallment(selectedOrder.status, selectedOrder.isInstallment) && (
+                <Popconfirm
+                  title="Kích hoạt trả góp"
+                  description={
+                    <div>
+                      <div>Bạn có chắc chắn muốn kích hoạt trả góp cho đơn hàng này?</div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        • Chuyển từ "Đã giao" sang "Đang trả góp"
+                        <br />• Cho phép xác nhận thanh toán các kỳ trả góp
+                      </div>
+                    </div>
+                  }
+                  onConfirm={() => handleActivateInstallment(selectedOrder.id)}
+                  okText="Kích hoạt"
+                  cancelText="Hủy"
+                  okButtonProps={{
+                    loading: approveLoading[selectedOrder.id],
+                    type: "primary",
+                  }}
+                >
+                  <Button
+                    type="primary"
+                    icon={<DollarCircleOutlined />}
+                    loading={approveLoading[selectedOrder.id]}
+                    disabled={Object.values(approveLoading).some(
+                      (loading) => loading
+                    )}
+                  >
+                    Kích hoạt trả góp
+                  </Button>
+                </Popconfirm>
               )}
 
               {canCancelOrder(selectedOrder.status) && (
@@ -1130,7 +1394,9 @@ export default function OrderManagement() {
                         align: "center",
                         render: (_, record) => {
                           const canConfirmPayment =
-                            selectedOrder.status === "CONFIRMED" &&
+                            (selectedOrder.status === "CONFIRMED" || 
+                             selectedOrder.status === "INSTALLMENT_ACTIVE" || 
+                             selectedOrder.status === "DELIVERED") &&
                             (record.status === "PENDING" ||
                               record.status === "OVERDUE");
 
