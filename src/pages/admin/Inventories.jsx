@@ -107,18 +107,27 @@ export default function Inventories() {
     return (inventories || []).filter((it) => {
       if (statusFilter === "active" && !it.isActive) return false;
       if (statusFilter === "inactive" && it.isActive) return false;
-      if (
-        dealerFilter !== "all" &&
-        String(it.dealerId) !== String(dealerFilter)
-      )
-        return false;
+      // Lọc theo đại lý: ưu tiên dealerId nếu backend trả về;
+      // nếu không có dealerId thì so sánh theo dealerName với dealer đã chọn
+      if (dealerFilter !== "all") {
+        if (it.dealerId != null) {
+          if (String(it.dealerId) !== String(dealerFilter)) return false;
+        } else {
+          const selected = dealers.find(
+            (d) => String(d.id) === String(dealerFilter)
+          );
+          const selectedName = selected?.name || selected?.dealerName;
+          if (selectedName && String(it.dealerName) !== String(selectedName))
+            return false;
+        }
+      }
       if (!q) return true;
       const hay = [it.dealerName, it.modelName, it.colorName]
         .map((x) => String(x || "").toLowerCase())
         .join(" ");
       return hay.includes(q);
     });
-  }, [inventories, search, statusFilter, dealerFilter]);
+  }, [inventories, search, statusFilter, dealerFilter, dealers]);
 
   const dealerOptions = useMemo(() => {
     const options = (dealers || [])
