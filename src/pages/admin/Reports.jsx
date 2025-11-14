@@ -24,6 +24,9 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import api from "../../config/axios";
 
@@ -65,9 +68,17 @@ export default function Reports() {
 
   const [topModels, setTopModels] = useState([]);
   const [topDealers, setTopDealers] = useState([]);
-  const [salesTrend, setSalesTrend] = useState([]); // array of numbers
-  const [inventory, setInventory] = useState(null); // summary object
+  const [salesTrend, setSalesTrend] = useState([]); // array of {period, soldCount, totalRevenue}
+  const [inventory, setInventory] = useState([]); // list of {modelName,colorName,total,available,reserved}
   const [dealerPerf, setDealerPerf] = useState([]);
+  const pieColors = [
+    "#1677ff",
+    "#52c41a",
+    "#faad14",
+    "#ff4d4f",
+    "#722ed1",
+    "#13c2c2",
+  ];
 
   const normalizeList = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -75,8 +86,6 @@ export default function Reports() {
     if (Array.isArray(payload?.content)) return payload.content;
     return [];
   };
-
-  const normalizeObj = (payload) => payload?.data ?? payload ?? null;
 
   const fetchAll = async () => {
     setLoading(true);
@@ -96,21 +105,18 @@ export default function Reports() {
       ]);
       setTopModels(normalizeList(m?.data));
       setTopDealers(normalizeList(d?.data));
-      // sales-trend có thể trả về: [number] hoặc [{date,label,value}]
+      // sales-trend trả về dạng [{ period, soldCount, totalRevenue }]
       const salesPayload = normalizeList(s?.data);
       setSalesTrend(
         Array.isArray(salesPayload)
-          ? salesPayload.map((x, i) =>
-              typeof x === "number"
-                ? { label: `${i + 1}`, value: x }
-                : {
-                    label: x?.label || x?.date || `${i + 1}`,
-                    value: Number(x?.value ?? 0),
-                  }
-            )
+          ? salesPayload.map((x) => ({
+              period: x?.period || "ALL_TIME",
+              soldCount: Number(x?.soldCount ?? 0),
+              totalRevenue: Number(x?.totalRevenue ?? 0),
+            }))
           : []
       );
-      setInventory(normalizeObj(i?.data));
+      setInventory(normalizeList(i?.data));
       setDealerPerf(normalizeList(p?.data));
     } catch (err) {
       console.error("Fetch reports failed", err);
@@ -135,16 +141,28 @@ export default function Reports() {
       align: "center",
       render: (_v, _r, i) => i + 1,
     },
-    { title: "Model", dataIndex: "name", key: "name" },
+    { title: "Model", dataIndex: "modelName", key: "modelName" },
+    { title: "Màu", dataIndex: "colorName", key: "colorName" },
     {
       title: "Đã bán",
-      dataIndex: "sold",
-      key: "sold",
-      width: 100,
+      dataIndex: "soldCount",
+      key: "soldCount",
+      width: 110,
       align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
+    },
+    {
+      title: "Doanh thu (VND)",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      width: 180,
+      align: "right",
+      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
     },
   ];
 
+  // Top đại lý mua nhiều nhất từ /reports/admin/top-dealers
+  // API: { dealerId, dealerName, totalOrders, totalVehicles, totalAmount }
   const dealerColumns = [
     {
       title: "#",
@@ -153,80 +171,113 @@ export default function Reports() {
       align: "center",
       render: (_v, _r, i) => i + 1,
     },
-    { title: "Đại lý", dataIndex: "name", key: "name" },
+    { title: "Đại lý", dataIndex: "dealerName", key: "dealerName" },
     {
-      title: "Đơn hàng",
-      dataIndex: "orders",
-      key: "orders",
-      width: 100,
+      title: "Số đơn hàng",
+      dataIndex: "totalOrders",
+      key: "totalOrders",
+      width: 110,
       align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
     },
     {
-      title: "Doanh số (VND)",
+      title: "Số xe",
+      dataIndex: "totalVehicles",
+      key: "totalVehicles",
+      width: 110,
+      align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
+    },
+    {
+      title: "Tổng tiền (VND)",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      width: 180,
+      align: "right",
+      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
+    },
+  ];
+
+  // Hiệu suất đại lý từ /reports/admin/dealer-performance
+  // API: { dealerName, totalOrders, completedOrders, cancelledOrders, revenue, successRate }
+  const perfColumns = [
+    { title: "Đại lý", dataIndex: "dealerName", key: "dealerName" },
+    {
+      title: "Tổng đơn",
+      dataIndex: "totalOrders",
+      key: "totalOrders",
+      width: 110,
+      align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
+    },
+    {
+      title: "Hoàn thành",
+      dataIndex: "completedOrders",
+      key: "completedOrders",
+      width: 110,
+      align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
+    },
+    {
+      title: "Hủy",
+      dataIndex: "cancelledOrders",
+      key: "cancelledOrders",
+      width: 110,
+      align: "right",
+      render: (v) => Number(v ?? 0).toLocaleString(),
+    },
+    {
+      title: "Doanh thu (VND)",
       dataIndex: "revenue",
       key: "revenue",
       width: 160,
       align: "right",
-      render: (v) => (v ? Number(v).toLocaleString() : 0),
+      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
+    },
+    {
+      title: "Tỷ lệ thành công",
+      dataIndex: "successRate",
+      key: "successRate",
+      width: 150,
+      align: "right",
+      // Backend đã trả phần trăm (ví dụ 67.666667) nên chỉ cần làm tròn 2 số
+      render: (v) => `${Number(v ?? 0).toFixed(2)}%`,
     },
   ];
 
-  const perfColumns = [
-    { title: "Đại lý", dataIndex: "dealerName", key: "dealerName" },
-    {
-      title: "Tỷ lệ hoàn thành",
-      dataIndex: "fulfillmentRate",
-      key: "fulfillmentRate",
-      width: 160,
-      align: "right",
-      render: (v) => `${Math.round((Number(v) || 0) * 100)}%`,
-    },
-    {
-      title: "Thời gian xử lý (ngày)",
-      dataIndex: "avgProcessingDays",
-      key: "avgProcessingDays",
-      width: 200,
-      align: "right",
-    },
-    {
-      title: "Khiếu nại",
-      dataIndex: "complaints",
-      key: "complaints",
-      width: 120,
-      align: "right",
-    },
-  ];
-
-  const SummaryCards = () => (
-    <Row gutter={[12, 12]}>
-      <Col xs={24} md={6}>
-        <Card size="small">
-          <Statistic
-            title="Tồn kho tổng"
-            value={inventory?.totalInStock ?? 0}
-          />
-        </Card>
-      </Col>
-      <Col xs={24} md={6}>
-        <Card size="small">
-          <Statistic title="Tồn kho thấp" value={inventory?.lowStock ?? 0} />
-        </Card>
-      </Col>
-      <Col xs={24} md={6}>
-        <Card size="small">
-          <Statistic title="Đang giữ chỗ" value={inventory?.reserved ?? 0} />
-        </Card>
-      </Col>
-      <Col xs={24} md={6}>
-        <Card size="small">
-          <Statistic
-            title="Đang vận chuyển"
-            value={inventory?.inTransit ?? 0}
-          />
-        </Card>
-      </Col>
-    </Row>
-  );
+  const SummaryCards = () => {
+    const totals = (inventory || []).reduce(
+      (acc, it) => {
+        acc.total += Number(it.total ?? 0);
+        acc.available += Number(it.available ?? 0);
+        acc.reserved += Number(it.reserved ?? 0);
+        return acc;
+      },
+      { total: 0, available: 0, reserved: 0 }
+    );
+    return (
+      <Row gutter={[12, 12]}>
+        <Col xs={24} md={8}>
+          <Card size="small">
+            <Statistic title="Tổng tồn kho" value={totals.total} />
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          <Card size="small">
+            <Statistic
+              title="Sẵn sàng bán (available)"
+              value={totals.available}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          <Card size="small">
+            <Statistic title="Đang giữ chỗ" value={totals.reserved} />
+          </Card>
+        </Col>
+      </Row>
+    );
+  };
 
   return (
     <div>
@@ -262,33 +313,74 @@ export default function Reports() {
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
           <SummaryCards />
 
-          <Card size="small" title="Doanh thu theo thời gian">
-            {salesTrend?.length ? (
-              <div style={{ width: "100%", height: 260 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={salesTrend}
-                    margin={{ top: 10, right: 16, bottom: 8, left: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip formatter={(v) => Number(v).toLocaleString()} />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#1677ff"
-                      strokeWidth={2}
-                      dot={{ r: 2 }}
-                      activeDot={{ r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <Empty description="Không có dữ liệu" />
-            )}
-          </Card>
+          <Row gutter={[12, 12]}>
+            <Col xs={24} md={12} lg={12}>
+              <Card
+                style={{
+                  borderColor: "#faad14",
+                  background:
+                    "linear-gradient(135deg, rgba(250,173,20,0.12), rgba(250,173,20,0.02))",
+                }}
+                headStyle={{
+                  fontWeight: 700,
+                  color: "#d48806",
+                  fontSize: 16,
+                }}
+                bodyStyle={{ padding: "16px 20px" }}
+                title="TỔNG DOANH THU HỆ THỐNG"
+              >
+                {salesTrend?.length ? (
+                  <Statistic
+                    value={salesTrend[0].totalRevenue}
+                    suffix="VND"
+                    valueRender={() => (
+                      <span
+                        style={{
+                          fontSize: 28,
+                          fontWeight: 700,
+                          color: "#cf1322",
+                        }}
+                      >
+                        {Number(salesTrend[0].totalRevenue).toLocaleString()}{" "}
+                        VND
+                      </span>
+                    )}
+                  />
+                ) : (
+                  <Empty description="Không có dữ liệu" />
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} md={6} lg={6}>
+              <Card size="small" title="Tổng số xe đã bán">
+                {salesTrend?.length ? (
+                  <Statistic
+                    value={salesTrend[0].soldCount}
+                    valueRender={() => (
+                      <span style={{ fontSize: 20, fontWeight: 600 }}>
+                        {Number(salesTrend[0].soldCount).toLocaleString()}
+                      </span>
+                    )}
+                  />
+                ) : (
+                  <Empty description="Không có dữ liệu" />
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} md={6} lg={6}>
+              <Card size="small" title="Kỳ thống kê">
+                {salesTrend?.length ? (
+                  <Descriptions column={1} size="small" bordered>
+                    <Descriptions.Item label="Kỳ">
+                      {salesTrend[0].period || "ALL_TIME"}
+                    </Descriptions.Item>
+                  </Descriptions>
+                ) : (
+                  <Empty description="Không có dữ liệu" />
+                )}
+              </Card>
+            </Col>
+          </Row>
 
           <Row gutter={[12, 12]}>
             <Col xs={24} md={12}>
@@ -299,8 +391,7 @@ export default function Reports() {
                     String(
                       r?.id ??
                         r?.modelId ??
-                        r?.name ??
-                        `m-${r?.name ?? ""}-${r?.sold ?? ""}`
+                        `${r?.modelName ?? "model"}-${r?.colorName ?? ""}`
                     )
                   }
                   columns={modelColumns}
@@ -317,8 +408,7 @@ export default function Reports() {
                     String(
                       r?.id ??
                         r?.dealerId ??
-                        r?.name ??
-                        `d-${r?.name ?? ""}-${r?.orders ?? ""}`
+                        `${r?.dealerName ?? "dealer"}-$${r?.totalOrders ?? ""}`
                     )
                   }
                   columns={dealerColumns}
@@ -330,19 +420,57 @@ export default function Reports() {
           </Row>
 
           <Card size="small" title="Hiệu suất đại lý">
-            <Table
-              size="small"
-              rowKey={(r) =>
-                String(
-                  r?.id ??
-                    r?.dealerId ??
-                    `${r?.dealerName ?? "p"}-${r?.avgProcessingDays ?? ""}`
-                )
-              }
-              columns={perfColumns}
-              dataSource={dealerPerf}
-              pagination={{ pageSize: 10 }}
-            />
+            <Row gutter={[12, 12]}>
+              <Col xs={24} md={14}>
+                {dealerPerf?.length ? (
+                  <div style={{ width: "100%", height: 320 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Tooltip
+                          formatter={(value) => [
+                            Number(value).toLocaleString(),
+                            "Doanh thu",
+                          ]}
+                        />
+                        <Pie
+                          data={dealerPerf}
+                          dataKey="revenue"
+                          nameKey="dealerName"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={110}
+                          label={(entry) => `${entry.dealerName}`}
+                        >
+                          {dealerPerf.map((_, index) => (
+                            <Cell
+                              key={index}
+                              fill={pieColors[index % pieColors.length]}
+                            />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <Empty description="Không có dữ liệu" />
+                )}
+              </Col>
+              <Col xs={24} md={10}>
+                <Table
+                  size="small"
+                  rowKey={(r) =>
+                    String(
+                      r?.id ??
+                        r?.dealerId ??
+                        `${r?.dealerName ?? "p"}-${r?.totalOrders ?? ""}`
+                    )
+                  }
+                  columns={perfColumns}
+                  dataSource={dealerPerf}
+                  pagination={{ pageSize: 8, size: "small" }}
+                />
+              </Col>
+            </Row>
           </Card>
         </Space>
       )}
