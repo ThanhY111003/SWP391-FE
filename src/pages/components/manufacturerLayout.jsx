@@ -34,21 +34,59 @@ export default function ManufacturerLayout({ children }) {
   const location = useLocation();
 
   const menuItems = [
-    // Thống kê đặt ở đầu danh sách
+    // Nhóm 1: Thống kê, Đơn hàng, Bảng giá
     {
       key: "reports",
       icon: <LineChartOutlined />,
       label: "Thống kê",
       path: "/manufacturer/reports",
     },
-    // Nhóm tính năng quản trị hãng (ưu tiên)
+    {
+      key: "order-management",
+      icon: <FileTextOutlined />,
+      label: "Đơn hàng",
+      path: "/manufacturer/orders",
+    },
+    {
+      key: "price-table",
+      icon: <DollarCircleOutlined />,
+      label: "Bảng giá",
+      path: "/manufacturer/priceTable",
+    },
+
+    // Nhóm 2: Danh sách xe, Mẫu xe, Màu sắc, Hàng tồn kho
+    {
+      key: "vehicle-instances",
+      icon: <CarOutlined />,
+      label: "Danh sách xe",
+      path: "/manufacturer/vehicle-instances",
+    },
+    {
+      key: "vehicle-models",
+      icon: <CarOutlined />,
+      label: "Mẫu xe",
+      path: "/manufacturer/vehicle-models",
+    },
+    {
+      key: "color-management",
+      icon: <BgColorsOutlined />,
+      label: "Màu sắc",
+      path: "/manufacturer/colors",
+    },
+    {
+      key: "inventories",
+      icon: <DatabaseOutlined />,
+      label: "Hàng tồn kho",
+      path: "/manufacturer/inventories",
+    },
+
+    // Nhóm 3: Đại lý, Cấp đại lý, Người dùng, Phân quyền
     {
       key: "dealer-management",
       icon: <TeamOutlined />,
       label: "Đại lý",
       path: "/manufacturer/dealerManagement",
     },
-    // Đặt "Cấp đại lý" ngay cạnh "Đại lý" như yêu cầu
     {
       key: "dealer-levels",
       icon: <CrownOutlined />,
@@ -67,44 +105,8 @@ export default function ManufacturerLayout({ children }) {
       label: "Phân quyền",
       path: "/manufacturer/permissions",
     },
-    {
-      key: "order-management",
-      icon: <FileTextOutlined />,
-      label: "Đơn hàng",
-      path: "/manufacturer/orders",
-    },
-    {
-      key: "vehicle-models",
-      icon: <CarOutlined />,
-      label: "Mẫu xe",
-      path: "/manufacturer/vehicle-models",
-    },
-    {
-      key: "vehicle-instances",
-      icon: <CarOutlined />,
-      label: "Danh sách xe",
-      path: "/manufacturer/vehicle-instances",
-    },
-    {
-      key: "color-management",
-      icon: <BgColorsOutlined />,
-      label: "Màu sắc",
-      path: "/manufacturer/colors",
-    },
-    {
-      key: "price-table",
-      icon: <DollarCircleOutlined />,
-      label: "Bảng giá",
-      path: "/manufacturer/priceTable",
-    },
-    {
-      key: "inventories",
-      icon: <DatabaseOutlined />,
-      label: "Hàng tồn kho",
-      path: "/manufacturer/inventories",
-    },
-    // Divider trước khi đăng xuất
-    { type: "divider" },
+
+    // Trước khi đăng xuất
     {
       key: "logout",
       icon: <LogoutOutlined style={{ color: "#ff4d4f" }} />,
@@ -190,7 +192,7 @@ export default function ManufacturerLayout({ children }) {
         }}
       >
         <div className="text-white text-center py-4 font-bold text-xl">
-          Manufacturer Portal
+          5AEIT
         </div>
         <Menu
           theme="dark"
@@ -198,6 +200,8 @@ export default function ManufacturerLayout({ children }) {
           selectedKeys={getSelectedKey()}
           items={menuItems}
           onClick={handleClick}
+          inlineIndent={16}
+          style={{ flex: 1, overflowY: "auto" }}
         />
         {/* Bottom account summary */}
         <div

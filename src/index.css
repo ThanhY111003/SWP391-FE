@@ -67,3 +67,11 @@ button,
   flex: 1 1 auto;
   overflow: auto;
 }
+
+/* Compact menu items in tight sider to fit more vertically */
+.sider-tight .ant-menu-item {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  line-height: 22px !important;
+  font-size: 13px;
+}
