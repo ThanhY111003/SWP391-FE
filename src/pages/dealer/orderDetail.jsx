@@ -289,45 +289,40 @@ const OrderDetail = () => {
           </Card>
         )}
 
-        {/* Chi tiết sản phẩm */}
-        <Card title="Chi tiết sản phẩm" style={{ marginBottom: "16px" }}>
-          <Table
-            dataSource={order.orderDetails || []}
-            rowKey="id"
-            pagination={false}
-            size="small"
-            columns={[
-              {
-                title: "Model xe",
-                dataIndex: "vehicleModelName",
-                key: "vehicleModelName",
-              },
-              {
-                title: "Màu sắc",
-                dataIndex: "vehicleColorName",
-                key: "vehicleColorName",
-                render: (color) => <Tag>{color}</Tag>,
-              },
-              {
-                title: "Số lượng",
-                dataIndex: "quantity",
-                key: "quantity",
-                align: "center",
-              },
-              {
-                title: "Đơn giá",
-                dataIndex: "unitPrice",
-                key: "unitPrice",
-                render: (price) => formatCurrency(price),
-              },
-              {
-                title: "Thành tiền",
-                dataIndex: "totalPrice",
-                key: "totalPrice",
-                render: (price) => <Text strong>{formatCurrency(price)}</Text>,
-              },
-            ]}
-          />
+        {/* Sản phẩm đặt hàng */}
+        <Card title="Sản phẩm đặt hàng" style={{ marginBottom: "16px" }}>
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="Model xe">
+              <Text strong>{order.requestedModelColor?.modelName || "N/A"}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Màu sắc">
+              <Tag color="blue">{order.requestedModelColor?.colorName || "N/A"}</Tag>
+            </Descriptions.Item>
+          </Descriptions>
+          
+          {/* Thông tin xe đã gán */}
+          {order.assignedVehicle && (
+            <div style={{ marginTop: "16px" }}>
+              <h4>Xe đã được gán</h4>
+              <Descriptions bordered column={2} size="small">
+                <Descriptions.Item label="VIN">
+                  <Text strong>{order.assignedVehicle.vin}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Số máy">
+                  {order.assignedVehicle.engineNumber}
+                </Descriptions.Item>
+                <Descriptions.Item label="Model">
+                  {order.assignedVehicle.modelName}
+                </Descriptions.Item>
+                <Descriptions.Item label="Màu">
+                  <Tag>{order.assignedVehicle.colorName}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái xe" span={2}>
+                  {renderStatus(order.assignedVehicle.status)}
+                </Descriptions.Item>
+              </Descriptions>
+            </div>
+          )}
         </Card>
 
         {/* Kế hoạch trả góp */}

@@ -360,30 +360,29 @@ export default function ManageOrders() {
       render: (date) => formatDate(date),
     },
     {
-      title: "Chi tiết sản phẩm",
+      title: "Sản phẩm đặt hàng",
       key: "vehicleDetails",
       render: (_, record) => {
-        const details = record.orderDetails || [];
+        // Với API mới, thông tin sản phẩm nằm trong requestedModelColor
+        const requestedModel = record.requestedModelColor;
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {details.map((detail, index) => (
-              <div key={index} style={{ fontSize: "14px" }}>
-                <div style={{ fontWeight: 600 }}>
-                  {detail.vehicleModelName || "N/A"}
-                </div>
-                <div style={{ color: "#666", fontSize: "12px" }}>
-                  {detail.vehicleColorName || "N/A"} • SL: {detail.quantity}
-                </div>
-                <div style={{ color: "#1890ff", fontSize: "12px" }}>
-                  {formatCurrency(detail.unitPrice)} × {detail.quantity} ={" "}
-                  {formatCurrency(detail.totalPrice)}
-                </div>
+          <div style={{ fontSize: "14px" }}>
+            <div style={{ fontWeight: 600 }}>
+              {requestedModel?.modelName || "N/A"}
+            </div>
+            <div style={{ color: "#666", fontSize: "12px" }}>
+              Màu: {requestedModel?.colorName || "N/A"}
+            </div>
+            {record.assignedVehicle && (
+              <div style={{ color: "#1890ff", fontSize: "12px", marginTop: "4px" }}>
+                <div>Xe đã gán: {record.assignedVehicle.vin}</div>
+                <div>Trạng thái xe: {record.assignedVehicle.status}</div>
               </div>
-            ))}
+            )}
           </div>
         );
       },
-      width: 280,
+      width: 250,
     },
     {
       title: "Tổng tiền",
@@ -436,26 +435,36 @@ export default function ManageOrders() {
       title: "Hình thức thanh toán",
       key: "paymentType",
       render: (_, record) => (
-        <Tag color={record.isInstallment ? "blue" : "green"}>
-          {record.isInstallment ? "Trả góp" : "Thanh toán đủ"}
-        </Tag>
+        <div>
+          <Tag color={record.isInstallment ? "blue" : "green"}>
+            {record.isInstallment ? "Trả góp" : "Thanh toán đủ"}
+          </Tag>
+          {record.isInstallment && record.installmentPlans && record.installmentPlans.length > 0 && (
+            <div style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}>
+              {record.installmentPlans.length} kỳ thanh toán
+            </div>
+          )}
+        </div>
       ),
       width: 140,
     },
     {
-      title: "Người tạo",
-      key: "createdBy",
+      title: "Thông tin đại lý & người tạo",
+      key: "dealerAndCreator",
       render: (_, record) => (
         <div style={{ fontSize: "14px" }}>
-          <div style={{ fontWeight: 500 }}>
-            {record.createdBy?.fullName || "N/A"}
+          <div style={{ fontWeight: 500, marginBottom: "4px" }}>
+            {record.dealer?.name || "N/A"}
           </div>
           <div style={{ color: "#666", fontSize: "12px" }}>
-            @{record.createdBy?.username || "N/A"}
+            Mã: {record.dealer?.code || "N/A"}
+          </div>
+          <div style={{ color: "#666", fontSize: "12px", marginTop: "4px" }}>
+            Tạo bởi: {record.createdBy?.fullName || "N/A"}
           </div>
         </div>
       ),
-      width: 150,
+      width: 180,
     },
     {
       title: "Thao tác",
@@ -548,14 +557,23 @@ export default function ManageOrders() {
               Xem danh sách tất cả đơn hàng thuộc dealer hiện tại
             </p>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate("/dealer/cart")}
-            className="w-full sm:w-auto"
-          >
-            Tạo đơn hàng mới
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/dealer/create-order")}
+              className="flex-1 sm:flex-none"
+            >
+              Tạo đơn hàng
+            </Button>
+            <Button
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/dealer/cart")}
+              className="flex-1 sm:flex-none"
+            >
+              Từ giỏ hàng
+            </Button>
+          </div>
         </div>
 
         <Spin spinning={loading}>
@@ -565,13 +583,21 @@ export default function ManageOrders() {
                 description="Chưa có đơn hàng nào"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
               >
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => navigate("/dealer/cart")}
-                >
-                  Tạo đơn hàng đầu tiên
-                </Button>
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate("/dealer/create-order")}
+                  >
+                    Tạo đơn hàng đầu tiên
+                  </Button>
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate("/dealer/cart")}
+                  >
+                    Hoặc từ giỏ hàng
+                  </Button>
+                </div>
               </Empty>
             </Card>
           ) : (

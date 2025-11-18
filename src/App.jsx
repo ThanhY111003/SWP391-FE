@@ -16,6 +16,7 @@ import ManageVehicles from "./pages/dealer/manageVehicles";
 import VehicleList from "./pages/dealer/vehicleList";
 import VehicleDetail from "./pages/dealer/vehicleDetail";
 import Cart from "./pages/dealer/cart";
+import CreateOrder from "./pages/dealer/createOrder";
 import DealerDashboard from "./pages/dealer/dashboard";
 import VehiclePriceManagement from "./pages/dealer/vehiclePriceManagement";
 import WarrantyManagement from "./pages/dealer/warrantyManagement";
@@ -80,6 +81,7 @@ function App() {
           element={<VehicleDetail />}
         />
         <Route path="/dealer/cart" element={<Cart />} />
+        <Route path="/dealer/create-order" element={<CreateOrder />} />
         <Route path="/dealer/comparison" element={<VehicleComparison />} />
         <Route path="/dealer/orders" element={<ManageOrders />} />
         <Route path="/dealer/orders/:id" element={<OrderDetail />} />
