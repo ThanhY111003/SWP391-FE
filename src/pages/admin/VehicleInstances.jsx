@@ -293,7 +293,7 @@ export default function VehicleInstances() {
     { title: "VIN", dataIndex: "vin", key: "vin" },
     { title: "Model", dataIndex: "modelName", key: "modelName" },
     { title: "Màu", dataIndex: "colorName", key: "colorName" },
-    { title: "Đại lý", dataIndex: "dealerName", key: "dealerName" },
+    { title: "Số máy", dataIndex: "engineNumber", key: "engineNumber" },
     {
       title: "Trạng thái",
       dataIndex: "status",
@@ -480,7 +480,7 @@ export default function VehicleInstances() {
         }}
         onOk={() => editForm.submit()}
         confirmLoading={editing}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={editForm}
@@ -633,7 +633,7 @@ export default function VehicleInstances() {
         }}
         onOk={() => createForm.submit()}
         confirmLoading={creating}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={createForm}
@@ -881,7 +881,7 @@ export default function VehicleInstances() {
             <Descriptions.Item label="Màu">
               {detailRecord?.colorName || "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Đại lý" span={2}>
+            <Descriptions.Item label="Đại lý">
               {detailRecord?.dealerName || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Hoạt động">
