@@ -48,8 +48,27 @@ export default function OrderManagement() {
   const [loading, setLoading] = useState(false);
   const [approveLoading, setApproveLoading] = useState({}); // Loading state for approve actions
   const [confirmPaymentLoading, setConfirmPaymentLoading] = useState({}); // Loading state for payment confirmations
+  const [confirmDepositLoading, setConfirmDepositLoading] = useState({}); // Loading state for deposit confirmations
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [depositModalVisible, setDepositModalVisible] = useState(false);
+  const [depositNotes, setDepositNotes] = useState("");
+  const [depositAmount, setDepositAmount] = useState(0);
+  const [attachVehicleModalVisible, setAttachVehicleModalVisible] = useState(false);
+  const [availableVehicles, setAvailableVehicles] = useState([]);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [attachVehicleLoading, setAttachVehicleLoading] = useState(false);
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [manualPaymentModalVisible, setManualPaymentModalVisible] = useState(false);
+  const [manualPaymentAmount, setManualPaymentAmount] = useState(0);
+  const [manualPaymentNotes, setManualPaymentNotes] = useState("");
+  const [manualPaymentLoading, setManualPaymentLoading] = useState({});
+  
+  // Installment confirmation states
+  const [installmentModalVisible, setInstallmentModalVisible] = useState(false);
+  const [confirmInstallmentLoading, setConfirmInstallmentLoading] = useState({});
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState(null);
+  
   const [filters, setFilters] = useState({
     status: "",
     orderCode: "",
@@ -125,6 +144,246 @@ export default function OrderManagement() {
     setStatistics(stats);
   };
 
+
+  // Fetch available vehicles for attachment
+  const fetchAvailableVehicles = async (orderId) => {
+    setLoadingVehicles(true);
+    try {
+      
+      // Use the correct API endpoint with proper query parameters
+      // status=AVAILABLE and activeOnly=true to get only available and active vehicles
+      const response = await api.get('/vehicle-instances', {
+        params: {
+          status: 'AVAILABLE',
+          activeOnly: true
+        }
+      });
+      
+      if (response.data && response.data.success) {
+        const vehicles = response.data.data || [];
+        setAvailableVehicles(vehicles);
+        
+        if (vehicles.length === 0) {
+          message.info('Hiện tại không có xe nào khả dụng để gắn vào đơn hàng');
+        }
+      } else {
+        console.error('API returned success=false:', response.data);
+        message.error(response.data?.message || 'Không thể tải danh sách xe có sẵn');
+        setAvailableVehicles([]);
+      }
+    } catch (error) {
+      console.error('Error fetching available vehicles:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi tải danh sách xe';
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          errorMessage = 'Không tìm thấy endpoint lấy danh sách xe';
+        } else if (status === 403) {
+          errorMessage = 'Không có quyền truy cập danh sách xe';
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+      }
+      
+      message.error(errorMessage);
+      setAvailableVehicles([]);
+    } finally {
+      setLoadingVehicles(false);
+    }
+  };
+
+  // Handle manual payment for straight payment orders
+  const handleManualPayment = async (orderId, paidAmount, notes) => {
+    setManualPaymentLoading((prev) => ({ ...prev, [orderId]: true }));
+
+    try {
+      const response = await api.post(`/admin/orders/${orderId}/manual-payment`, {
+        paidAmount: paidAmount,
+        notes: notes || ""
+      });
+
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
+        
+        message.success({
+          content: (
+            <div>
+              <div>
+                <strong>Cập nhật thanh toán thành công!</strong>
+              </div>
+              <div>Order Code: {orderData.orderCode}</div>
+              <div>Số tiền đã thanh toán: {formatCurrency(paidAmount)}</div>
+              <div>Tiến độ thanh toán: {orderData.paymentProgress}%</div>
+              {orderData.status === "COMPLETED" && (
+                <div className="text-green-600">✓ Đơn hàng đã hoàn tất thanh toán</div>
+              )}
+            </div>
+          ),
+          duration: 6,
+        });
+
+        // Reset modal states
+        setManualPaymentModalVisible(false);
+        setManualPaymentAmount(0);
+        setManualPaymentNotes("");
+        
+        // Refresh orders list
+        fetchOrders();
+
+        // Update selected order if modal is open
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder(orderData);
+        }
+      } else {
+        console.error("API returned success=false:", response.data);
+        message.error(
+          response.data?.message || "Cập nhật thanh toán thất bại!"
+        );
+      }
+    } catch (error) {
+      console.error("Error manual payment:", error);
+      
+      let errorMessage = "Có lỗi xảy ra khi cập nhật thanh toán!";
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = data?.message || "Yêu cầu không hợp lệ. Kiểm tra số tiền thanh toán.";
+        } else if (status === 404) {
+          errorMessage = "Không tìm thấy đơn hàng.";
+        } else {
+          errorMessage = data?.message || errorMessage;
+        }
+      }
+      
+      message.error(errorMessage);
+    } finally {
+      setManualPaymentLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle confirm installment payment
+  const handleConfirmInstallmentPayment = async (orderId, installmentId) => {
+    setConfirmInstallmentLoading((prev) => ({ ...prev, [orderId]: true }));
+    
+    try {
+      const response = await api.post(`/admin/orders/${orderId}/installments/${installmentId}/confirm`);
+      
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
+        
+        message.success({
+          content: (
+            <div>
+              <div><strong>Xác nhận kỳ thanh toán thành công!</strong></div>
+              <div>Mã đơn: {orderData.orderCode}</div>
+              <div>Tiến độ thanh toán: {orderData.paymentProgress}%</div>
+              {orderData.paymentProgress >= 100 && <div>✅ Đã hoàn thành thanh toán</div>}
+            </div>
+          ),
+          duration: 5,
+        });
+
+        // Update selectedOrder with new data to reflect changes immediately
+        setSelectedOrder(orderData);
+        
+        // Refresh orders list to get updated data
+        await fetchOrders();
+        
+      } else {
+        message.error(response.data?.message || "Xác nhận kỳ thanh toán thất bại!");
+      }
+    } catch (error) {
+      console.error("Error confirming installment:", error);
+      
+      let errorMessage = "Có lỗi xảy ra khi xác nhận kỳ thanh toán!";
+      
+      if (error.response?.data) {
+        const { status, data } = error.response;
+        
+        if (status === 400) {
+          errorMessage = data?.message || "Yêu cầu không hợp lệ.";
+        } else if (status === 404) {
+          errorMessage = "Không tìm thấy kỳ thanh toán.";
+        } else {
+          errorMessage = data?.message || errorMessage;
+        }
+      }
+      
+      message.error(errorMessage);
+    } finally {
+      setConfirmInstallmentLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle attach vehicle to order
+  const handleAttachVehicle = async (orderId, vehicleId) => {
+    setAttachVehicleLoading(true);
+    try {
+      const response = await api.patch(`/admin/orders/${orderId}/attach-vehicle/${vehicleId}`);
+      
+      if (response.data && response.data.success) {
+        const vehicleData = response.data.data;
+        
+        message.success({
+          content: (
+            <div>
+              <div>
+                <strong>Gắn xe vào đơn hàng thành công!</strong>
+              </div>
+              <div>VIN: {vehicleData.vin}</div>
+              <div>Engine: {vehicleData.engineNumber}</div>
+              <div>Model: {vehicleData.modelName} - {vehicleData.colorName}</div>
+            </div>
+          ),
+          duration: 5,
+        });
+        
+        // Reset modal states
+        setAttachVehicleModalVisible(false);
+        setSelectedVehicle(null);
+        
+        // Refresh orders list
+        fetchOrders();
+        
+        // Update selected order if modal is open
+        if (selectedOrder && selectedOrder.id === orderId) {
+          // Refresh the selected order data
+          const orderResponse = await api.get(`/admin/orders/${orderId}`);
+          if (orderResponse.data && orderResponse.data.success) {
+            setSelectedOrder(orderResponse.data.data);
+          }
+        }
+      } else {
+        message.error(response.data?.message || 'Gắn xe vào đơn hàng thất bại!');
+      }
+    } catch (error) {
+      console.error('Error attaching vehicle:', error);
+      
+      let errorMessage = 'Có lỗi xảy ra khi gắn xe vào đơn hàng!';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = data?.message || 'Yêu cầu không hợp lệ. Kiểm tra trạng thái đơn hàng và xe.';
+        } else if (status === 404) {
+          errorMessage = 'Không tìm thấy đơn hàng hoặc xe.';
+        } else {
+          errorMessage = data?.message || errorMessage;
+        }
+      }
+      
+      message.error(errorMessage);
+    } finally {
+      setAttachVehicleLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,6 +415,7 @@ export default function OrderManagement() {
       CONFIRMED: "Đã xác nhận",
       APPROVED: "Đã phê duyệt",
       INSTALLMENT_ACTIVE: "Đang trả góp",
+      PAID: "Đã xác nhận cọc",
       PROCESSING: "Đang xử lý",
       SHIPPING: "Đang vận chuyển",
       SHIPPED: "Đã gửi",
@@ -164,7 +424,6 @@ export default function OrderManagement() {
       CANCELLED: "Đã hủy",
       REJECTED: "Đã từ chối",
       REFUNDED: "Hoàn tiền",
-      PAID: "Đã thanh toán",
       OVERDUE: "Quá hạn",
     };
     return map[status] || status;
@@ -186,7 +445,6 @@ export default function OrderManagement() {
 
   // Handle order approval
   const handleApproveOrder = async (orderId) => {
-    console.log("Approving order with ID:", orderId);
     setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
 
     try {
@@ -194,7 +452,6 @@ export default function OrderManagement() {
       const response = await api.patch(`/admin/orders/${orderId}/approve`, {
         status: "APPROVED",
       });
-      console.log("Approve response:", response.data);
 
       if (response.data && response.data.success) {
         message.success({
@@ -228,29 +485,7 @@ export default function OrderManagement() {
     }
   };
 
-  // Handle order rejection
-  const handleRejectOrder = async (orderId) => {
-    setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
 
-    try {
-      const response = await api.patch(`/admin/orders/${orderId}/reject`);
-
-      if (response.data && response.data.success) {
-        message.success("Đơn hàng đã được từ chối!");
-        // Refresh orders list
-        fetchOrders();
-      } else {
-        message.error(response.data?.message || "Từ chối đơn hàng thất bại!");
-      }
-    } catch (error) {
-      console.error("Error rejecting order:", error);
-      const errorMessage =
-        error.response?.data?.message || "Có lỗi xảy ra khi từ chối đơn hàng!";
-      message.error(errorMessage);
-    } finally {
-      setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
-    }
-  };
 
   // Handle order cancellation
   const handleCancelOrder = async (orderId) => {
@@ -295,10 +530,17 @@ export default function OrderManagement() {
     setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
 
     try {
-      const response = await api.patch(`/admin/orders/${orderId}/shipping`);
+      // Enhanced API call with better error handling
+      const response = await api.patch(`/admin/orders/${orderId}/shipping`, {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
 
       if (response.data && response.data.success) {
         const orderData = response.data.data;
+        
         message.success({
           content: (
             <div>
@@ -316,12 +558,44 @@ export default function OrderManagement() {
         // Refresh orders list
         fetchOrders();
       } else {
+        console.error("API returned success=false:", response.data);
         message.error(response.data?.message || "Bắt đầu vận chuyển thất bại!");
       }
     } catch (error) {
       console.error("Error shipping order:", error);
-      const errorMessage =
-        error.response?.data?.message || "Có lỗi xảy ra khi bắt đầu vận chuyển!";
+      console.error("Error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      // Enhanced error messaging
+      let errorMessage = "Có lỗi xảy ra khi bắt đầu vận chuyển!";
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 400) {
+          errorMessage = data?.message || "Yêu cầu không hợp lệ. Kiểm tra lại trạng thái đơn hàng.";
+        } else if (status === 401) {
+          errorMessage = "Không có quyền thực hiện thao tác này.";
+        } else if (status === 403) {
+          errorMessage = "Truy cập bị từ chối.";
+        } else if (status === 404) {
+          errorMessage = "Không tìm thấy đơn hàng.";
+        } else if (status === 500) {
+          errorMessage = "Lỗi server nội bộ.";
+        } else {
+          errorMessage = data?.message || `Lỗi HTTP ${status}: ${error.response.statusText}`;
+        }
+      } else if (error.request) {
+        // Network error
+        errorMessage = "Không thể kết nối đến server. Kiểm tra kết nối mạng.";
+      }
+      
       message.error(errorMessage);
     } finally {
       setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
@@ -374,6 +648,7 @@ export default function OrderManagement() {
   // Check if order can be cancelled
   const canCancelOrder = (status) => {
     // Can cancel orders that haven't been completed or delivered yet
+    // Cannot cancel INSTALLMENT_ACTIVE orders as they have confirmed deposits
     return [
       "PENDING",
       "CONFIRMED",
@@ -384,8 +659,33 @@ export default function OrderManagement() {
   };
 
   // Check if order can be shipped
-  const canShipOrder = (status) => {
-    return status === "CONFIRMED";
+  const canShipOrder = (record) => {
+    // Don't show shipping button for orders that are already shipping, delivered, completed, or cancelled
+    if (['SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'].includes(record.status)) {
+      return false;
+    }
+    
+    // Must have attached vehicle first
+    if (!record.assignedVehicle?.id) {
+      return false;
+    }
+    
+    // For installment orders: check if already shipped/delivered through additional fields
+    if (record.isInstallment) {
+      // Don't show if already shipped or delivered (check various possible fields)
+      if (record.shippingStatus || record.deliveryStatus || 
+          record.isShipped || record.isDelivered ||
+          record.shippedDate || record.deliveredDate) {
+        return false;
+      }
+      
+      // Show ship button only for INSTALLMENT_ACTIVE status (deposit confirmed, ready to ship)
+      return record.status === "INSTALLMENT_ACTIVE";
+    } else {
+      // For straight payment orders: must be fully paid (100%) or PAID/COMPLETED status
+      return (record.status === "PAID" || record.status === "COMPLETED" || 
+             (record.paymentProgress >= 100 && ["CONFIRMED", "APPROVED"].includes(record.status)));
+    }
   };
 
   // Check if order can activate installment
@@ -393,53 +693,86 @@ export default function OrderManagement() {
     return status === "DELIVERED" && isInstallment;
   };
 
-  // Handle installment payment confirmation
-  const handleConfirmInstallmentPayment = async (
-    orderId,
-    installmentNumber
-  ) => {
-    const loadingKey = `${orderId}-${installmentNumber}`;
-    setConfirmPaymentLoading((prev) => ({ ...prev, [loadingKey]: true }));
+  // Check if order can confirm deposit payment
+  const canConfirmDeposit = (record) => {
+    // Can confirm deposit for installment orders that are CONFIRMED and no deposit yet
+    return record.status === "CONFIRMED" && 
+           record.isInstallment &&
+           (record.paymentProgress || 0) === 0;
+  };
+
+  // Check if order can confirm installment payments
+  const canConfirmInstallment = (record) => {
+    return record.isInstallment && 
+           record.status === "SHIPPING" && // During shipping phase
+           record.installmentSchedule && 
+           record.installmentSchedule.length > 0;
+  };
+
+  // Check if order can do manual payment
+  const canManualPayment = (record) => {
+    // Can do manual payment for straight payment orders that are not fully paid
+    return !record.isInstallment && 
+           ["CONFIRMED", "APPROVED", "PAID"].includes(record.status) &&
+           record.remainingAmount > 0 &&
+           (record.paymentProgress || 0) < 100;
+  };
+
+  // Check if order can attach vehicle
+  const canAttachVehicle = (record) => {
+    const hasNoVehicle = !record.assignedVehicle || !record.assignedVehicle.id;
+    
+    // Don't allow attaching vehicle to completed/cancelled orders
+    if (['COMPLETED', 'DELIVERED', 'CANCELLED'].includes(record.status)) {
+      return false;
+    }
+    
+    if (record.isInstallment) {
+      // For installment: must confirm deposit first (INSTALLMENT_ACTIVE or PAID)
+      return (record.status === "INSTALLMENT_ACTIVE" || record.status === "PAID") && hasNoVehicle;
+    } else {
+      // For straight payment: must be confirmed/paid and fully paid
+      const allowedStatuses = ["CONFIRMED", "PAID", "APPROVED"];
+      const isFullyPaid = (record.paymentProgress || 0) >= 100;
+      return allowedStatuses.includes(record.status) && hasNoVehicle && isFullyPaid;
+    }
+  };
+
+  // Handle deposit confirmation
+  const handleConfirmDeposit = async (orderId, amount, notes) => {
+    setConfirmDepositLoading((prev) => ({ ...prev, [orderId]: true }));
 
     try {
-      console.log(`Confirming payment for order ${orderId}, installment ${installmentNumber}`);
-      
-      // Try direct axios call to debug
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:8080/api/admin/orders/${orderId}/installments/${installmentNumber}/confirm`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const response = await api.post(`/admin/orders/${orderId}/confirm-deposit`, {
+        depositAmount: amount,
+        notes: notes || ""
       });
-      
-      const data = await response.json();
-      console.log("Direct fetch response:", { status: response.status, data });
 
-      // Handle non-200 responses
-      if (!response.ok) {
-        throw new Error(data?.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      if (data && data.success) {
-        const orderData = data.data;
-        console.log("Order data from response:", orderData);
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
         
         message.success({
           content: (
             <div>
               <div>
-                <strong>Xác nhận thanh toán thành công!</strong>
+                <strong>Xác nhận tiền cọc thành công!</strong>
               </div>
               <div>Order Code: {orderData.orderCode}</div>
-              <div>Kỳ thanh toán: {installmentNumber}</div>
+              <div>Status: {getStatusLabel(orderData.status)}</div>
               <div>Tiến độ thanh toán: {orderData.paymentProgress}%</div>
+              {orderData.status === "INSTALLMENT_ACTIVE" && (
+                <div className="text-green-600">✓ Đã chuyển sang trạng thái trả góp</div>
+              )}
             </div>
           ),
-          duration: 5,
+          duration: 6,
         });
 
+        // Reset modal states
+        setDepositModalVisible(false);
+        setDepositNotes("");
+        setDepositAmount(0);
+        
         // Refresh orders list
         fetchOrders();
 
@@ -448,25 +781,22 @@ export default function OrderManagement() {
           setSelectedOrder(orderData);
         }
       } else {
-        console.error("API returned success=false:", data);
+        console.error("API returned success=false:", response.data);
         message.error(
-          data?.message || "Xác nhận thanh toán thất bại!"
+          response.data?.message || "Xác nhận tiền cọc thất bại!"
         );
       }
     } catch (error) {
-      console.error("Error confirming installment payment:", error);
+      console.error("Error confirming deposit:", error);
       
-      // Handle fetch API errors
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        message.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
-      } else {
-        const errorMessage = error.message || "Có lỗi xảy ra khi xác nhận thanh toán!";
-        message.error(errorMessage);
-      }
+      const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi xác nhận tiền cọc!";
+      message.error(errorMessage);
     } finally {
-      setConfirmPaymentLoading((prev) => ({ ...prev, [loadingKey]: false }));
+      setConfirmDepositLoading((prev) => ({ ...prev, [orderId]: false }));
     }
   };
+
+
 
   // (removed unused helpers: hasInstallmentPayments, canConfirmInstallment)
 
@@ -650,33 +980,11 @@ export default function OrderManagement() {
                 </Button>
               </Popconfirm>
 
-              <Popconfirm
-                title="Từ chối đơn hàng"
-                description="Bạn có chắc chắn muốn từ chối đơn hàng này?"
-                onConfirm={() => handleRejectOrder(record.id)}
-                okText="Từ chối"
-                cancelText="Hủy"
-                okButtonProps={{
-                  loading: approveLoading[record.id],
-                  danger: true,
-                }}
-              >
-                <Button
-                  danger
-                  icon={<CloseCircleOutlined />}
-                  size="small"
-                  loading={approveLoading[record.id]}
-                  disabled={Object.values(approveLoading).some(
-                    (loading) => loading
-                  )}
-                >
-                  Từ chối
-                </Button>
-              </Popconfirm>
+
             </Space>
           )}
 
-          {canShipOrder(record.status) && (
+          {canShipOrder(record) && (
             <Space>
               <Popconfirm
                 title="Bắt đầu vận chuyển"
@@ -684,8 +992,13 @@ export default function OrderManagement() {
                   <div>
                     <div>Bạn có chắc chắn muốn bắt đầu vận chuyển đơn hàng này?</div>
                     <div className="mt-2 text-sm text-gray-600">
-                      • Chuyển trạng thái từ "Đã xác nhận" sang "Đang vận chuyển"
+                      • Chuyển sang trạng thái "Đang vận chuyển"
                       <br />• Dealer sẽ được thông báo về việc giao hàng
+                      {record.isInstallment && (
+                        <>
+                          <br />• Đơn trả góp đã xác nhận tiền cọc
+                        </>  
+                      )}
                     </div>
                   </div>
                 }
@@ -748,6 +1061,68 @@ export default function OrderManagement() {
             </Space>
           )}
 
+          {canAttachVehicle(record) && (
+            <Space>
+              <Button
+                type="primary"
+                icon={<CarOutlined />}
+                size="small"
+                loading={attachVehicleLoading}
+                onClick={() => {
+                  setSelectedOrder(record);
+                  fetchAvailableVehicles(record.id);
+                  setAttachVehicleModalVisible(true);
+                }}
+              >
+                Gắn xe
+              </Button>
+            </Space>
+          )}
+
+
+
+          {canConfirmDeposit(record) && (
+            <Space>
+              <Button
+                type="primary"
+                icon={<DollarOutlined />}
+                size="small"
+                loading={confirmDepositLoading[record.id]}
+                disabled={Object.values(confirmDepositLoading).some(
+                  (loading) => loading
+                )}
+                onClick={() => {
+                  setSelectedOrder(record);
+                  setDepositAmount(record.depositAmount || 0);
+                  setDepositModalVisible(true);
+                }}
+              >
+                Xác nhận tiền cọc
+              </Button>
+            </Space>
+          )}
+
+          {canManualPayment(record) && (
+            <Space>
+              <Button
+                type="primary"
+                icon={<DollarCircleOutlined />}
+                size="small"
+                loading={manualPaymentLoading[record.id]}
+                disabled={Object.values(manualPaymentLoading).some(
+                  (loading) => loading
+                )}
+                onClick={() => {
+                  setSelectedOrder(record);
+                  setManualPaymentAmount(0);
+                  setManualPaymentModalVisible(true);
+                }}
+              >
+                Nhập thanh toán
+              </Button>
+            </Space>
+          )}
+
           {canActivateInstallment(record.status, record.isInstallment) && (
             <Space>
               <Popconfirm
@@ -784,15 +1159,42 @@ export default function OrderManagement() {
             </Space>
           )}
 
+          {/* Confirm Installment Payment Button */}
+          {canConfirmInstallment(record) && (
+            <Space>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                size="small"
+                loading={confirmInstallmentLoading[record.id]}
+                disabled={Object.values(confirmInstallmentLoading).some(
+                  (loading) => loading
+                )}
+                onClick={() => {
+                  setSelectedOrder(record);
+                  setInstallmentModalVisible(true);
+                }}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                Xác nhận kỳ thanh toán
+              </Button>
+            </Space>
+          )}
+
           {!canApproveOrder(record.status) &&
             !canCancelOrder(record.status) && 
-            !canShipOrder(record.status) &&
+            !canShipOrder(record) &&
+            !canAttachVehicle(record) &&
+            !canConfirmDeposit(record) &&
+            !canManualPayment(record) &&
             !canActivateInstallment(record.status, record.isInstallment) && (
               <Tag color="default" className="text-xs">
                 {record.status === "APPROVED"
                   ? "Đã phê duyệt"
                   : record.status === "INSTALLMENT_ACTIVE"
-                  ? "Đang trả góp"
+                  ? "Chờ bắt đầu vận chuyển"
+                  : record.status === "PAID"
+                  ? "Chờ bắt đầu vận chuyển"
                   : record.status === "SHIPPING"
                   ? "Đang vận chuyển"
                   : record.status === "DELIVERED"
@@ -1070,15 +1472,20 @@ export default function OrderManagement() {
                 </Space>
               )}
 
-              {canShipOrder(selectedOrder.status) && (
+              {canShipOrder(selectedOrder) && (
                 <Popconfirm
                   title="Bắt đầu vận chuyển"
                   description={
                     <div>
                       <div>Bạn có chắc chắn muốn bắt đầu vận chuyển đơn hàng này?</div>
                       <div className="mt-2 text-sm text-gray-600">
-                        • Chuyển trạng thái từ "Đã xác nhận" sang "Đang vận chuyển"
+                        • Chuyển sang trạng thái "Đang vận chuyển"
                         <br />• Dealer sẽ được thông báo về việc giao hàng
+                        {selectedOrder.isInstallment && (
+                          <>
+                            <br />• Đơn trả góp đã xác nhận tiền cọc
+                          </>  
+                        )}
                       </div>
                     </div>
                   }
@@ -1101,6 +1508,54 @@ export default function OrderManagement() {
                     Bắt đầu vận chuyển
                   </Button>
                 </Popconfirm>
+              )}
+
+              {canAttachVehicle(selectedOrder) && (
+                <Button
+                  type="primary"
+                  icon={<CarOutlined />}
+                  loading={attachVehicleLoading}
+                  onClick={() => {
+                    fetchAvailableVehicles(selectedOrder.id);
+                    setAttachVehicleModalVisible(true);
+                  }}
+                >
+                  Gắn xe
+                </Button>
+              )}
+
+              {canConfirmDeposit(selectedOrder) && (
+                <Button
+                  type="primary"
+                  icon={<DollarOutlined />}
+                  loading={confirmDepositLoading[selectedOrder.id]}
+                  disabled={Object.values(confirmDepositLoading).some(
+                    (loading) => loading
+                  )}
+                  onClick={() => {
+                    setDepositAmount(selectedOrder.depositAmount || 0);
+                    setDepositModalVisible(true);
+                  }}
+                >
+                  Xác nhận tiền cọc
+                </Button>
+              )}
+
+              {canManualPayment(selectedOrder) && (
+                <Button
+                  type="primary"
+                  icon={<DollarCircleOutlined />}
+                  loading={manualPaymentLoading[selectedOrder.id]}
+                  disabled={Object.values(manualPaymentLoading).some(
+                    (loading) => loading
+                  )}
+                  onClick={() => {
+                    setManualPaymentAmount(0);
+                    setManualPaymentModalVisible(true);
+                  }}
+                >
+                  Nhập thanh toán
+                </Button>
               )}
 
               {canActivateInstallment(selectedOrder.status, selectedOrder.isInstallment) && (
@@ -1173,6 +1628,8 @@ export default function OrderManagement() {
       >
         {selectedOrder && (
           <div>
+
+            
             {/* Basic Order Info */}
             <Card className="mb-4">
               <Descriptions title="Thông tin đơn hàng" bordered>
@@ -1299,12 +1756,13 @@ export default function OrderManagement() {
               }
               className="mb-4"
             >
-              <Table
-                dataSource={selectedOrder.orderDetails}
-                rowKey="id"
-                pagination={false}
-                size="small"
-                columns={[
+              {selectedOrder.orderDetails && selectedOrder.orderDetails.length > 0 ? (
+                <Table
+                  dataSource={selectedOrder.orderDetails}
+                  rowKey={(record, index) => record.id || index}
+                  pagination={false}
+                  size="small"
+                  columns={[
                   {
                     title: "Model xe",
                     dataIndex: "vehicleModelName",
@@ -1338,6 +1796,83 @@ export default function OrderManagement() {
                   },
                 ]}
               />
+            ) : selectedOrder.requestedModelColor ? (
+                <Descriptions bordered size="small">
+                  <Descriptions.Item label="Model xe yêu cầu" span={2}>
+                    {selectedOrder.requestedModelColor.modelName}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Màu">
+                    <Tag>{selectedOrder.requestedModelColor.colorName}</Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Tổng tiền" span={3}>
+                    <Text strong className="text-lg">
+                      {formatCurrency(selectedOrder.totalAmount)}
+                    </Text>
+                  </Descriptions.Item>
+                </Descriptions>
+              ) : (
+                <div className="text-center py-4">
+                  <Text type="secondary">Chưa có thông tin sản phẩm chi tiết</Text>
+                </div>
+              )}
+            </Card>
+
+            {/* Assigned Vehicle */}
+            <Card
+              title={
+                <span>
+                  <CarOutlined className="mr-2" />
+                  Xe được gắn
+                </span>
+              }
+              className="mb-4"
+            >
+              {selectedOrder.assignedVehicle ? (
+                <Descriptions bordered>
+                  <Descriptions.Item label="VIN" span={2}>
+                    <Text strong>{selectedOrder.assignedVehicle.vin}</Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Engine Number">
+                    <Text strong>{selectedOrder.assignedVehicle.engineNumber}</Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Model">
+                    {selectedOrder.assignedVehicle.modelName}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Màu">
+                    <Tag>{selectedOrder.assignedVehicle.colorName}</Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Trạng thái">
+                    <Tag color={getStatusColor(selectedOrder.assignedVehicle.status)}>
+                      {selectedOrder.assignedVehicle.status}
+                    </Tag>
+                  </Descriptions.Item>
+                </Descriptions>
+              ) : (
+                <div className="text-center py-4">
+                  <Text type="secondary">Chưa có xe nào được gắn vào đơn hàng này</Text>
+                  {canAttachVehicle(selectedOrder) ? (
+                    <div className="mt-3">
+                      <Button
+                        type="primary"
+                        icon={<CarOutlined />}
+                        loading={attachVehicleLoading}
+                        onClick={() => {
+                          fetchAvailableVehicles(selectedOrder.id);
+                          setAttachVehicleModalVisible(true);
+                        }}
+                      >
+                        Gắn xe ngay
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-2">
+                      <Text type="secondary" className="text-xs">
+                        Không thể gắn xe ở trạng thái hiện tại ({getStatusLabel(selectedOrder.status)})
+                      </Text>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
 
             {/* Installment Plans */}
@@ -1434,6 +1969,619 @@ export default function OrderManagement() {
                   />
                 </Card>
               )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Attach Vehicle Modal */}
+      <Modal
+        title={
+          <span>
+            <CarOutlined className="mr-2" />
+            Gắn xe vào đơn hàng
+          </span>
+        }
+        open={attachVehicleModalVisible}
+        onCancel={() => {
+          setAttachVehicleModalVisible(false);
+          setSelectedVehicle(null);
+        }}
+        width={800}
+        footer={
+          <Space>
+            <Button 
+              onClick={() => {
+                setAttachVehicleModalVisible(false);
+                setSelectedVehicle(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              loading={attachVehicleLoading}
+              onClick={() => {
+                if (selectedOrder && selectedVehicle) {
+                  handleAttachVehicle(selectedOrder.id, selectedVehicle.id);
+                }
+              }}
+              icon={<CarOutlined />}
+              disabled={!selectedVehicle}
+            >
+              Gắn xe
+            </Button>
+          </Space>
+        }
+      >
+        {selectedOrder && (
+          <div>
+            <Card className="mb-4" size="small">
+              <Descriptions size="small" column={1}>
+                <Descriptions.Item label="Mã đơn hàng">
+                  <Text strong>{selectedOrder.orderCode}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đại lý">
+                  <Text>{selectedOrder.dealer?.name} ({selectedOrder.dealer?.code})</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Model yêu cầu">
+                  <Text>{selectedOrder.requestedModelColor?.modelName} - {selectedOrder.requestedModelColor?.colorName}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái hiện tại">
+                  <Tag color={getStatusColor(selectedOrder.status)}>
+                    {getStatusLabel(selectedOrder.status)}
+                  </Tag>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            
+            <div className="bg-orange-50 p-4 rounded-lg mb-4">
+              <Text strong className="text-orange-800">Lưu ý:</Text>
+              <ul className="mt-2 text-sm text-orange-700 list-disc pl-5">
+                <li>Chọn xe có trạng thái AVAILABLE để gắn vào đơn hàng</li>
+                <li>Xe phải khớp với model và màu mà dealer đã yêu cầu</li>
+                <li>Sau khi gắn xe, đơn hàng có thể được phê duyệt</li>
+                <li>Hành động này không thể hoàn tác</li>
+              </ul>
+            </div>
+
+            <div>
+              <Text strong className="text-lg mb-3 block">Danh sách xe có sẵn:</Text>
+              {loadingVehicles ? (
+                <div className="text-center py-8">
+                  <Text>Đang tải danh sách xe...</Text>
+                </div>
+              ) : availableVehicles.length === 0 ? (
+                <div className="text-center py-8">
+                  <Text type="secondary">Không có xe nào khả dụng</Text>
+                </div>
+              ) : (
+                <Table
+                  dataSource={availableVehicles}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  rowSelection={{
+                    type: 'radio',
+                    selectedRowKeys: selectedVehicle ? [selectedVehicle.id] : [],
+                    onSelect: (record) => {
+                      setSelectedVehicle(record);
+                    },
+                  }}
+                  columns={[
+                    {
+                      title: 'VIN',
+                      dataIndex: 'vin',
+                      key: 'vin',
+                      width: 180,
+                      render: (vin) => (
+                        <Text className="font-mono text-xs">{vin}</Text>
+                      ),
+                    },
+                    {
+                      title: 'Engine Number',
+                      dataIndex: 'engineNumber',
+                      key: 'engineNumber',
+                      width: 140,
+                      render: (engineNumber) => (
+                        <Text className="font-mono text-xs">{engineNumber}</Text>
+                      ),
+                    },
+                    {
+                      title: 'Model',
+                      dataIndex: 'modelName',
+                      key: 'modelName',
+                      width: 120,
+                    },
+                    {
+                      title: 'Màu',
+                      dataIndex: 'colorName',
+                      key: 'colorName',
+                      width: 100,
+                      render: (color) => <Tag color="blue">{color}</Tag>,
+                    },
+                    {
+                      title: 'Trạng thái',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: 100,
+                      render: (status) => {
+                        const getStatusInfo = (status) => {
+                          switch (status) {
+                            case 'AVAILABLE':
+                              return { color: 'green', text: 'Có sẵn' };
+                            case 'IN_STOCK':
+                              return { color: 'blue', text: 'Trong kho' };
+                            case 'RESERVED':
+                              return { color: 'orange', text: 'Đã đặt' };
+                            case 'SOLD':
+                              return { color: 'red', text: 'Đã bán' };
+                            default:
+                              return { color: 'default', text: status };
+                          }
+                        };
+                        
+                        const { color, text } = getStatusInfo(status);
+                        return <Tag color={color}>{text}</Tag>;
+                      },
+                    },
+                    {
+                      title: 'Đại lý hiện tại',
+                      dataIndex: 'dealerName',
+                      key: 'dealerName',
+                      width: 150,
+                      render: (dealerName) => (
+                        <Text type="secondary" className="text-xs">
+                          {dealerName || 'Chưa gán'}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: 'Giá trị',
+                      dataIndex: 'currentValue',
+                      key: 'currentValue',
+                      width: 130,
+                      render: (value) => (
+                        <Text strong className="text-xs">
+                          {formatCurrency(value)}
+                        </Text>
+                      ),
+                    },
+                  ]}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Installment Confirmation Modal */}
+      <Modal
+        title={
+          <span>
+            <CheckCircleOutlined className="mr-2" />
+            Xác nhận kỳ thanh toán trả góp
+          </span>
+        }
+        open={installmentModalVisible}
+        onCancel={() => {
+          setInstallmentModalVisible(false);
+          setSelectedInstallmentId(null);
+        }}
+        width={700}
+        footer={
+          <Space>
+            <Button 
+              onClick={() => {
+                setInstallmentModalVisible(false);
+                setSelectedInstallmentId(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              loading={confirmInstallmentLoading[selectedOrder?.id]}
+              onClick={() => {
+                if (selectedOrder && selectedInstallmentId) {
+                  handleConfirmInstallmentPayment(selectedOrder.id, selectedInstallmentId);
+                }
+              }}
+              icon={<CheckCircleOutlined />}
+              disabled={!selectedInstallmentId}
+            >
+              Xác nhận thanh toán
+            </Button>
+          </Space>
+        }
+      >
+        {selectedOrder && (
+          <div>
+            <Card className="mb-4" size="small">
+              <Descriptions size="small" column={1}>
+                <Descriptions.Item label="Mã đơn hàng">
+                  <Text strong>{selectedOrder.orderCode}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đại lý">
+                  <Text>{selectedOrder.dealer?.name} ({selectedOrder.dealer?.code})</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Hình thức thanh toán">
+                  <Tag color="blue">Trả góp</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tổng tiền đơn hàng">
+                  <Text strong className="text-lg text-blue-600">
+                    {formatCurrency(selectedOrder.totalAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đã thanh toán">
+                  <Text strong className="text-lg text-green-600">
+                    {formatCurrency(selectedOrder.paidAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Còn lại">
+                  <Text strong className="text-lg text-orange-600">
+                    {formatCurrency(selectedOrder.remainingAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tiến độ thanh toán">
+                  <Progress percent={selectedOrder.paymentProgress} />
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái hiện tại">
+                  <Tag color={getStatusColor(selectedOrder.status)}>
+                    {getStatusLabel(selectedOrder.status)}
+                  </Tag>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <Text strong className="text-blue-800">Lưu ý:</Text>
+              <ul className="mt-2 text-sm text-blue-700 list-disc pl-5">
+                <li>Chọn kỳ thanh toán mà dealer đã hoàn thành</li>
+                <li>Chỉ có thể xác nhận các kỳ thanh toán đến hạn</li>
+                <li>Kỳ thanh toán sẽ được đánh dấu là đã hoàn thành</li>
+                <li>Tiến độ thanh toán sẽ được cập nhật tự động</li>
+                <li>Hành động này không thể hoàn tác</li>
+              </ul>
+            </div>
+
+            <div>
+              <Text strong className="block mb-3">Lịch trình thanh toán:</Text>
+              
+              {selectedOrder.installmentSchedule && selectedOrder.installmentSchedule.length > 0 ? (
+                <Table
+                  dataSource={selectedOrder.installmentSchedule}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  rowSelection={{
+                    type: 'radio',
+                    selectedRowKeys: selectedInstallmentId ? [selectedInstallmentId] : [],
+                    onSelect: (record) => {
+                      setSelectedInstallmentId(record.id);
+                    },
+                    getCheckboxProps: (record) => ({
+                      disabled: record.status === 'PAID' || record.status === 'COMPLETED',
+                    }),
+                  }}
+                  columns={[
+                    {
+                      title: 'Kỳ',
+                      dataIndex: 'installmentNumber',
+                      key: 'installmentNumber',
+                      width: 60,
+                      render: (num) => <Text strong>#{num}</Text>
+                    },
+                    {
+                      title: 'Ngày đến hạn',
+                      dataIndex: 'dueDate',
+                      key: 'dueDate',
+                      width: 120,
+                      render: (date) => formatDateTime(date)
+                    },
+                    {
+                      title: 'Số tiền',
+                      dataIndex: 'amount',
+                      key: 'amount',
+                      width: 120,
+                      render: (amount) => (
+                        <Text strong className="text-blue-600">
+                          {formatCurrency(amount)}
+                        </Text>
+                      )
+                    },
+                    {
+                      title: 'Trạng thái',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: 100,
+                      render: (status) => {
+                        const getColor = (s) => {
+                          switch(s) {
+                            case 'PENDING': return 'orange';
+                            case 'PAID': return 'green';
+                            case 'COMPLETED': return 'blue';
+                            case 'OVERDUE': return 'red';
+                            default: return 'default';
+                          }
+                        };
+                        
+                        const getLabel = (s) => {
+                          switch(s) {
+                            case 'PENDING': return 'Chờ thanh toán';
+                            case 'PAID': return 'Đã thanh toán';
+                            case 'COMPLETED': return 'Hoàn thành';
+                            case 'OVERDUE': return 'Quá hạn';
+                            default: return s;
+                          }
+                        };
+                        
+                        return <Tag color={getColor(status)}>{getLabel(status)}</Tag>;
+                      }
+                    },
+                    {
+                      title: 'Ngày thanh toán',
+                      dataIndex: 'paidDate',
+                      key: 'paidDate',
+                      width: 120,
+                      render: (date) => date ? formatDateTime(date) : '-'
+                    }
+                  ]}
+                />
+              ) : (
+                <div className="text-center py-4">
+                  <Text type="secondary">Chưa có lịch trình thanh toán</Text>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Manual Payment Modal */}
+      <Modal
+        title={
+          <span>
+            <DollarCircleOutlined className="mr-2" />
+            Nhập thanh toán - Đơn trả thẳng
+          </span>
+        }
+        open={manualPaymentModalVisible}
+        onCancel={() => {
+          setManualPaymentModalVisible(false);
+          setManualPaymentAmount(0);
+          setManualPaymentNotes("");
+        }}
+        width={600}
+        footer={
+          <Space>
+            <Button 
+              onClick={() => {
+                setManualPaymentModalVisible(false);
+                setManualPaymentAmount(0);
+                setManualPaymentNotes("");
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              loading={manualPaymentLoading[selectedOrder?.id]}
+              onClick={() => {
+                if (selectedOrder && manualPaymentAmount > 0) {
+                  handleManualPayment(selectedOrder.id, manualPaymentAmount, manualPaymentNotes);
+                }
+              }}
+              icon={<DollarCircleOutlined />}
+              disabled={!manualPaymentAmount || manualPaymentAmount <= 0}
+            >
+              Cập nhật thanh toán
+            </Button>
+          </Space>
+        }
+      >
+        {selectedOrder && (
+          <div>
+            <Card className="mb-4" size="small">
+              <Descriptions size="small" column={1}>
+                <Descriptions.Item label="Mã đơn hàng">
+                  <Text strong>{selectedOrder.orderCode}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đại lý">
+                  <Text>{selectedOrder.dealer?.name} ({selectedOrder.dealer?.code})</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Hình thức thanh toán">
+                  <Tag color="green">Trả thẳng</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tổng tiền đơn hàng">
+                  <Text strong className="text-lg text-blue-600">
+                    {formatCurrency(selectedOrder.totalAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đã thanh toán">
+                  <Text strong className="text-lg text-green-600">
+                    {formatCurrency(selectedOrder.paidAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Còn lại">
+                  <Text strong className="text-lg text-orange-600">
+                    {formatCurrency(selectedOrder.remainingAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tiến độ thanh toán">
+                  <Progress percent={selectedOrder.paymentProgress} />
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái hiện tại">
+                  <Tag color={getStatusColor(selectedOrder.status)}>
+                    {getStatusLabel(selectedOrder.status)}
+                  </Tag>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            
+            <div className="bg-green-50 p-4 rounded-lg mb-4">
+              <Text strong className="text-green-800">Lưu ý:</Text>
+              <ul className="mt-2 text-sm text-green-700 list-disc pl-5">
+                <li>Nhập số tiền thực tế mà dealer đã thanh toán</li>
+                <li>Số tiền sẽ được cộng dồn vào số đã thanh toán trước đó</li>
+                <li>Tiến độ thanh toán sẽ được tự động cập nhật</li>
+                <li>Đơn hàng sẽ chuyển sang COMPLETED nếu thanh toán đủ</li>
+                <li>Hành động này không thể hoàn tác</li>
+              </ul>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Số tiền dealer đã thanh toán: <span className="text-red-500">*</span>
+              </label>
+              <InputNumber
+                value={manualPaymentAmount}
+                onChange={(value) => setManualPaymentAmount(value || 0)}
+                placeholder="Nhập số tiền thanh toán..."
+                className="w-full"
+                min={0}
+                max={selectedOrder?.remainingAmount}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
+                addonAfter="VND"
+              />
+              <div className="mt-1 text-xs text-gray-500">
+                Còn lại cần thanh toán: {formatCurrency(selectedOrder?.remainingAmount)} | 
+                Tối đa: {formatCurrency(selectedOrder?.remainingAmount)}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ghi chú thanh toán:
+              </label>
+              <Input.TextArea
+                value={manualPaymentNotes}
+                onChange={(e) => setManualPaymentNotes(e.target.value)}
+                placeholder="Nhập ghi chú về việc thanh toán (tùy chọn)..."
+                rows={3}
+                maxLength={500}
+                showCount
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Deposit Confirmation Modal */}
+      <Modal
+        title={
+          <span>
+            <DollarOutlined className="mr-2" />
+            Xác nhận tiền cọc - Đơn trả góp
+          </span>
+        }
+        open={depositModalVisible}
+        onCancel={() => {
+          setDepositModalVisible(false);
+          setDepositNotes("");
+          setDepositAmount(0);
+        }}
+        width={600}
+        footer={
+          <Space>
+            <Button 
+              onClick={() => {
+                setDepositModalVisible(false);
+                setDepositNotes("");
+                setDepositAmount(0);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              loading={confirmDepositLoading[selectedOrder?.id]}
+              onClick={() => {
+                if (selectedOrder && depositAmount > 0) {
+                  handleConfirmDeposit(selectedOrder.id, depositAmount, depositNotes);
+                }
+              }}
+              icon={<DollarOutlined />}
+              disabled={!depositAmount || depositAmount <= 0}
+            >
+              Xác nhận tiền cọc
+            </Button>
+          </Space>
+        }
+      >
+        {selectedOrder && (
+          <div>
+            <Card className="mb-4" size="small">
+              <Descriptions size="small" column={1}>
+                <Descriptions.Item label="Mã đơn hàng">
+                  <Text strong>{selectedOrder.orderCode}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Đại lý">
+                  <Text>{selectedOrder.dealer?.name} ({selectedOrder.dealer?.code})</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tổng tiền đơn hàng">
+                  <Text strong className="text-lg text-blue-600">
+                    {formatCurrency(selectedOrder.totalAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Tiền cọc">
+                  <Text strong className="text-lg text-orange-600">
+                    {formatCurrency(selectedOrder.depositAmount)}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Trạng thái hiện tại">
+                  <Tag color={getStatusColor(selectedOrder.status)}>
+                    {getStatusLabel(selectedOrder.status)}
+                  </Tag>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <Text strong className="text-blue-800">Lưu ý:</Text>
+              <ul className="mt-2 text-sm text-blue-700 list-disc pl-5">
+                <li>Nhập số tiền cọc thực tế mà dealer đã thanh toán</li>
+                <li>Xác nhận rằng dealer đã nộp tiền cọc cho đơn hàng trả góp</li>
+                <li>Sau khi xác nhận, tiến độ thanh toán sẽ được cập nhật</li>
+                <li>Đơn hàng có thể chuyển sang trạng thái "Đã xác nhận cọc" (PAID)</li>
+                <li>Hành động này không thể hoàn tác</li>
+              </ul>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Số tiền cọc dealer đã thanh toán: <span className="text-red-500">*</span>
+              </label>
+              <InputNumber
+                value={depositAmount}
+                onChange={(value) => setDepositAmount(value || 0)}
+                placeholder="Nhập số tiền cọc..."
+                className="w-full"
+                min={0}
+                max={selectedOrder?.totalAmount}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '')}
+                addonAfter="VND"
+              />
+              <div className="mt-1 text-xs text-gray-500">
+                Tiền cọc dự kiến: {formatCurrency(selectedOrder?.depositAmount)} | 
+                Tối đa: {formatCurrency(selectedOrder?.totalAmount)}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ghi chú xác nhận:
+              </label>
+              <Input.TextArea
+                value={depositNotes}
+                onChange={(e) => setDepositNotes(e.target.value)}
+                placeholder="Nhập ghi chú về việc xác nhận tiền cọc (tùy chọn)..."
+                rows={3}
+                maxLength={500}
+                showCount
+              />
+            </div>
           </div>
         )}
       </Modal>
