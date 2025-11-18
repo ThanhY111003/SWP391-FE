@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import {
   Card,
   Table,
@@ -15,8 +16,12 @@ import {
   Popconfirm,
   Button,
   Tooltip,
+  Upload,
+  Form,
+  DatePicker,
+  InputNumber,
 } from "antd";
-import { EyeOutlined, EditOutlined } from "@ant-design/icons";
+import { EyeOutlined, EditOutlined, UploadOutlined } from "@ant-design/icons";
 import api from "../../config/axios";
 
 const { Title } = Typography;
@@ -34,7 +39,18 @@ export default function VehicleInstances() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailRecord, setDetailRecord] = useState(null);
-  const [statusUpdating, setStatusUpdating] = useState({}); // id -> boolean
+  // const [statusUpdating, setStatusUpdating] = useState({}); // id -> boolean (no longer used for status toggle)
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null); // lưu kết quả import để hiển thị
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const fetchData = async (dealerId) => {
     setLoading(true);
@@ -223,49 +239,47 @@ export default function VehicleInstances() {
     setRowToggling((prev) => ({ ...prev, [id]: false }));
   };
 
-  const updateInstanceStatus = async (id, nextStatus) => {
-    try {
-      // Backend expects status as a query param, not JSON body
-      const res = await api.put(`vehicle-instances/${id}/status`, null, {
-        params: { status: nextStatus },
-      });
-      const ok = res?.status >= 200 && res?.status < 300;
-      const success = Object.prototype.hasOwnProperty.call(
-        res?.data || {},
-        "success"
-      )
-        ? !!res.data.success
-        : ok;
-      return { success, message: res?.data?.message };
-    } catch (e) {
-      return {
-        success: false,
-        message:
-          e?.response?.data?.message ||
-          e.message ||
-          "Không thể cập nhật trạng thái xe",
-      };
-    }
-  };
+  // old change-status helpers removed; we now edit full vehicle info instead
 
-  const changeInstanceStatus = async (record, nextStatus) => {
-    const id = record?.id ?? record?.vin;
-    if (id == null || !nextStatus) return;
-    setStatusUpdating((prev) => ({ ...prev, [id]: true }));
-    const result = await updateInstanceStatus(record.id, nextStatus);
-    if (result.success) {
-      const label =
-        nextStatus === "IN_STOCK"
-          ? "Trong kho"
-          : nextStatus === "RESERVED"
-          ? "Giữ chỗ"
-          : nextStatus;
-      messageApi.success(`Đã chuyển trạng thái sang ${label}`);
-      await fetchData(dealerIdFilter);
-    } else {
-      messageApi.error(result.message);
-    }
-    setStatusUpdating((prev) => ({ ...prev, [id]: false }));
+  const uploadProps = {
+    showUploadList: false,
+    accept: ".xlsx,.xls,.csv",
+    customRequest: async ({ file, onSuccess, onError }) => {
+      try {
+        setImporting(true);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await api.post("vehicle-instances/import", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        const payload = res?.data;
+        const data = payload?.data ?? payload;
+        setImportResult(data || null);
+        setImportModalOpen(true);
+
+        const success = payload?.success ?? true;
+        if (success) {
+          messageApi.success(
+            payload?.message || "Import danh sách xe thành công"
+          );
+          await fetchData(dealerIdFilter);
+        } else {
+          messageApi.error(payload?.message || "Import danh sách xe thất bại");
+        }
+
+        setImporting(false);
+        if (onSuccess) onSuccess(null, res);
+      } catch (e) {
+        console.error("Import vehicle-instances failed", e);
+        messageApi.error(
+          e?.response?.data?.message || "Không thể import danh sách xe"
+        );
+        setImporting(false);
+        if (onError) onError(e);
+      }
+    },
   };
 
   const columns = [
@@ -340,44 +354,57 @@ export default function VehicleInstances() {
       width: 160,
       align: "center",
       render: (_, record) => {
-        const id = record?.id ?? record?.vin;
-        const updating = !!statusUpdating[id];
-        const status = String(record?.status || "");
-        const nextStatus =
-          status === "IN_STOCK"
-            ? "RESERVED"
-            : status === "RESERVED"
-            ? "IN_STOCK"
-            : null;
-        const nextLabel =
-          nextStatus === "IN_STOCK"
-            ? "Trong kho (IN_STOCK)"
-            : nextStatus === "RESERVED"
-            ? "Giữ chỗ (RESERVED)"
-            : null;
         return (
           <Space size="small">
             <a onClick={() => openDetail(record)} title="Xem chi tiết">
               <EyeOutlined />
             </a>
-            {nextStatus ? (
-              <Popconfirm
-                title={`Chuyển sang trạng thái ${nextLabel}?`}
-                okText="Xác nhận"
-                cancelText="Hủy"
-                onConfirm={() => changeInstanceStatus(record, nextStatus)}
-              >
-                <Button
-                  type="text"
-                  icon={<EditOutlined />}
-                  loading={updating}
-                />
-              </Popconfirm>
-            ) : (
-              <Tooltip title="Chỉ chỉnh giữa IN_STOCK và RESERVED">
-                <Button type="text" icon={<EditOutlined />} disabled />
-              </Tooltip>
-            )}
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={async () => {
+                if (!record?.id) return;
+                setEditingRecord(record);
+                setEditOpen(true);
+                try {
+                  // Lấy lại chi tiết đầy đủ để đảm bảo có vehicleModelColorId
+                  const res = await api.get(`vehicle-instances/${record.id}`);
+                  const ok = res?.status >= 200 && res?.status < 300;
+                  const success = Object.prototype.hasOwnProperty.call(
+                    res?.data || {},
+                    "success"
+                  )
+                    ? !!res.data.success
+                    : ok;
+                  const data = res?.data?.data || res?.data;
+                  if (success && data) {
+                    editForm.setFieldsValue({
+                      vin: data.vin,
+                      engineNumber: data.engineNumber,
+                      manufacturingDate: data.manufacturingDate
+                        ? dayjs(data.manufacturingDate)
+                        : null,
+                      vehicleModelColorId: data.vehicleModelColorId,
+                    });
+                  } else {
+                    messageApi.error(
+                      res?.data?.message ||
+                        "Không lấy được thông tin xe để chỉnh sửa"
+                    );
+                    setEditOpen(false);
+                    setEditingRecord(null);
+                  }
+                } catch (e) {
+                  messageApi.error(
+                    e?.response?.data?.message ||
+                      e.message ||
+                      "Không lấy được thông tin xe để chỉnh sửa"
+                  );
+                  setEditOpen(false);
+                  setEditingRecord(null);
+                }
+              }}
+            />
           </Space>
         );
       },
@@ -391,6 +418,20 @@ export default function VehicleInstances() {
           <Title level={3} style={{ margin: 0 }}>
             Danh sách xe vật lý
           </Title>
+          <Space>
+            <Button type="primary" onClick={() => setCreateOpen(true)}>
+              + Tạo xe
+            </Button>
+            <Upload {...uploadProps}>
+              <Button
+                type="default"
+                icon={<UploadOutlined />}
+                loading={importing}
+              >
+                Import từ Excel
+              </Button>
+            </Upload>
+          </Space>
         </Space>
       }
     >
@@ -428,6 +469,377 @@ export default function VehicleInstances() {
         pagination={{ pageSize: 10, showSizeChanger: false }}
       />
 
+      {/* Sửa thông tin xe vật lý */}
+      <Modal
+        open={editOpen}
+        title="Chỉnh sửa xe vật lý"
+        onCancel={() => {
+          setEditOpen(false);
+          editForm.resetFields();
+          setEditingRecord(null);
+        }}
+        onOk={() => editForm.submit()}
+        confirmLoading={editing}
+        destroyOnClose
+      >
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            if (!editingRecord?.id) return;
+            try {
+              setEditing(true);
+              const payload = {
+                vin: values.vin.trim(),
+                engineNumber: values.engineNumber.trim(),
+                vehicleModelColorId: Number(values.vehicleModelColorId),
+                manufacturingDate:
+                  values.manufacturingDate.format("YYYY-MM-DD"),
+              };
+              const res = await api.put(
+                `vehicle-instances/${editingRecord.id}`,
+                payload
+              );
+              const ok = res?.status >= 200 && res?.status < 300;
+              const success = Object.prototype.hasOwnProperty.call(
+                res?.data || {},
+                "success"
+              )
+                ? !!res.data.success
+                : ok;
+              if (success) {
+                messageApi.success(
+                  res?.data?.message || "Cập nhật xe vật lý thành công"
+                );
+                setEditOpen(false);
+                editForm.resetFields();
+                setEditingRecord(null);
+                await fetchData(dealerIdFilter);
+              } else {
+                messageApi.error(
+                  res?.data?.message || "Cập nhật xe vật lý thất bại"
+                );
+              }
+            } catch (e) {
+              messageApi.error(
+                e?.response?.data?.message ||
+                  e.message ||
+                  "Không thể cập nhật xe vật lý"
+              );
+            } finally {
+              setEditing(false);
+            }
+          }}
+        >
+          <Form.Item
+            label="VIN"
+            name="vin"
+            rules={[
+              { required: true, message: "Vui lòng nhập VIN" },
+              {
+                validator: (_, value) => {
+                  const v = (value || "").trim();
+                  if (!v) return Promise.resolve();
+                  if (v.length !== 17)
+                    return Promise.reject(
+                      new Error("VIN phải có đúng 17 ký tự")
+                    );
+                  const regex = /^[A-HJ-NPR-Z0-9]+$/i;
+                  if (!regex.test(v))
+                    return Promise.reject(
+                      new Error("VIN chỉ được chứa chữ cái (trừ I,O,Q) và số")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <Input placeholder="VD: 1HGBH41JXMN109186" maxLength={17} />
+          </Form.Item>
+
+          <Form.Item
+            label="Số máy"
+            name="engineNumber"
+            rules={[
+              { required: true, message: "Vui lòng nhập số máy" },
+              {
+                min: 6,
+                message: "Số máy phải có ít nhất 6 ký tự",
+              },
+              {
+                pattern: /^[A-Z0-9]+$/i,
+                message: "Số máy chỉ được chứa chữ cái và số",
+              },
+            ]}
+          >
+            <Input placeholder="VD: ENG123456" />
+          </Form.Item>
+
+          <Form.Item
+            label="Model màu (ID)"
+            name="vehicleModelColorId"
+            rules={[
+              { required: true, message: "Vui lòng nhập ID model màu" },
+              {
+                validator: (_, value) => {
+                  if (value == null || value === "")
+                    return Promise.reject(
+                      new Error("Vui lòng nhập ID model màu")
+                    );
+                  const num = Number(value);
+                  if (!Number.isInteger(num) || num <= 0)
+                    return Promise.reject(
+                      new Error("ID model màu phải là số nguyên dương")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <InputNumber style={{ width: "100%" }} min={1} />
+          </Form.Item>
+
+          <Form.Item
+            label="Ngày sản xuất"
+            name="manufacturingDate"
+            rules={[
+              { required: true, message: "Vui lòng chọn ngày sản xuất" },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  const today = new Date();
+                  const selected = value.toDate();
+                  if (selected > today)
+                    return Promise.reject(
+                      new Error("Ngày sản xuất không được lớn hơn hôm nay")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Tạo xe vật lý thủ công */}
+      <Modal
+        open={createOpen}
+        title="Tạo xe vật lý"
+        onCancel={() => {
+          setCreateOpen(false);
+          createForm.resetFields();
+        }}
+        onOk={() => createForm.submit()}
+        confirmLoading={creating}
+        destroyOnClose
+      >
+        <Form
+          form={createForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            try {
+              setCreating(true);
+              const payload = {
+                vin: values.vin.trim(),
+                engineNumber: values.engineNumber.trim(),
+                vehicleModelColorId: Number(values.vehicleModelColorId),
+                manufacturingDate:
+                  values.manufacturingDate.format("YYYY-MM-DD"),
+              };
+              const res = await api.post("vehicle-instances", payload);
+              const ok = res?.status >= 200 && res?.status < 300;
+              const success = Object.prototype.hasOwnProperty.call(
+                res?.data || {},
+                "success"
+              )
+                ? !!res.data.success
+                : ok;
+              if (success) {
+                messageApi.success(
+                  res?.data?.message || "Tạo xe vật lý thành công"
+                );
+                setCreateOpen(false);
+                createForm.resetFields();
+                await fetchData(dealerIdFilter);
+              } else {
+                messageApi.error(
+                  res?.data?.message || "Tạo xe vật lý thất bại"
+                );
+              }
+            } catch (e) {
+              messageApi.error(
+                e?.response?.data?.message ||
+                  e.message ||
+                  "Không thể tạo xe vật lý"
+              );
+            } finally {
+              setCreating(false);
+            }
+          }}
+        >
+          <Form.Item
+            label="VIN"
+            name="vin"
+            rules={[
+              { required: true, message: "Vui lòng nhập VIN" },
+              {
+                validator: (_, value) => {
+                  const v = (value || "").trim();
+                  if (!v) return Promise.resolve();
+                  if (v.length !== 17)
+                    return Promise.reject(
+                      new Error("VIN phải có đúng 17 ký tự")
+                    );
+                  const regex = /^[A-HJ-NPR-Z0-9]+$/i;
+                  if (!regex.test(v))
+                    return Promise.reject(
+                      new Error("VIN chỉ được chứa chữ cái (trừ I,O,Q) và số")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <Input placeholder="VD: 1HGBH41JXMN109186" maxLength={17} />
+          </Form.Item>
+
+          <Form.Item
+            label="Số máy"
+            name="engineNumber"
+            rules={[
+              { required: true, message: "Vui lòng nhập số máy" },
+              {
+                min: 6,
+                message: "Số máy phải có ít nhất 6 ký tự",
+              },
+              {
+                pattern: /^[A-Z0-9]+$/i,
+                message: "Số máy chỉ được chứa chữ cái và số",
+              },
+            ]}
+          >
+            <Input placeholder="VD: ENG123456" />
+          </Form.Item>
+
+          <Form.Item
+            label="Model màu (ID)"
+            name="vehicleModelColorId"
+            rules={[
+              { required: true, message: "Vui lòng nhập ID model màu" },
+              {
+                validator: (_, value) => {
+                  if (value == null || value === "")
+                    return Promise.reject(
+                      new Error("Vui lòng nhập ID model màu")
+                    );
+                  const num = Number(value);
+                  if (!Number.isInteger(num) || num <= 0)
+                    return Promise.reject(
+                      new Error("ID model màu phải là số nguyên dương")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <InputNumber style={{ width: "100%" }} min={1} />
+          </Form.Item>
+
+          <Form.Item
+            label="Ngày sản xuất"
+            name="manufacturingDate"
+            rules={[
+              { required: true, message: "Vui lòng chọn ngày sản xuất" },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  const today = new Date();
+                  const selected = value.toDate();
+                  if (selected > today)
+                    return Promise.reject(
+                      new Error("Ngày sản xuất không được lớn hơn hôm nay")
+                    );
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
+            <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Kết quả import */}
+      <Modal
+        open={importModalOpen}
+        onCancel={() => setImportModalOpen(false)}
+        footer={null}
+        title="Kết quả import xe vật lý"
+        width={800}
+      >
+        {!importResult ? (
+          <div style={{ textAlign: "center", color: "#999" }}>
+            Không có dữ liệu import
+          </div>
+        ) : (
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Space size="large">
+              <span>Tổng dòng: {importResult.totalRows ?? 0}</span>
+              <span>Thành công: {importResult.successCount ?? 0}</span>
+              <span>Thất bại: {importResult.failureCount ?? 0}</span>
+            </Space>
+
+            {Array.isArray(importResult.successRecords) &&
+              importResult.successRecords.length > 0 && (
+                <div>
+                  <Title level={5}>Bản ghi thành công</Title>
+                  <Table
+                    size="small"
+                    pagination={false}
+                    rowKey={(r) => `${r.rowNumber}-${r.vin}`}
+                    columns={[
+                      { title: "Dòng", dataIndex: "rowNumber", width: 80 },
+                      { title: "VIN", dataIndex: "vin" },
+                      { title: "Số máy", dataIndex: "engineNumber" },
+                      { title: "Model", dataIndex: "modelName" },
+                      { title: "Màu", dataIndex: "colorName" },
+                    ]}
+                    dataSource={importResult.successRecords}
+                  />
+                </div>
+              )}
+
+            {Array.isArray(importResult.errorRecords) &&
+              importResult.errorRecords.length > 0 && (
+                <div>
+                  <Title level={5} type="danger">
+                    Bản ghi lỗi
+                  </Title>
+                  <Table
+                    size="small"
+                    pagination={false}
+                    rowKey={(r) => `${r.rowNumber}-${r.vin}`}
+                    columns={[
+                      { title: "Dòng", dataIndex: "rowNumber", width: 80 },
+                      { title: "VIN", dataIndex: "vin" },
+                      { title: "Số máy", dataIndex: "engineNumber" },
+                      {
+                        title: "ModelColor ID",
+                        dataIndex: "vehicleModelColorId",
+                        width: 140,
+                      },
+                      { title: "Lỗi", dataIndex: "errorMessage" },
+                    ]}
+                    dataSource={importResult.errorRecords}
+                  />
+                </div>
+              )}
+          </Space>
+        )}
+      </Modal>
+
       <Modal
         open={detailOpen}
         title="Chi tiết xe vật lý"
@@ -450,7 +862,8 @@ export default function VehicleInstances() {
             <Descriptions.Item label="Trạng thái">
               <Tag
                 color={
-                  detailRecord?.status === "IN_STOCK"
+                  detailRecord?.status === "IN_STOCK" ||
+                  detailRecord?.status === "AVAILABLE"
                     ? "blue"
                     : detailRecord?.status === "RESERVED"
                     ? "gold"
