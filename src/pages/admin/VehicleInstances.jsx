@@ -48,6 +48,12 @@ export default function VehicleInstances() {
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [modelOptions, setModelOptions] = useState([]);
+  const [colorOptions, setColorOptions] = useState([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingColors, setLoadingColors] = useState(false);
+  const [selectedCreateModelId, setSelectedCreateModelId] = useState(null);
+  const [selectedEditModelId, setSelectedEditModelId] = useState(null);
 
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
@@ -98,6 +104,63 @@ export default function VehicleInstances() {
   useEffect(() => {
     fetchDealers();
   }, []);
+
+  // Fetch all vehicle models for creating instances
+  useEffect(() => {
+    const loadModels = async () => {
+      setLoadingModels(true);
+      try {
+        const res = await api.get("vehicle-models");
+        const payload = res?.data;
+        let data = [];
+        if (Array.isArray(payload)) data = payload;
+        else if (Array.isArray(payload?.data)) data = payload.data;
+        else if (Array.isArray(payload?.content)) data = payload.content;
+        setModelOptions(
+          (data || []).map((m) => ({
+            label: m?.name || `Model #${m?.id}`,
+            value: m?.id,
+          }))
+        );
+      } catch (e) {
+        console.error("Fetch vehicle-models failed", e);
+        setModelOptions([]);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    loadModels();
+  }, []);
+
+  const handleCreateModelChange = async (modelId) => {
+    createForm.setFieldsValue({ vehicleModelColorId: undefined });
+    editForm.setFieldsValue({ vehicleModelColorId: undefined });
+    setSelectedCreateModelId(modelId || null);
+    setSelectedEditModelId(modelId || null);
+    if (!modelId) {
+      setColorOptions([]);
+      return;
+    }
+    setLoadingColors(true);
+    try {
+      const res = await api.get(`vehicle-models/${modelId}/colors`);
+      const payload = res?.data;
+      let data = [];
+      if (Array.isArray(payload)) data = payload;
+      else if (Array.isArray(payload?.data)) data = payload.data;
+      setColorOptions(
+        (data || []).map((c) => ({
+          label: `${c.colorName}`,
+          value: c.id,
+        }))
+      );
+    } catch (e) {
+      console.error("Fetch model colors failed", e);
+      setColorOptions([]);
+    } finally {
+      setLoadingColors(false);
+    }
+  };
 
   const dealerOptions = useMemo(() => {
     return (dealers || []).map((d) => ({
@@ -378,13 +441,62 @@ export default function VehicleInstances() {
                     : ok;
                   const data = res?.data?.data || res?.data;
                   if (success && data) {
+                    // Tìm model theo tên nếu thiếu id
+                    let modelId = data.vehicleModelId;
+                    if (
+                      !modelId &&
+                      data.modelName &&
+                      Array.isArray(modelOptions)
+                    ) {
+                      const foundModel = modelOptions.find(
+                        (m) =>
+                          m?.label &&
+                          String(m.label).toLowerCase() ===
+                            String(data.modelName).toLowerCase()
+                      );
+                      if (foundModel?.value) {
+                        modelId = foundModel.value;
+                      }
+                    }
+
+                    // load màu cho model hiện tại (nếu xác định được modelId)
+                    let colorId = data.vehicleModelColorId;
+                    if (modelId) {
+                      await handleCreateModelChange(modelId);
+
+                      // Nếu thiếu vehicleModelColorId, cố gắng map theo colorName
+                      if (
+                        !colorId &&
+                        data.colorName &&
+                        Array.isArray(colorOptions)
+                      ) {
+                        const foundColor = colorOptions.find(
+                          (c) =>
+                            c?.label &&
+                            String(c.label).toLowerCase() ===
+                              String(data.colorName).toLowerCase()
+                        );
+                        if (foundColor?.value) {
+                          colorId = foundColor.value;
+                        }
+                      }
+
+                      editForm.setFieldsValue({
+                        vehicleModelId: modelId,
+                        vehicleModelColorId: colorId,
+                      });
+                    } else {
+                      editForm.setFieldsValue({
+                        vehicleModelId: undefined,
+                        vehicleModelColorId: undefined,
+                      });
+                    }
                     editForm.setFieldsValue({
                       vin: data.vin,
                       engineNumber: data.engineNumber,
                       manufacturingDate: data.manufacturingDate
                         ? dayjs(data.manufacturingDate)
                         : null,
-                      vehicleModelColorId: data.vehicleModelColorId,
                     });
                   } else {
                     messageApi.error(
@@ -532,6 +644,20 @@ export default function VehicleInstances() {
           }}
         >
           <Form.Item
+            label="Model"
+            name="vehicleModelId"
+            rules={[{ required: true, message: "Vui lòng chọn model" }]}
+          >
+            <Select
+              placeholder="Chọn model"
+              options={modelOptions}
+              loading={loadingModels}
+              onChange={handleCreateModelChange}
+              allowClear
+            />
+          </Form.Item>
+
+          <Form.Item
             label="VIN"
             name="vin"
             rules={[
@@ -576,27 +702,26 @@ export default function VehicleInstances() {
           </Form.Item>
 
           <Form.Item
-            label="Model màu (ID)"
+            label="Màu xe"
             name="vehicleModelColorId"
             rules={[
-              { required: true, message: "Vui lòng nhập ID model màu" },
+              { required: true, message: "Vui lòng chọn màu" },
               {
                 validator: (_, value) => {
                   if (value == null || value === "")
-                    return Promise.reject(
-                      new Error("Vui lòng nhập ID model màu")
-                    );
-                  const num = Number(value);
-                  if (!Number.isInteger(num) || num <= 0)
-                    return Promise.reject(
-                      new Error("ID model màu phải là số nguyên dương")
-                    );
+                    return Promise.reject(new Error("Vui lòng chọn màu"));
                   return Promise.resolve();
                 },
               },
             ]}
           >
-            <InputNumber style={{ width: "100%" }} min={1} />
+            <Select
+              placeholder="Chọn màu cho model"
+              options={colorOptions}
+              loading={loadingColors}
+              allowClear
+              disabled={!selectedEditModelId}
+            />
           </Form.Item>
 
           <Form.Item
@@ -724,27 +849,40 @@ export default function VehicleInstances() {
           </Form.Item>
 
           <Form.Item
-            label="Model màu (ID)"
+            label="Model"
+            name="vehicleModelId"
+            rules={[{ required: true, message: "Vui lòng chọn model" }]}
+          >
+            <Select
+              placeholder="Chọn model"
+              options={modelOptions}
+              loading={loadingModels}
+              onChange={handleCreateModelChange}
+              allowClear
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Màu xe"
             name="vehicleModelColorId"
             rules={[
-              { required: true, message: "Vui lòng nhập ID model màu" },
+              { required: true, message: "Vui lòng chọn màu" },
               {
                 validator: (_, value) => {
                   if (value == null || value === "")
-                    return Promise.reject(
-                      new Error("Vui lòng nhập ID model màu")
-                    );
-                  const num = Number(value);
-                  if (!Number.isInteger(num) || num <= 0)
-                    return Promise.reject(
-                      new Error("ID model màu phải là số nguyên dương")
-                    );
+                    return Promise.reject(new Error("Vui lòng chọn màu"));
                   return Promise.resolve();
                 },
               },
             ]}
           >
-            <InputNumber style={{ width: "100%" }} min={1} />
+            <Select
+              placeholder="Chọn màu cho model"
+              options={colorOptions}
+              loading={loadingColors}
+              allowClear
+              disabled={!selectedCreateModelId}
+            />
           </Form.Item>
 
           <Form.Item
