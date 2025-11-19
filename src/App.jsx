@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Login from "./pages/login/login";
-import ManageStaff from "./pages/dealer/manageStaff";
 import ManageOrders from "./pages/dealer/manageOrders";
 import Inventory from "./pages/dealer/inventory";
 import CustomerHistory from "./pages/dealer/customerHistory";
@@ -9,8 +8,6 @@ import OrderDetail from "./pages/dealer/orderDetail";
 import VehicleCatalog from "./pages/dealer/vehicleCatalog";
 import VehicleComparison from "./pages/dealer/vehicleComparison";
 import SalesReport from "./pages/dealer/salesReport";
-import DebtReport from "./pages/dealer/debtReport";
-import ColorManagement from "./pages/dealer/colorManagement";
 import ManageCustomers from "./pages/dealer/manageCustomers";
 import ManageVehicles from "./pages/dealer/manageVehicles";
 import VehicleList from "./pages/dealer/vehicleList";
@@ -95,10 +92,6 @@ function App() {
         <Route path="/dealer/warranty" element={<WarrantyManagement />} />
         <Route path="/dealer/customer-history" element={<CustomerHistory />} />
         <Route path="/dealer/sales-report" element={<SalesReport />} />
-        <Route path="/dealer/debt-report" element={<DebtReport />} />
-        <Route path="/dealer/colors" element={<ColorManagement />} />
-        <Route path="/dealer/staff" element={<ManageStaff />} />
-        <Route path="/dealer/manageStaff" element={<ManageStaff />} />
 
         {/* EVM */}
         <Route

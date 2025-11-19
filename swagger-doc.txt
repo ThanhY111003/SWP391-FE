@@ -253,6 +253,78 @@
         }
       }
     },
+    "/api/vehicle-instances/{id}": {
+      "get": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Lấy chi tiết xe theo ID",
+        "operationId": "getById_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Cập nhật VIN, số máy, ngày sản xuất, màu/model",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleInstanceUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/vehicle-instances/{id}/status": {
       "put": {
         "tags": [
@@ -544,7 +616,7 @@
           "Quản lý khách hàng (Customer)"
         ],
         "summary": "Cập nhật thông tin khách hàng",
-        "operationId": "update_1",
+        "operationId": "update_2",
         "parameters": [
           {
             "name": "id",
@@ -1049,6 +1121,132 @@
         }
       }
     },
+    "/api/vehicle-instances": {
+      "get": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Lấy danh sách xe (lọc theo đại lý, trạng thái, active)",
+        "operationId": "getAll_1",
+        "parameters": [
+          {
+            "name": "dealerId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "IN_STOCK",
+                "RESERVED",
+                "REPAIRING",
+                "SHIPPING",
+                "SOLD"
+              ]
+            }
+          },
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Tạo xe mới nhập từ nhà máy",
+        "operationId": "create_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VehicleInstanceCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/vehicle-instances/import": {
+      "post": {
+        "tags": [
+          "Quản lý xe (Vehicle Instance)"
+        ],
+        "summary": "Import xe từ Excel (.xlsx)",
+        "operationId": "importVehicles",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "File Excel (.xlsx) để import",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleImportResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/vehicle-instances/assign-customer": {
       "post": {
         "tags": [
@@ -1238,26 +1436,17 @@
         }
       }
     },
-    "/api/defects/dealer/orders/{orderId}/vehicles/{vehicleId}/report": {
+    "/api/defects/dealer/orders/{orderId}/report": {
       "post": {
         "tags": [
           "Xe lỗi (Dealer)"
         ],
         "summary": "Báo cáo xe lỗi",
-        "description": "Dealer gửi báo cáo xe lỗi cho hãng trong đơn hàng đang giao (xe chưa về kho)",
+        "description": "Dealer báo lỗi cho chiếc xe trong đơn hàng đang giao",
         "operationId": "createReport",
         "parameters": [
           {
             "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "vehicleId",
             "in": "path",
             "required": true,
             "schema": {
@@ -1467,7 +1656,7 @@
           "Quản lý khách hàng (Customer)"
         ],
         "summary": "Tạo mới khách hàng",
-        "operationId": "create_1",
+        "operationId": "create_2",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1814,6 +2003,49 @@
         }
       }
     },
+    "/api/admin/orders/{orderId}/manual-payment": {
+      "post": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Nhập số tiền dealer đã thanh toán (Trả thẳng)",
+        "description": "Admin nhập số tiền dealer thanh toán cho đơn TRẢ THẲNG. Tự động cập nhật paidAmount, remaining, progress và COMPLETED nếu đủ.",
+        "operationId": "manualPayment",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/orders/{orderId}/installments/{installmentNumber}/confirm": {
       "post": {
         "tags": [
@@ -1842,6 +2074,49 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/orders/{orderId}/confirm-deposit": {
+      "post": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Xác nhận dealer đã thanh toán tiền cọc (Trả góp)",
+        "description": "Admin xác nhận dealer đã nộp tiền cọc cho đơn trả góp. Cập nhật tiến độ thanh toán và có thể chuyển đơn sang INSTALLMENT_ACTIVE.",
+        "operationId": "confirmDeposit",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmDepositRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -2302,26 +2577,17 @@
         }
       }
     },
-    "/api/defects/dealer/orders/{orderId}/vehicles/{vehicleId}/confirm-repaired": {
+    "/api/defects/dealer/orders/{orderId}/confirm-repaired": {
       "patch": {
         "tags": [
           "Xe lỗi (Dealer)"
         ],
-        "summary": "Xác nhận xe đã được sửa xong",
+        "summary": "Xác nhận xe sửa xong",
         "description": "Dealer xác nhận đã nhận lại xe sửa xong từ hãng",
         "operationId": "confirmRepairedVehicle",
         "parameters": [
           {
             "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "vehicleId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2812,6 +3078,48 @@
         }
       }
     },
+    "/api/admin/orders/{orderId}/attach-vehicle/{vehicleId}": {
+      "patch": {
+        "tags": [
+          "Quản lý đơn hàng (Admin)"
+        ],
+        "summary": "Gắn xe vào đơn hàng",
+        "description": "Admin chọn 1 VehicleInstance (AVAILABLE) để gắn vào đơn hàng PENDING",
+        "operationId": "attachVehicleToOrder",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/orders/{orderId}/approve": {
       "patch": {
         "tags": [
@@ -2913,94 +3221,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseListVehicleModelResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vehicle-instances": {
-      "get": {
-        "tags": [
-          "Quản lý xe (Vehicle Instance)"
-        ],
-        "summary": "Lấy danh sách xe (lọc theo đại lý, trạng thái, active)",
-        "operationId": "getAll_1",
-        "parameters": [
-          {
-            "name": "dealerId",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "IN_STOCK",
-                "RESERVED",
-                "REPAIRING",
-                "SHIPPING",
-                "SOLD"
-              ]
-            }
-          },
-          {
-            "name": "activeOnly",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/vehicle-instances/{id}": {
-      "get": {
-        "tags": [
-          "Quản lý xe (Vehicle Instance)"
-        ],
-        "summary": "Lấy chi tiết xe theo ID",
-        "operationId": "getById_1",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
                 }
               }
             }
@@ -3578,13 +3798,12 @@
         }
       }
     },
-    "/api/defects/dealer/order/{orderId}": {
+    "/api/defects/dealer/orders/{orderId}": {
       "get": {
         "tags": [
           "Xe lỗi (Dealer)"
         ],
         "summary": "Xem danh sách báo cáo xe lỗi của đơn hàng",
-        "description": "Dealer xem các xe bị lỗi trong đơn hàng của mình",
         "operationId": "getReportsByOrder",
         "parameters": [
           {
@@ -4171,6 +4390,30 @@
           },
           "description": {
             "type": "string"
+          }
+        }
+      },
+      "VehicleInstanceUpdateRequest": {
+        "required": [
+          "engineNumber",
+          "vin"
+        ],
+        "type": "object",
+        "properties": {
+          "vin": {
+            "pattern": "^[A-HJ-NPR-Z0-9]{17}$",
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "vehicleModelColorId": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -4869,6 +5112,124 @@
           }
         }
       },
+      "VehicleInstanceCreateRequest": {
+        "required": [
+          "engineNumber",
+          "vehicleModelColorId",
+          "vin"
+        ],
+        "type": "object",
+        "properties": {
+          "vin": {
+            "pattern": "^[A-HJ-NPR-Z0-9]{17}$",
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "vehicleModelColorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ApiResponseVehicleImportResult": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleImportResult"
+          }
+        }
+      },
+      "VehicleImportError": {
+        "type": "object",
+        "properties": {
+          "rowNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "vehicleModelColorId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "errorMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "VehicleImportResult": {
+        "type": "object",
+        "properties": {
+          "totalRows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "successCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failureCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "successRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleImportSuccess"
+            }
+          },
+          "errorRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleImportError"
+            }
+          }
+        }
+      },
+      "VehicleImportSuccess": {
+        "type": "object",
+        "properties": {
+          "rowNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "vehicleId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          }
+        }
+      },
       "AssignVehicleRequest": {
         "type": "object",
         "properties": {
@@ -5143,7 +5504,7 @@
       "CreateOrderRequest": {
         "required": [
           "isInstallment",
-          "orderDetails"
+          "vehicleModelColorId"
         ],
         "type": "object",
         "properties": {
@@ -5161,29 +5522,9 @@
             "minLength": 0,
             "type": "string"
           },
-          "orderDetails": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderDetailRequest"
-            }
-          }
-        }
-      },
-      "OrderDetailRequest": {
-        "required": [
-          "quantity",
-          "vehicleModelColorId"
-        ],
-        "type": "object",
-        "properties": {
           "vehicleModelColorId": {
             "type": "integer",
             "format": "int64"
-          },
-          "quantity": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -5231,6 +5572,10 @@
       "InstallmentPlanInfo": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
           "installmentNumber": {
             "type": "integer",
             "format": "int32"
@@ -5242,41 +5587,27 @@
             "type": "string",
             "format": "date"
           },
+          "paidAmount": {
+            "type": "number"
+          },
+          "paidDate": {
+            "type": "string",
+            "format": "date"
+          },
           "status": {
             "type": "string"
+          },
+          "remainingAmount": {
+            "type": "number"
           },
           "isOverdue": {
             "type": "boolean"
-          }
-        }
-      },
-      "OrderDetailInfo": {
-        "type": "object",
-        "properties": {
-          "id": {
+          },
+          "overdueDays": {
             "type": "integer",
             "format": "int64"
           },
-          "vehicleModelName": {
-            "type": "string"
-          },
-          "vehicleColorName": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "unitPrice": {
-            "type": "number"
-          },
-          "totalPrice": {
-            "type": "number"
-          },
-          "status": {
-            "type": "string"
-          },
-          "resolutionNote": {
+          "notes": {
             "type": "string"
           }
         }
@@ -5323,24 +5654,6 @@
           "notes": {
             "type": "string"
           },
-          "dealer": {
-            "$ref": "#/components/schemas/DealerInfo"
-          },
-          "createdBy": {
-            "$ref": "#/components/schemas/UserInfo"
-          },
-          "orderDetails": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderDetailInfo"
-            }
-          },
-          "installmentPlans": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InstallmentPlanInfo"
-            }
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -5348,6 +5661,24 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "dealer": {
+            "$ref": "#/components/schemas/DealerInfo"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/UserInfo"
+          },
+          "requestedModelColor": {
+            "$ref": "#/components/schemas/VehicleRequestInfo"
+          },
+          "assignedVehicle": {
+            "$ref": "#/components/schemas/VehicleAssignedInfo"
+          },
+          "installmentPlans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallmentPlanInfo"
+            }
           }
         }
       },
@@ -5358,6 +5689,45 @@
             "type": "string"
           },
           "fullName": {
+            "type": "string"
+          }
+        }
+      },
+      "VehicleAssignedInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          }
+        }
+      },
+      "VehicleRequestInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
             "type": "string"
           }
         }
@@ -5666,6 +6036,25 @@
           "dealerId": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "ManualPaymentRequest": {
+        "type": "object",
+        "properties": {
+          "paidAmount": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "ConfirmDepositRequest": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string"
           }
         }
       },

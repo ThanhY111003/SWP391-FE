@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   Col,
-  Descriptions,
   Empty,
-  Flex,
-  Input,
   Row,
   Select,
   Space,
@@ -15,6 +12,7 @@ import {
   Tag,
   Typography,
   message,
+  DatePicker,
 } from "antd";
 import {
   ResponsiveContainer,
@@ -29,42 +27,18 @@ import {
   Cell,
 } from "recharts";
 import api from "../../config/axios";
+import dayjs from "dayjs";
+import ManufacturerLayout from "../components/manufacturerLayout";
 
-// Lightweight sparkline using SVG, no extra deps
-function Sparkline({ data = [], width = 320, height = 80, color = "#1677ff" }) {
-  const path = useMemo(() => {
-    if (!data?.length || data.length < 2) return "";
-    const xs = data.map((_, i) => (i / (data.length - 1)) * (width - 8) + 4);
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const range = max - min || 1;
-    const ys = data.map((v) => height - 4 - ((v - min) / range) * (height - 8));
-    return xs.map((x, i) => `${i ? "L" : "M"}${x},${ys[i]}`).join(" ");
-  }, [data, width, height]);
-  if (!data?.length || data.length < 2)
-    return (
-      <div
-        style={{ height, display: "flex", alignItems: "center", color: "#999" }}
-      >
-        Không đủ dữ liệu
-      </div>
-    );
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        points={path.replace(/[ML]/g, "")}
-      />
-    </svg>
-  );
-}
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const [range, setRange] = useState("30d"); // 7d | 30d | 90d
+  const [dateRange, setDateRange] = useState([dayjs().subtract(30, "days"), dayjs()]);
+  const [groupBy, setGroupBy] = useState("all"); // all | day | month | year
+  const [limit, setLimit] = useState(5);
 
   const [topModels, setTopModels] = useState([]);
   const [topDealers, setTopDealers] = useState([]);
@@ -80,44 +54,64 @@ export default function Reports() {
     "#13c2c2",
   ];
 
-  const normalizeList = (payload) => {
-    if (Array.isArray(payload)) return payload;
-    if (Array.isArray(payload?.data)) return payload.data;
-    if (Array.isArray(payload?.content)) return payload.content;
+  // Xử lý response từ API (có wrapper ApiResponse)
+  const extractData = (response) => {
+    if (!response?.data) return [];
+    // API Admin Report trả về dạng ApiResponse với data là array
+    if (response.data.success && Array.isArray(response.data.data)) {
+      return response.data.data;
+    }
+    // Fallback: nếu không có wrapper
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.data?.data)) return response.data.data;
     return [];
   };
 
   const fetchAll = async () => {
     setLoading(true);
     try {
-      // optionally append ?range= to endpoints if BE supports
-      const q = range ? `?range=${encodeURIComponent(range)}` : "";
-      const [m, d, s, i, p] = await Promise.all([
-        api.get(`reports/admin/top-models${q}`).catch(() => ({ data: [] })),
-        api.get(`reports/admin/top-dealers${q}`).catch(() => ({ data: [] })),
-        api.get(`reports/admin/sales-trend${q}`).catch(() => ({ data: [] })),
-        api
-          .get(`reports/admin/inventory-summary${q}`)
-          .catch(() => ({ data: {} })),
-        api
-          .get(`reports/admin/dealer-performance${q}`)
-          .catch(() => ({ data: [] })),
-      ]);
-      setTopModels(normalizeList(m?.data));
-      setTopDealers(normalizeList(d?.data));
+      const params = new URLSearchParams();
+      if (dateRange[0]) params.append("fromDate", dateRange[0].format("YYYY-MM-DD"));
+      if (dateRange[1]) params.append("toDate", dateRange[1].format("YYYY-MM-DD"));
+      
+      // Fetch Top Models
+      const topModelsParams = new URLSearchParams(params);
+      topModelsParams.append("limit", limit);
+      const topModelsRes = await api.get(`reports/admin/top-models?${topModelsParams.toString()}`).catch(() => ({ data: { success: true, data: [] } }));
+      
+      // Fetch Top Dealers
+      const topDealersParams = new URLSearchParams(params);
+      topDealersParams.append("limit", limit);
+      const topDealersRes = await api.get(`reports/admin/top-dealers?${topDealersParams.toString()}`).catch(() => ({ data: { success: true, data: [] } }));
+      
+      // Fetch Sales Trend
+      const salesParams = new URLSearchParams(params);
+      salesParams.append("groupBy", groupBy);
+      const salesRes = await api.get(`reports/admin/sales-trend?${salesParams.toString()}`).catch(() => ({ data: { success: true, data: [] } }));
+      
+      // Fetch Inventory Summary
+      const inventoryRes = await api.get(`reports/admin/inventory-summary`).catch(() => ({ data: { success: true, data: [] } }));
+      
+      // Fetch Dealer Performance
+      const dealerPerfRes = await api.get(`reports/admin/dealer-performance?${params.toString()}`).catch(() => ({ data: { success: true, data: [] } }));
+
+      setTopModels(extractData(topModelsRes));
+      setTopDealers(extractData(topDealersRes));
+      
       // sales-trend trả về dạng [{ period, soldCount, totalRevenue }]
-      const salesPayload = normalizeList(s?.data);
+      const salesData = extractData(salesRes);
       setSalesTrend(
-        Array.isArray(salesPayload)
-          ? salesPayload.map((x) => ({
-              period: x?.period || "ALL_TIME",
+        Array.isArray(salesData)
+          ? salesData.map((x) => ({
+              period: x?.period || "N/A",
               soldCount: Number(x?.soldCount ?? 0),
               totalRevenue: Number(x?.totalRevenue ?? 0),
             }))
           : []
       );
-      setInventory(normalizeList(i?.data));
-      setDealerPerf(normalizeList(p?.data));
+      
+      setInventory(extractData(inventoryRes));
+      setDealerPerf(extractData(dealerPerfRes));
     } catch (err) {
       console.error("Fetch reports failed", err);
       messageApi.error(
@@ -131,7 +125,7 @@ export default function Reports() {
   useEffect(() => {
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range]);
+  }, [dateRange, groupBy, limit]);
 
   const modelColumns = [
     {
@@ -152,12 +146,12 @@ export default function Reports() {
       render: (v) => Number(v ?? 0).toLocaleString(),
     },
     {
-      title: "Doanh thu (VND)",
+      title: "Doanh thu",
       dataIndex: "totalRevenue",
       key: "totalRevenue",
       width: 180,
       align: "right",
-      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
+      render: (v) => formatCurrency(v),
     },
   ];
 
@@ -189,12 +183,12 @@ export default function Reports() {
       render: (v) => Number(v ?? 0).toLocaleString(),
     },
     {
-      title: "Tổng tiền (VND)",
+      title: "Tổng tiền",
       dataIndex: "totalAmount",
       key: "totalAmount",
       width: 180,
       align: "right",
-      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
+      render: (v) => formatCurrency(v),
     },
   ];
 
@@ -227,12 +221,12 @@ export default function Reports() {
       render: (v) => Number(v ?? 0).toLocaleString(),
     },
     {
-      title: "Doanh thu (VND)",
+      title: "Doanh thu",
       dataIndex: "revenue",
       key: "revenue",
       width: 160,
       align: "right",
-      render: (v) => (v != null ? Number(v).toLocaleString() : 0),
+      render: (v) => formatCurrency(v),
     },
     {
       title: "Tỷ lệ thành công",
@@ -245,6 +239,14 @@ export default function Reports() {
     },
   ];
 
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount || 0);
+  };
+
   const SummaryCards = () => {
     const totals = (inventory || []).reduce(
       (acc, it) => {
@@ -255,225 +257,291 @@ export default function Reports() {
       },
       { total: 0, available: 0, reserved: 0 }
     );
+    
+    // Tính tổng doanh thu và số xe đã bán từ salesTrend
+    const totalRevenue = salesTrend.reduce((sum, item) => sum + (item.totalRevenue || 0), 0);
+    const totalSold = salesTrend.reduce((sum, item) => sum + (item.soldCount || 0), 0);
+    
     return (
       <Row gutter={[12, 12]}>
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} md={6}>
           <Card size="small">
-            <Statistic title="Tổng tồn kho" value={totals.total} />
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card size="small">
-            <Statistic
-              title="Sẵn sàng bán (available)"
-              value={totals.available}
+            <Statistic 
+              title="Tổng doanh thu" 
+              value={totalRevenue}
+              formatter={(value) => formatCurrency(value)}
+              valueStyle={{ color: "#3f8600" }}
             />
           </Card>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} md={6}>
           <Card size="small">
-            <Statistic title="Đang giữ chỗ" value={totals.reserved} />
+            <Statistic 
+              title="Tổng số xe đã bán" 
+              value={totalSold}
+              valueStyle={{ color: "#1890ff" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small">
+            <Statistic
+              title="Tổng tồn kho"
+              value={totals.total}
+              valueStyle={{ color: "#722ed1" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small">
+            <Statistic
+              title="Sẵn sàng bán"
+              value={totals.available}
+              valueStyle={{ color: "#52c41a" }}
+            />
           </Card>
         </Col>
       </Row>
     );
   };
 
+  // Prepare chart data
+  const salesChartData = salesTrend.map((item) => ({
+    period: item.period || "N/A",
+    revenue: item.totalRevenue || 0,
+    sold: item.soldCount || 0,
+  }));
+
   return (
-    <div>
-      {contextHolder}
-      <Row gutter={[12, 12]} align="middle" style={{ marginBottom: 12 }}>
-        <Col flex="auto">
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            Thống kê
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            Báo cáo dành cho hãng
-          </Typography.Text>
-        </Col>
-        <Col>
-          <Select
-            value={range}
-            onChange={setRange}
-            style={{ width: 160 }}
-            options={[
-              { label: "7 ngày", value: "7d" },
-              { label: "30 ngày", value: "30d" },
-              { label: "90 ngày", value: "90d" },
-            ]}
-          />
-        </Col>
-      </Row>
-
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
-          <Spin />
-        </div>
-      ) : (
-        <Space direction="vertical" size={12} style={{ width: "100%" }}>
-          <SummaryCards />
-
-          <Row gutter={[12, 12]}>
-            <Col xs={24} md={12} lg={12}>
-              <Card
-                style={{
-                  borderColor: "#faad14",
-                  background:
-                    "linear-gradient(135deg, rgba(250,173,20,0.12), rgba(250,173,20,0.02))",
-                }}
-                headStyle={{
-                  fontWeight: 700,
-                  color: "#d48806",
-                  fontSize: 16,
-                }}
-                bodyStyle={{ padding: "16px 20px" }}
-                title="TỔNG DOANH THU HỆ THỐNG"
+    <ManufacturerLayout>
+      <div className="p-3 sm:p-6">
+        {contextHolder}
+        <Row gutter={[12, 12]} align="middle" style={{ marginBottom: 12 }}>
+          <Col flex="auto">
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              Thống kê
+            </Typography.Title>
+            <Typography.Text type="secondary">
+              Báo cáo dành cho hãng (ADMIN)
+            </Typography.Text>
+          </Col>
+          <Col>
+            <Space wrap>
+              <RangePicker
+                value={dateRange}
+                onChange={(dates) => setDateRange(dates || [dayjs().subtract(30, "days"), dayjs()])}
+                format="DD/MM/YYYY"
+                placeholder={["Từ ngày", "Đến ngày"]}
+              />
+              <Select
+                value={groupBy}
+                onChange={setGroupBy}
+                style={{ width: 150 }}
               >
-                {salesTrend?.length ? (
-                  <Statistic
-                    value={salesTrend[0].totalRevenue}
-                    suffix="VND"
-                    valueRender={() => (
-                      <span
-                        style={{
-                          fontSize: 28,
-                          fontWeight: 700,
-                          color: "#cf1322",
-                        }}
-                      >
-                        {Number(salesTrend[0].totalRevenue).toLocaleString()}{" "}
-                        VND
-                      </span>
-                    )}
-                  />
-                ) : (
-                  <Empty description="Không có dữ liệu" />
-                )}
-              </Card>
-            </Col>
-            <Col xs={24} md={6} lg={6}>
-              <Card size="small" title="Tổng số xe đã bán">
-                {salesTrend?.length ? (
-                  <Statistic
-                    value={salesTrend[0].soldCount}
-                    valueRender={() => (
-                      <span style={{ fontSize: 20, fontWeight: 600 }}>
-                        {Number(salesTrend[0].soldCount).toLocaleString()}
-                      </span>
-                    )}
-                  />
-                ) : (
-                  <Empty description="Không có dữ liệu" />
-                )}
-              </Card>
-            </Col>
-            <Col xs={24} md={6} lg={6}>
-              <Card size="small" title="Kỳ thống kê">
-                {salesTrend?.length ? (
-                  <Descriptions column={1} size="small" bordered>
-                    <Descriptions.Item label="Kỳ">
-                      {salesTrend[0].period || "ALL_TIME"}
-                    </Descriptions.Item>
-                  </Descriptions>
-                ) : (
-                  <Empty description="Không có dữ liệu" />
-                )}
-              </Card>
-            </Col>
-          </Row>
+                <Option value="all">Tất cả</Option>
+                <Option value="day">Theo ngày</Option>
+                <Option value="month">Theo tháng</Option>
+                <Option value="year">Theo năm</Option>
+              </Select>
+              <Select
+                value={limit}
+                onChange={setLimit}
+                style={{ width: 120 }}
+              >
+                <Option value={5}>Top 5</Option>
+                <Option value={10}>Top 10</Option>
+                <Option value={20}>Top 20</Option>
+              </Select>
+            </Space>
+          </Col>
+        </Row>
 
-          <Row gutter={[12, 12]}>
-            <Col xs={24} md={12}>
-              <Card size="small" title="Top mẫu xe bán chạy">
-                <Table
-                  size="small"
-                  rowKey={(r) =>
-                    String(
-                      r?.id ??
-                        r?.modelId ??
-                        `${r?.modelName ?? "model"}-${r?.colorName ?? ""}`
-                    )
-                  }
-                  columns={modelColumns}
-                  dataSource={topModels}
-                  pagination={{ pageSize: 5 }}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} md={12}>
-              <Card size="small" title="Top đại lý mua nhiều nhất">
-                <Table
-                  size="small"
-                  rowKey={(r) =>
-                    String(
-                      r?.id ??
-                        r?.dealerId ??
-                        `${r?.dealerName ?? "dealer"}-$${r?.totalOrders ?? ""}`
-                    )
-                  }
-                  columns={dealerColumns}
-                  dataSource={topDealers}
-                  pagination={{ pageSize: 5 }}
-                />
-              </Card>
-            </Col>
-          </Row>
+        <Spin spinning={loading}>
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <SummaryCards />
 
-          <Card size="small" title="Hiệu suất đại lý">
+            {/* Biểu đồ doanh thu */}
             <Row gutter={[12, 12]}>
-              <Col xs={24} md={14}>
-                {dealerPerf?.length ? (
-                  <div style={{ width: "100%", height: 320 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+              <Col xs={24} lg={16}>
+                <Card title="Doanh thu hệ thống">
+                  {salesChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={salesChartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis yAxisId="left" />
+                        <YAxis yAxisId="right" orientation="right" />
                         <Tooltip
-                          formatter={(value) => [
-                            Number(value).toLocaleString(),
-                            "Doanh thu",
-                          ]}
+                          formatter={(value, name) => {
+                            if (name === "revenue") return formatCurrency(value);
+                            return value;
+                          }}
                         />
-                        <Pie
-                          data={dealerPerf}
+                        <Line
+                          yAxisId="left"
+                          type="monotone"
+                          dataKey="sold"
+                          stroke="#1890ff"
+                          name="Số lượng bán"
+                          strokeWidth={2}
+                        />
+                        <Line
+                          yAxisId="right"
+                          type="monotone"
                           dataKey="revenue"
-                          nameKey="dealerName"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={110}
-                          label={(entry) => `${entry.dealerName}`}
-                        >
-                          {dealerPerf.map((_, index) => (
-                            <Cell
-                              key={index}
-                              fill={pieColors[index % pieColors.length]}
-                            />
-                          ))}
-                        </Pie>
-                      </PieChart>
+                          stroke="#52c41a"
+                          name="Doanh thu"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
                     </ResponsiveContainer>
-                  </div>
-                ) : (
-                  <Empty description="Không có dữ liệu" />
-                )}
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">Không có dữ liệu</div>
+                  )}
+                </Card>
               </Col>
-              <Col xs={24} md={10}>
-                <Table
-                  size="small"
-                  rowKey={(r) =>
-                    String(
-                      r?.id ??
-                        r?.dealerId ??
-                        `${r?.dealerName ?? "p"}-${r?.totalOrders ?? ""}`
-                    )
-                  }
-                  columns={perfColumns}
-                  dataSource={dealerPerf}
-                  pagination={{ pageSize: 8, size: "small" }}
-                />
+              <Col xs={24} lg={8}>
+                <Card title="Tổng hợp">
+                  <Space direction="vertical" style={{ width: "100%" }} size="large">
+                    <Statistic
+                      title="Tổng doanh thu"
+                      value={salesTrend.reduce((sum, item) => sum + (item.totalRevenue || 0), 0)}
+                      formatter={(value) => formatCurrency(value)}
+                      valueStyle={{ color: "#3f8600", fontSize: 20 }}
+                    />
+                    <Statistic
+                      title="Tổng số xe đã bán"
+                      value={salesTrend.reduce((sum, item) => sum + (item.soldCount || 0), 0)}
+                      valueStyle={{ color: "#1890ff", fontSize: 20 }}
+                    />
+                  </Space>
+                </Card>
               </Col>
             </Row>
-          </Card>
-        </Space>
-      )}
-    </div>
+
+            <Row gutter={[12, 12]}>
+              <Col xs={24} lg={12}>
+                <Card title="Top mẫu xe bán chạy">
+                  <Table
+                    size="small"
+                    rowKey={(r, index) =>
+                      `${r?.modelName ?? "model"}-${r?.colorName ?? ""}-${index}`
+                    }
+                    columns={modelColumns}
+                    dataSource={topModels}
+                    pagination={{ pageSize: 5 }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} lg={12}>
+                <Card title="Top đại lý mua nhiều nhất">
+                  <Table
+                    size="small"
+                    rowKey={(r, index) =>
+                      `${r?.dealerId ?? r?.dealerName ?? "dealer"}-${index}`
+                    }
+                    columns={dealerColumns}
+                    dataSource={topDealers}
+                    pagination={{ pageSize: 5 }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+
+            <Card title="Hiệu suất đại lý">
+              <Row gutter={[12, 12]}>
+                <Col xs={24} md={14}>
+                  {dealerPerf?.length ? (
+                    <div style={{ width: "100%", height: 320 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Tooltip
+                            formatter={(value) => [
+                              formatCurrency(value),
+                              "Doanh thu",
+                            ]}
+                          />
+                          <Pie
+                            data={dealerPerf}
+                            dataKey="revenue"
+                            nameKey="dealerName"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={110}
+                            label={(entry) => `${entry.dealerName}`}
+                          >
+                            {dealerPerf.map((_, index) => (
+                              <Cell
+                                key={index}
+                                fill={pieColors[index % pieColors.length]}
+                              />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <Empty description="Không có dữ liệu" />
+                  )}
+                </Col>
+                <Col xs={24} md={10}>
+                  <Table
+                    size="small"
+                    rowKey={(r, index) =>
+                      `${r?.dealerName ?? "p"}-${index}`
+                    }
+                    columns={perfColumns}
+                    dataSource={dealerPerf}
+                    pagination={{ pageSize: 8, size: "small" }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Tổng hợp tồn kho */}
+            <Card title="Tổng hợp tồn kho">
+              <Table
+                dataSource={inventory}
+                rowKey={(record, index) => `${record.modelName}-${record.colorName}-${index}`}
+                pagination={{ pageSize: 10 }}
+                scroll={{ x: 'max-content' }}
+                columns={[
+                  {
+                    title: "Model",
+                    key: "model",
+                    render: (_, record) => (
+                      <div>
+                        <div className="font-semibold">{record.modelName}</div>
+                        <Tag color="purple">{record.colorName}</Tag>
+                      </div>
+                    ),
+                  },
+                  {
+                    title: "Tổng tồn kho",
+                    dataIndex: "total",
+                    key: "total",
+                    align: "center",
+                  },
+                  {
+                    title: "Khả dụng",
+                    dataIndex: "available",
+                    key: "available",
+                    align: "center",
+                    render: (value) => <Tag color="green">{value}</Tag>,
+                  },
+                  {
+                    title: "Đã đặt",
+                    dataIndex: "reserved",
+                    key: "reserved",
+                    align: "center",
+                    render: (value) => <Tag color="orange">{value}</Tag>,
+                  },
+                ]}
+              />
+            </Card>
+          </Space>
+        </Spin>
+      </div>
+    </ManufacturerLayout>
   );
 }

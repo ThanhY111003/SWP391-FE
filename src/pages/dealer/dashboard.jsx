@@ -1,447 +1,586 @@
-// src/pages/dealer/dashboard.jsx
-import { Card, Statistic, Row, Col, Skeleton, Table, Tag, Spin, DatePicker, Select, Space } from "antd";
 import { useEffect, useState } from "react";
-import DealerLayout from "../components/dealerlayout";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  Card,
+  Col,
+  Empty,
+  Row,
+  Select,
+  Space,
+  Spin,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  message,
+  DatePicker,
+} from "antd";
+import {
   ResponsiveContainer,
   LineChart,
   Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from "recharts";
-import apiClient from "../../utils/axiosConfig";
+import {
+  DollarOutlined,
+  ShoppingCartOutlined,
+  CarOutlined,
+  TeamOutlined,
+  TrophyOutlined,
+  BarChartOutlined,
+} from "@ant-design/icons";
+import api from "../../config/axios";
 import dayjs from "dayjs";
+import DealerLayout from "../components/dealerlayout";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { Title } = Typography;
 
 export default function DealerDashboard() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  const [dateRange, setDateRange] = useState([
+    dayjs().subtract(30, "days"),
+    dayjs(),
+  ]);
+  const [groupBy, setGroupBy] = useState("all"); // all | day | month | year
+  const [limit, setLimit] = useState(5);
+
   const [topModels, setTopModels] = useState([]);
   const [topCustomers, setTopCustomers] = useState([]);
   const [salesTrend, setSalesTrend] = useState([]);
-  const [inventoryStatus, setInventoryStatus] = useState([]);
-  const [dateRange, setDateRange] = useState([dayjs().subtract(30, "days"), dayjs()]);
-  const [groupBy, setGroupBy] = useState("all");
-  const [limit, setLimit] = useState(5);
+  const [inventory, setInventory] = useState([]);
 
-  // 1. Fetch Top Models
-  const fetchTopModels = async () => {
-    try {
-      const params = new URLSearchParams();
-      params.append("limit", limit);
-      if (dateRange[0]) params.append("fromDate", dateRange[0].format("YYYY-MM-DD"));
-      if (dateRange[1]) params.append("toDate", dateRange[1].format("YYYY-MM-DD"));
+  const pieColors = [
+    "#1677ff",
+    "#52c41a",
+    "#faad14",
+    "#ff4d4f",
+    "#722ed1",
+    "#13c2c2",
+  ];
 
-      const res = await apiClient.get(`/api/reports/dealer/top-models?${params.toString()}`);
-      if (res.data && Array.isArray(res.data)) {
-        setTopModels(res.data);
-      } else if (res.data?.success && res.data.data) {
-        setTopModels(res.data.data);
-      } else {
-        setTopModels([]);
-      }
-    } catch (err) {
-      console.error("Error fetching top models:", err);
-      setTopModels([]);
+  // Xử lý response từ API
+  const extractData = (response) => {
+    if (!response?.data) return [];
+    // API có thể trả về dạng array trực tiếp hoặc có wrapper
+    if (Array.isArray(response.data)) return response.data;
+    if (response.data.success && Array.isArray(response.data.data)) {
+      return response.data.data;
     }
+    if (Array.isArray(response.data?.data)) return response.data.data;
+    return [];
   };
 
-  // 2. Fetch Top Customers
-  const fetchTopCustomers = async () => {
-    try {
-      const params = new URLSearchParams();
-      params.append("limit", limit);
-      if (dateRange[0]) params.append("fromDate", dateRange[0].format("YYYY-MM-DD"));
-      if (dateRange[1]) params.append("toDate", dateRange[1].format("YYYY-MM-DD"));
-
-      const res = await apiClient.get(`/api/reports/dealer/top-customers?${params.toString()}`);
-      if (res.data && Array.isArray(res.data)) {
-        setTopCustomers(res.data);
-      } else if (res.data?.success && res.data.data) {
-        setTopCustomers(res.data.data);
-      } else {
-        setTopCustomers([]);
-      }
-    } catch (err) {
-      console.error("Error fetching top customers:", err);
-      setTopCustomers([]);
-    }
-  };
-
-  // 3. Fetch Sales Trend
-  const fetchSalesTrend = async () => {
-    try {
-      const params = new URLSearchParams();
-      params.append("groupBy", groupBy);
-      if (dateRange[0]) params.append("fromDate", dateRange[0].format("YYYY-MM-DD"));
-      if (dateRange[1]) params.append("toDate", dateRange[1].format("YYYY-MM-DD"));
-
-      const res = await apiClient.get(`/api/reports/dealer/sales-trend?${params.toString()}`);
-      if (res.data && Array.isArray(res.data)) {
-        setSalesTrend(res.data);
-      } else if (res.data?.success && res.data.data) {
-        setSalesTrend(res.data.data);
-      } else {
-        setSalesTrend([]);
-      }
-    } catch (err) {
-      console.error("Error fetching sales trend:", err);
-      setSalesTrend([]);
-    }
-  };
-
-  // 4. Fetch Inventory Status
-  const fetchInventoryStatus = async () => {
-    try {
-      const res = await apiClient.get("/api/reports/dealer/inventory-status");
-      if (res.data && Array.isArray(res.data)) {
-        setInventoryStatus(res.data);
-      } else if (res.data?.success && res.data.data) {
-        setInventoryStatus(res.data.data);
-      } else {
-        setInventoryStatus([]);
-      }
-    } catch (err) {
-      console.error("Error fetching inventory status:", err);
-      setInventoryStatus([]);
-    }
-  };
-
-  // 5. Load all data
-  const fetchAllData = async () => {
+  const fetchAll = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        fetchTopModels(),
-        fetchTopCustomers(),
-        fetchSalesTrend(),
-        fetchInventoryStatus(),
-      ]);
-    } catch (err) {
-      console.error("Error fetching dashboard data:", err);
+      const params = new URLSearchParams();
+      if (dateRange[0])
+        params.append("fromDate", dateRange[0].format("YYYY-MM-DD"));
+      if (dateRange[1])
+        params.append("toDate", dateRange[1].format("YYYY-MM-DD"));
+
+      // Fetch Top Models
+      const topModelsParams = new URLSearchParams(params);
+      topModelsParams.append("limit", limit);
+      const topModelsRes = await api
+        .get(`reports/dealer/top-models?${topModelsParams.toString()}`)
+        .catch(() => ({ data: [] }));
+
+      // Fetch Top Customers
+      const topCustomersParams = new URLSearchParams(params);
+      topCustomersParams.append("limit", limit);
+      const topCustomersRes = await api
+        .get(`reports/dealer/top-customers?${topCustomersParams.toString()}`)
+        .catch(() => ({ data: [] }));
+
+      // Fetch Sales Trend
+      const salesParams = new URLSearchParams(params);
+      salesParams.append("groupBy", groupBy);
+      const salesRes = await api
+        .get(`reports/dealer/sales-trend?${salesParams.toString()}`)
+        .catch(() => ({ data: [] }));
+
+      // Fetch Inventory Status
+      const inventoryRes = await api
+        .get(`reports/dealer/inventory-status`)
+        .catch(() => ({ data: [] }));
+
+      setTopModels(extractData(topModelsRes));
+      setTopCustomers(extractData(topCustomersRes));
+      setSalesTrend(extractData(salesRes));
+      setInventory(extractData(inventoryRes));
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      messageApi.error("Không thể tải dữ liệu dashboard");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAllData();
+    fetchAll();
   }, [dateRange, groupBy, limit]);
 
-  // 6. Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount || 0);
-  };
+  // Tính toán tổng doanh thu và số lượng bán
+  const totalRevenue = salesTrend.reduce(
+    (sum, item) => sum + (item.totalRevenue || 0),
+    0
+  );
+  const totalSold = salesTrend.reduce(
+    (sum, item) => sum + (item.soldCount || 0),
+    0
+  );
+  const avgOrderValue =
+    totalSold > 0 ? totalRevenue / totalSold : 0;
 
-  // 7. Calculate summary stats
-  const totalRevenue = salesTrend.reduce((sum, item) => sum + (item.totalRevenue || 0), 0);
-  const totalSold = salesTrend.reduce((sum, item) => sum + (item.soldCount || 0), 0);
-  const totalInventory = inventoryStatus.reduce((sum, item) => sum + (item.totalStock || 0), 0);
-  const availableInventory = inventoryStatus.reduce((sum, item) => sum + (item.available || 0), 0);
+  // Tính tổng tồn kho
+  const totalStock = inventory.reduce(
+    (sum, item) => sum + (item.totalStock || 0),
+    0
+  );
+  const totalAvailable = inventory.reduce(
+    (sum, item) => sum + (item.available || 0),
+    0
+  );
 
-  // 8. Prepare chart data
-  const salesChartData = salesTrend.map((item) => ({
-    period: item.period || "N/A",
-    revenue: item.totalRevenue || 0,
-    sold: item.soldCount || 0,
-  }));
+  // Bảng Top Models
+  const topModelsColumns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 60,
+      render: (_, __, index) => index + 1,
+    },
+    {
+      title: "Mẫu xe",
+      dataIndex: "modelName",
+      key: "modelName",
+    },
+    {
+      title: "Màu",
+      dataIndex: "colorName",
+      key: "colorName",
+      render: (color) => <Tag color="blue">{color}</Tag>,
+    },
+    {
+      title: "Số lượng bán",
+      dataIndex: "soldCount",
+      key: "soldCount",
+      align: "center",
+      render: (count) => count?.toLocaleString("vi-VN") || 0,
+    },
+    {
+      title: "Doanh thu",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      align: "right",
+      render: (revenue) =>
+        revenue
+          ? `${revenue.toLocaleString("vi-VN")} VNĐ`
+          : "0 VNĐ",
+    },
+  ];
 
-  const topModelsChartData = topModels.map((item, index) => ({
-    name: `${item.modelName} - ${item.colorName}`,
-    value: item.soldCount || 0,
-    revenue: item.totalRevenue || 0,
-  }));
+  // Bảng Top Customers
+  const topCustomersColumns = [
+    {
+      title: "STT",
+      key: "index",
+      width: 60,
+      render: (_, __, index) => index + 1,
+    },
+    {
+      title: "Tên khách hàng",
+      dataIndex: "customerName",
+      key: "customerName",
+    },
+    {
+      title: "Số xe đã mua",
+      dataIndex: "totalVehicles",
+      key: "totalVehicles",
+      align: "center",
+      render: (count) => count?.toLocaleString("vi-VN") || 0,
+    },
+    {
+      title: "Tổng chi tiêu",
+      dataIndex: "totalSpent",
+      key: "totalSpent",
+      align: "right",
+      render: (spent) =>
+        spent ? `${spent.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ",
+    },
+    {
+      title: "Lần mua cuối",
+      dataIndex: "lastPurchase",
+      key: "lastPurchase",
+      render: (date) =>
+        date ? dayjs(date).format("DD/MM/YYYY") : "N/A",
+    },
+  ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  // Bảng Inventory
+  const inventoryColumns = [
+    {
+      title: "Mẫu xe",
+      dataIndex: "modelName",
+      key: "modelName",
+    },
+    {
+      title: "Màu",
+      dataIndex: "colorName",
+      key: "colorName",
+      render: (color) => <Tag color="green">{color}</Tag>,
+    },
+    {
+      title: "Tổng tồn kho",
+      dataIndex: "totalStock",
+      key: "totalStock",
+      align: "center",
+      render: (stock) => stock?.toLocaleString("vi-VN") || 0,
+    },
+    {
+      title: "Có sẵn",
+      dataIndex: "available",
+      key: "available",
+      align: "center",
+      render: (available) => (
+        <Tag color="success">{available?.toLocaleString("vi-VN") || 0}</Tag>
+      ),
+    },
+    {
+      title: "Đã đặt",
+      dataIndex: "reserved",
+      key: "reserved",
+      align: "center",
+      render: (reserved) => (
+        <Tag color="warning">{reserved?.toLocaleString("vi-VN") || 0}</Tag>
+      ),
+    },
+    {
+      title: "Đã bán",
+      dataIndex: "soldCount",
+      key: "soldCount",
+      align: "center",
+      render: (sold) => sold?.toLocaleString("vi-VN") || 0,
+    },
+  ];
 
   return (
     <DealerLayout>
-      <div className="p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Dealer Dashboard</h2>
-          <Space direction="vertical" size="small" className="w-full sm:w-auto">
-            <Space wrap>
-              <RangePicker
-                value={dateRange}
-                onChange={(dates) => setDateRange(dates || [dayjs().subtract(30, "days"), dayjs()])}
-                format="DD/MM/YYYY"
-                placeholder={["Từ ngày", "Đến ngày"]}
-              />
-              <Select
-                value={groupBy}
-                onChange={setGroupBy}
-                style={{ width: 150 }}
-              >
-                <Option value="all">Tất cả</Option>
-                <Option value="day">Theo ngày</Option>
-                <Option value="month">Theo tháng</Option>
-                <Option value="year">Theo năm</Option>
-              </Select>
-              <Select
-                value={limit}
-                onChange={setLimit}
-                style={{ width: 120 }}
-              >
-                <Option value={5}>Top 5</Option>
-                <Option value={10}>Top 10</Option>
-                <Option value={20}>Top 20</Option>
-              </Select>
-            </Space>
-          </Space>
-        </div>
+      {contextHolder}
+      <div style={{ padding: "24px" }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
+          {/* Header */}
+          <div>
+            <Title level={2}>
+              <BarChartOutlined /> Dashboard
+            </Title>
+            <Typography.Text type="secondary">
+              Tổng quan hoạt động kinh doanh của đại lý
+            </Typography.Text>
+          </div>
 
-        <Spin spinning={loading}>
-          {/* Thống kê tổng quan */}
-          <Row gutter={[16, 16]} className="mb-6">
-            <Col xs={24} sm={12} md={6}>
-              <Card className="shadow-md">
+          {/* Filters */}
+          <Card>
+            <Row gutter={16} align="middle">
+              <Col span={8}>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Typography.Text strong>Khoảng thời gian:</Typography.Text>
+                  <RangePicker
+                    value={dateRange}
+                    onChange={setDateRange}
+                    style={{ width: "100%" }}
+                    format="DD/MM/YYYY"
+                  />
+                </Space>
+              </Col>
+              <Col span={8}>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Typography.Text strong>Nhóm theo:</Typography.Text>
+                  <Select
+                    value={groupBy}
+                    onChange={setGroupBy}
+                    style={{ width: "100%" }}
+                  >
+                    <Option value="all">Tất cả</Option>
+                    <Option value="day">Theo ngày</Option>
+                    <Option value="month">Theo tháng</Option>
+                    <Option value="year">Theo năm</Option>
+                  </Select>
+                </Space>
+              </Col>
+              <Col span={8}>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Typography.Text strong>Số lượng hiển thị:</Typography.Text>
+                  <Select
+                    value={limit}
+                    onChange={setLimit}
+                    style={{ width: "100%" }}
+                  >
+                    <Option value={5}>Top 5</Option>
+                    <Option value={10}>Top 10</Option>
+                    <Option value={20}>Top 20</Option>
+                  </Select>
+                </Space>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Summary Statistics */}
+          <Row gutter={16}>
+            <Col span={6}>
+              <Card>
                 <Statistic
                   title="Tổng doanh thu"
                   value={totalRevenue}
                   precision={0}
-                  formatter={(value) => formatCurrency(value)}
+                  prefix={<DollarOutlined />}
+                  suffix="VNĐ"
                   valueStyle={{ color: "#3f8600" }}
                 />
               </Card>
             </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card className="shadow-md">
+            <Col span={6}>
+              <Card>
                 <Statistic
                   title="Tổng số xe đã bán"
                   value={totalSold}
+                  prefix={<CarOutlined />}
                   valueStyle={{ color: "#1890ff" }}
                 />
               </Card>
             </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card className="shadow-md">
+            <Col span={6}>
+              <Card>
                 <Statistic
-                  title="Tổng tồn kho"
-                  value={totalInventory}
+                  title="Giá trị đơn hàng trung bình"
+                  value={avgOrderValue}
+                  precision={0}
+                  prefix={<ShoppingCartOutlined />}
+                  suffix="VNĐ"
                   valueStyle={{ color: "#722ed1" }}
                 />
               </Card>
             </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card className="shadow-md">
+            <Col span={6}>
+              <Card>
                 <Statistic
-                  title="Tồn kho khả dụng"
-                  value={availableInventory}
-                  valueStyle={{ color: "#52c41a" }}
+                  title="Tổng tồn kho"
+                  value={totalStock}
+                  prefix={<CarOutlined />}
+                  valueStyle={{ color: "#fa8c16" }}
                 />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Có sẵn: {totalAvailable.toLocaleString("vi-VN")}
+                </Typography.Text>
               </Card>
             </Col>
           </Row>
 
-          <Row gutter={[16, 16]}>
-            {/* Biểu đồ doanh thu */}
-            <Col xs={24} lg={16}>
-              <Card className="shadow-md" title="Doanh thu đại lý">
-                {salesChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={salesChartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip
-                        formatter={(value, name) => {
-                          if (name === "revenue") return formatCurrency(value);
-                          return value;
-                        }}
-                      />
-                      <Line
-                        yAxisId="left"
-                        type="monotone"
-                        dataKey="sold"
-                        stroke="#1890ff"
-                        name="Số lượng bán"
-                        strokeWidth={2}
-                      />
-                      <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#52c41a"
-                        name="Doanh thu"
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">Không có dữ liệu</div>
-                )}
+          {/* Charts and Tables */}
+          <Row gutter={16}>
+            {/* Sales Trend Chart */}
+            <Col span={16}>
+              <Card
+                title="Xu hướng doanh thu"
+                extra={
+                  <Select
+                    value={groupBy}
+                    onChange={setGroupBy}
+                    size="small"
+                    style={{ width: 120 }}
+                  >
+                    <Option value="all">Tất cả</Option>
+                    <Option value="day">Theo ngày</Option>
+                    <Option value="month">Theo tháng</Option>
+                    <Option value="year">Theo năm</Option>
+                  </Select>
+                }
+              >
+                <Spin spinning={loading}>
+                  {salesTrend.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={salesTrend}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="period" />
+                        <YAxis />
+                        <Tooltip
+                          formatter={(value, name) => {
+                            if (name === "totalRevenue") {
+                              return [
+                                `${value.toLocaleString("vi-VN")} VNĐ`,
+                                "Doanh thu",
+                              ];
+                            }
+                            return [value, "Số lượng bán"];
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="totalRevenue"
+                          stroke="#1677ff"
+                          strokeWidth={2}
+                          name="Doanh thu"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="soldCount"
+                          stroke="#52c41a"
+                          strokeWidth={2}
+                          name="Số lượng bán"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <Empty description="Không có dữ liệu" />
+                  )}
+                </Spin>
               </Card>
             </Col>
 
             {/* Top Models Pie Chart */}
-            <Col xs={24} lg={8}>
-              <Card className="shadow-md" title="Top mẫu xe bán chạy">
-                {topModelsChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={topModelsChartData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {topModelsChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">Không có dữ liệu</div>
-                )}
+            <Col span={8}>
+              <Card title="Top mẫu xe bán chạy">
+                <Spin spinning={loading}>
+                  {topModels.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={topModels}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ modelName, percent }) =>
+                            `${modelName} ${(percent * 100).toFixed(0)}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="soldCount"
+                        >
+                          {topModels.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={pieColors[index % pieColors.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name, props) => {
+                            return [
+                              `${value} xe`,
+                              "Số lượng bán"
+                            ];
+                          }}
+                          labelFormatter={(label, payload) => {
+                            if (payload && payload.length > 0) {
+                              const data = payload[0].payload;
+                              return (
+                                <div>
+                                  <div><strong>modelName:</strong> {data.modelName || "N/A"}</div>
+                                  <div><strong>colorName:</strong> {data.colorName || "N/A"}</div>
+                                </div>
+                              );
+                            }
+                            return label;
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <Empty description="Không có dữ liệu" />
+                  )}
+                </Spin>
               </Card>
             </Col>
+          </Row>
 
+          <Row gutter={16}>
             {/* Top Models Table */}
-            <Col xs={24} lg={12}>
-              <Card className="shadow-md" title="Top mẫu xe bán chạy">
-                <Table
-                  dataSource={topModels}
-                  rowKey={(record, index) => `${record.modelName}-${record.colorName}-${index}`}
-                  pagination={false}
-                  size="small"
-                  columns={[
-                    {
-                      title: "Model",
-                      key: "model",
-                      render: (_, record) => (
-                        <div>
-                          <div className="font-semibold">{record.modelName}</div>
-                          <Tag color="blue">{record.colorName}</Tag>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Số lượng bán",
-                      dataIndex: "soldCount",
-                      key: "soldCount",
-                      align: "center",
-                    },
-                    {
-                      title: "Doanh thu",
-                      dataIndex: "totalRevenue",
-                      key: "totalRevenue",
-                      render: (value) => formatCurrency(value),
-                      align: "right",
-                    },
-                  ]}
-                />
+            <Col span={12}>
+              <Card
+                title={
+                  <Space>
+                    <TrophyOutlined />
+                    Top mẫu xe bán chạy
+                  </Space>
+                }
+              >
+                <Spin spinning={loading}>
+                  {topModels.length > 0 ? (
+                    <Table
+                      dataSource={topModels}
+                      columns={topModelsColumns}
+                      rowKey={(record, index) =>
+                        `${record.modelName}-${record.colorName}-${index}`
+                      }
+                      pagination={false}
+                      size="small"
+                    />
+                  ) : (
+                    <Empty description="Không có dữ liệu" />
+                  )}
+                </Spin>
               </Card>
             </Col>
 
             {/* Top Customers Table */}
-            <Col xs={24} lg={12}>
-              <Card className="shadow-md" title="Top khách hàng mua xe nhiều nhất">
-                <Table
-                  dataSource={topCustomers}
-                  rowKey="customerId"
-                  pagination={false}
-                  size="small"
-                  columns={[
-                    {
-                      title: "Khách hàng",
-                      dataIndex: "customerName",
-                      key: "customerName",
-                    },
-                    {
-                      title: "Số xe đã mua",
-                      dataIndex: "totalVehicles",
-                      key: "totalVehicles",
-                      align: "center",
-                    },
-                    {
-                      title: "Tổng chi tiêu",
-                      dataIndex: "totalSpent",
-                      key: "totalSpent",
-                      render: (value) => formatCurrency(value),
-                      align: "right",
-                    },
-                    {
-                      title: "Lần mua cuối",
-                      dataIndex: "lastPurchase",
-                      key: "lastPurchase",
-                      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "-"),
-                    },
-                  ]}
-                />
-              </Card>
-            </Col>
-
-            {/* Inventory Status Table */}
-            <Col xs={24}>
-              <Card className="shadow-md" title="Tổng hợp tồn kho">
-                <Table
-                  dataSource={inventoryStatus}
-                  rowKey={(record, index) => `${record.modelName}-${record.colorName}-${index}`}
-                  pagination={{ pageSize: 10 }}
-                  scroll={{ x: 'max-content' }}
-                  columns={[
-                    {
-                      title: "Model",
-                      key: "model",
-                      render: (_, record) => (
-                        <div>
-                          <div className="font-semibold">{record.modelName}</div>
-                          <Tag color="purple">{record.colorName}</Tag>
-                        </div>
-                      ),
-                    },
-                    {
-                      title: "Tổng tồn kho",
-                      dataIndex: "totalStock",
-                      key: "totalStock",
-                      align: "center",
-                    },
-                    {
-                      title: "Khả dụng",
-                      dataIndex: "available",
-                      key: "available",
-                      align: "center",
-                      render: (value) => <Tag color="green">{value}</Tag>,
-                    },
-                    {
-                      title: "Đã đặt",
-                      dataIndex: "reserved",
-                      key: "reserved",
-                      align: "center",
-                      render: (value) => <Tag color="orange">{value}</Tag>,
-                    },
-                    {
-                      title: "Đã bán",
-                      dataIndex: "soldCount",
-                      key: "soldCount",
-                      align: "center",
-                      render: (value) => <Tag color="blue">{value}</Tag>,
-                    },
-                  ]}
-                />
+            <Col span={12}>
+              <Card
+                title={
+                  <Space>
+                    <TeamOutlined />
+                    Top khách hàng
+                  </Space>
+                }
+              >
+                <Spin spinning={loading}>
+                  {topCustomers.length > 0 ? (
+                    <Table
+                      dataSource={topCustomers}
+                      columns={topCustomersColumns}
+                      rowKey="customerId"
+                      pagination={false}
+                      size="small"
+                    />
+                  ) : (
+                    <Empty description="Không có dữ liệu" />
+                  )}
+                </Spin>
               </Card>
             </Col>
           </Row>
-        </Spin>
+
+          {/* Inventory Status Table */}
+          <Card title="Tổng hợp tồn kho">
+            <Spin spinning={loading}>
+              {inventory.length > 0 ? (
+                <Table
+                  dataSource={inventory}
+                  columns={inventoryColumns}
+                  rowKey={(record, index) =>
+                    `${record.modelName}-${record.colorName}-${index}`
+                  }
+                  pagination={{ pageSize: 10 }}
+                  scroll={{ x: 800 }}
+                />
+              ) : (
+                <Empty description="Không có dữ liệu" />
+              )}
+            </Spin>
+          </Card>
+        </Space>
       </div>
     </DealerLayout>
   );
 }
+
