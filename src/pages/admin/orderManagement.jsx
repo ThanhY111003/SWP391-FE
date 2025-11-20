@@ -721,8 +721,10 @@ export default function OrderManagement() {
         return false;
       }
 
-      // Show ship button only for INSTALLMENT_ACTIVE status (deposit confirmed, ready to ship)
-      return record.status === "INSTALLMENT_ACTIVE";
+      // FIX: Allow shipping for installment orders once deposit is paid (PAID status) and vehicle is attached.
+      // The backend transitions from PAID -> SHIPPING.
+      // The old check for "INSTALLMENT_ACTIVE" was incorrect as that status comes after delivery.
+      return record.status === "PAID";
     } else {
       // For straight payment orders:
       // FIX: Kiểm tra chặt chẽ số tiền đã trả. Phải trả đủ 100% mới được ship.
@@ -1293,7 +1295,7 @@ export default function OrderManagement() {
                 {record.status === "APPROVED"
                   ? "Đã phê duyệt"
                   : record.status === "INSTALLMENT_ACTIVE"
-                  ? "Chờ bắt đầu vận chuyển"
+                  ? "Đang trả góp"
                   : record.status === "PAID"
                   ? "Chờ bắt đầu vận chuyển"
                   : record.status === "SHIPPING"
