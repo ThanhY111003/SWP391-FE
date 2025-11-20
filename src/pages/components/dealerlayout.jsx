@@ -113,6 +113,12 @@ export default function DealerLayout({ children }) {
       label: "Thống kê",
       path: "/dealer/dashboard",
     },
+    {
+      key: "vehicle-prices",
+      icon: <DollarOutlined />,
+      label: "Bảng giá",
+      path: "/dealer/vehicle-prices",
+    },
     // {
     //   key: "catalog",
     //   icon: <AppstoreOutlined />,
@@ -132,16 +138,16 @@ export default function DealerLayout({ children }) {
       path: "/dealer/comparison",
     },
     {
-      key: "orders",
-      icon: <ShoppingCartOutlined />,
-      label: "Đơn hàng",
-      path: "/dealer/orders",
-    },
-    {
       key: "cart",
       icon: <ShoppingCartOutlined />,
       label: "Giỏ hàng",
       path: "/dealer/cart",
+    },
+    {
+      key: "orders",
+      icon: <ShoppingCartOutlined />,
+      label: "Đơn hàng",
+      path: "/dealer/orders",
     },
     // {
     //   key: "inventory",
@@ -156,22 +162,16 @@ export default function DealerLayout({ children }) {
       path: "/dealer/vehicles",
     },
     {
-      key: "customers",
-      icon: <TeamOutlined />,
-      label: "Khách hàng",
-      path: "/dealer/customers",
-    },
-    {
-      key: "vehicle-prices",
-      icon: <DollarOutlined />,
-      label: "Bảng giá",
-      path: "/dealer/vehicle-prices",
-    },
-    {
       key: "warranty",
       icon: <SafetyOutlined />,
       label: "Bảo hành",
       path: "/dealer/warranty",
+    },
+    {
+      key: "customers",
+      icon: <TeamOutlined />,
+      label: "Khách hàng",
+      path: "/dealer/customers",
     },
     // {
     //   key: "sales-report",

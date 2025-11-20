@@ -194,6 +194,7 @@ export default function VehicleInstances() {
         x.colorName,
         x.dealerName,
         x.engineNumber,
+        x.customerName,
       ]
         .filter(Boolean)
         .join(" ")
@@ -566,7 +567,7 @@ export default function VehicleInstances() {
         />
         <Input.Search
           allowClear
-          placeholder="Tìm theo VIN / model / màu / đại lý / số máy"
+          placeholder="Tìm theo VIN / model / màu / đại lý / số máy / khách hàng"
           style={{ width: 360 }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -1021,6 +1022,9 @@ export default function VehicleInstances() {
             </Descriptions.Item>
             <Descriptions.Item label="Đại lý">
               {detailRecord?.dealerName || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Khách hàng">
+              {detailRecord?.customerName || "-"}
             </Descriptions.Item>
             <Descriptions.Item label="Hoạt động">
               <Tag color={detailRecord?.isActive ? "green" : "default"}>

@@ -87,7 +87,9 @@ export default function ManageVehicles() {
       if (res.data.success) {
         setCustomers(res.data.data || []);
       } else {
-        message.error(res.data.message || "Không thể tải danh sách khách hàng!");
+        message.error(
+          res.data.message || "Không thể tải danh sách khách hàng!"
+        );
       }
     } catch (err) {
       console.error("Error fetching customers:", err);
@@ -133,7 +135,9 @@ export default function ManageVehicles() {
   //  4. Vô hiệu hóa xe
   const handleDeactivate = async (id) => {
     try {
-      const res = await apiClient.patch(`/api/vehicle-instances/${id}/deactivate`);
+      const res = await apiClient.patch(
+        `/api/vehicle-instances/${id}/deactivate`
+      );
       if (res.data.success) {
         message.success(res.data.message || "Vô hiệu hóa xe thành công!");
         fetchVehicles();
@@ -151,7 +155,9 @@ export default function ManageVehicles() {
   //  5. Kích hoạt lại xe
   const handleActivate = async (id) => {
     try {
-      const res = await apiClient.patch(`/api/vehicle-instances/${id}/activate`);
+      const res = await apiClient.patch(
+        `/api/vehicle-instances/${id}/activate`
+      );
       if (res.data.success) {
         message.success(res.data.message || "Kích hoạt lại xe thành công!");
         fetchVehicles();
@@ -195,11 +201,15 @@ export default function ManageVehicles() {
           : undefined,
       };
 
-      const res = await apiClient.post("/api/vehicle-instances/assign-customer", payload);
+      const res = await apiClient.post(
+        "/api/vehicle-instances/assign-customer",
+        payload
+      );
       if (res.data.success) {
-        const responseMessage = res.data.message || "Gán xe cho khách hàng thành công!";
+        const responseMessage =
+          res.data.message || "Gán xe cho khách hàng thành công!";
         toast.success(responseMessage, {
-          position: 'top-right',
+          position: "top-right",
           duration: 4000,
         });
         setAssignModalOpen(false);
@@ -207,7 +217,7 @@ export default function ManageVehicles() {
         fetchVehicles();
       } else {
         toast.error(res.data.message || "Không thể gán xe cho khách hàng!", {
-          position: 'top-right',
+          position: "top-right",
         });
       }
     } catch (err) {
@@ -215,12 +225,13 @@ export default function ManageVehicles() {
       console.error("Error response:", err.response);
       let errorMsg = "Đã xảy ra lỗi, vui lòng thử lại!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
       toast.error(errorMsg, {
-        position: 'top-right',
+        position: "top-right",
       });
     }
   };
@@ -243,7 +254,9 @@ export default function ManageVehicles() {
         `/api/vehicle-instances/${updatingStatusVehicle.id}/status?status=${values.status}`
       );
       if (res.data.success) {
-        message.success(res.data.message || "Cập nhật trạng thái xe thành công!");
+        message.success(
+          res.data.message || "Cập nhật trạng thái xe thành công!"
+        );
         setStatusModalOpen(false);
         statusForm.resetFields();
         fetchVehicles();
@@ -255,7 +268,8 @@ export default function ManageVehicles() {
       console.error("Error response:", err.response);
       let errorMsg = "Đã xảy ra lỗi, vui lòng thử lại!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -296,6 +310,12 @@ export default function ManageVehicles() {
       title: "Đại lý",
       dataIndex: "dealerName",
       key: "dealerName",
+    },
+    {
+      title: "Khách hàng",
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (name) => name || "-",
     },
     {
       title: "Trạng thái",
@@ -406,11 +426,7 @@ export default function ManageVehicles() {
               okText="Xác nhận"
               cancelText="Hủy"
             >
-              <Button
-                type="link"
-                icon={<CheckCircleOutlined />}
-                size="small"
-              >
+              <Button type="link" icon={<CheckCircleOutlined />} size="small">
                 Kích hoạt
               </Button>
             </Popconfirm>
@@ -426,7 +442,11 @@ export default function ManageVehicles() {
         <Card>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
             <h2 className="text-xl sm:text-2xl font-bold">Quản lý xe</h2>
-            <Space direction="vertical" size="small" className="w-full sm:w-auto">
+            <Space
+              direction="vertical"
+              size="small"
+              className="w-full sm:w-auto"
+            >
               <Space wrap className="w-full sm:w-auto">
                 <Select
                   style={{ width: "100%", minWidth: 200 }}
@@ -451,7 +471,11 @@ export default function ManageVehicles() {
                   <Option value={true}>Chỉ xe hoạt động</Option>
                   <Option value={false}>Tất cả</Option>
                 </Select>
-                <Button icon={<SearchOutlined />} onClick={fetchVehicles} className="w-full sm:w-auto">
+                <Button
+                  icon={<SearchOutlined />}
+                  onClick={fetchVehicles}
+                  className="w-full sm:w-auto"
+                >
                   Tìm kiếm
                 </Button>
               </Space>
@@ -464,7 +488,7 @@ export default function ManageVehicles() {
             dataSource={vehicles}
             loading={loading}
             bordered
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: "max-content" }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -487,11 +511,13 @@ export default function ManageVehicles() {
               Đóng
             </Button>,
           ]}
-          width={{ xs: '90%', sm: 800 }}
+          width={{ xs: "90%", sm: 800 }}
         >
           {selectedVehicle && (
             <Descriptions bordered column={{ xs: 1, sm: 2 }}>
-              <Descriptions.Item label="ID">{selectedVehicle.id}</Descriptions.Item>
+              <Descriptions.Item label="ID">
+                {selectedVehicle.id}
+              </Descriptions.Item>
               <Descriptions.Item label="VIN">
                 {selectedVehicle.vin}
               </Descriptions.Item>
@@ -558,6 +584,9 @@ export default function ManageVehicles() {
                     )
                   : "-"}
               </Descriptions.Item>
+              <Descriptions.Item label="Khách hàng">
+                {selectedVehicle.customerName || "-"}
+              </Descriptions.Item>
             </Descriptions>
           )}
         </Modal>
@@ -574,7 +603,7 @@ export default function ManageVehicles() {
           onOk={handleAssignToCustomer}
           okText="Xác nhận bán"
           cancelText="Hủy"
-          width={{ xs: '90%', sm: 600 }}
+          width={{ xs: "90%", sm: 600 }}
           destroyOnClose
         >
           <Form form={assignForm} layout="vertical">
@@ -585,9 +614,7 @@ export default function ManageVehicles() {
             <Form.Item
               label="Khách hàng"
               name="customerId"
-              rules={[
-                { required: true, message: "Vui lòng chọn khách hàng!" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn khách hàng!" }]}
             >
               <Select
                 placeholder="Chọn khách hàng"
@@ -689,20 +716,20 @@ export default function ManageVehicles() {
             statusForm.resetFields();
             setUpdatingStatusVehicle(null);
           }}
-          title={`Cập nhật trạng thái xe - ${updatingStatusVehicle?.modelName || ""}`}
+          title={`Cập nhật trạng thái xe - ${
+            updatingStatusVehicle?.modelName || ""
+          }`}
           onOk={handleUpdateStatus}
           okText="Cập nhật"
           cancelText="Hủy"
-          width={{ xs: '90%', sm: 500 }}
+          width={{ xs: "90%", sm: 500 }}
           destroyOnClose
         >
           <Form form={statusForm} layout="vertical">
             <Form.Item
               label="Trạng thái"
               name="status"
-              rules={[
-                { required: true, message: "Vui lòng chọn trạng thái!" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
             >
               <Select placeholder="Chọn trạng thái">
                 <Option value="IN_STOCK">Trong kho</Option>
@@ -719,4 +746,3 @@ export default function ManageVehicles() {
     </DealerLayout>
   );
 }
-

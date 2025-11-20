@@ -690,6 +690,9 @@ const DealerManagement = () => {
             <Descriptions.Item label="Khu vực">
               {regionLabel(detailDealer.region)}
             </Descriptions.Item>
+            <Descriptions.Item label="Số đơn tối đa mỗi đợt đặt">
+              {detailDealer.maxOrderQuantity ?? "-"}
+            </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
               <Tag color={detailDealer.isActive ? "green" : "default"}>
                 {detailDealer.isActive ? "Hoạt động" : "Ngừng"}
