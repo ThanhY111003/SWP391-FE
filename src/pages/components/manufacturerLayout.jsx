@@ -48,6 +48,12 @@ export default function ManufacturerLayout({ children }) {
       path: "/manufacturer/orders",
     },
     {
+      key: "warranty-requests",
+      icon: <SafetyCertificateOutlined />,
+      label: "Bảo hành",
+      path: "/manufacturer/warranty-requests",
+    },
+    {
       key: "price-table",
       icon: <DollarCircleOutlined />,
       label: "Bảng giá",
@@ -72,12 +78,6 @@ export default function ManufacturerLayout({ children }) {
       icon: <BgColorsOutlined />,
       label: "Màu sắc",
       path: "/manufacturer/colors",
-    },
-    {
-      key: "inventories",
-      icon: <DatabaseOutlined />,
-      label: "Hàng tồn kho",
-      path: "/manufacturer/inventories",
     },
 
     // Nhóm 3: Đại lý, Cấp đại lý, Người dùng, Phân quyền

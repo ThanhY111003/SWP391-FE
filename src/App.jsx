@@ -30,6 +30,7 @@ import DealerLevels from "./pages/admin/dealerLevels";
 import Reports from "./pages/admin/Reports";
 import Inventories from "./pages/admin/Inventories";
 import PermissionManagement from "./pages/admin/PermissionManagement";
+import WarrantyRequests from "./pages/admin/WarrantyRequests";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 import DebugAuth from "./components/DebugAuth";
@@ -170,6 +171,16 @@ function App() {
             <AuthGuard>
               <ManufacturerLayout>
                 <OrderManagement />
+              </ManufacturerLayout>
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/manufacturer/warranty-requests"
+          element={
+            <AuthGuard>
+              <ManufacturerLayout>
+                <WarrantyRequests />
               </ManufacturerLayout>
             </AuthGuard>
           }
