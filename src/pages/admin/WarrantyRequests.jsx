@@ -4,7 +4,6 @@ import {
   Table,
   Tag,
   Typography,
-  message,
   Select,
   Space,
   Button,
@@ -12,6 +11,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import api from "../../config/axios";
+import toast from "react-hot-toast";
 
 const { Title } = Typography;
 
@@ -31,6 +31,12 @@ export default function WarrantyRequests() {
   }));
 
   const fetchData = async (dealerIdParam, statusParam) => {
+    // Nếu chưa có dealerId thì không gọi API để tránh lỗi 500 từ BE
+    if (!dealerIdParam) {
+      setData([]);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = {
@@ -52,7 +58,7 @@ export default function WarrantyRequests() {
       setData(list);
     } catch (e) {
       console.error("Fetch warranty requests failed", e);
-      message.error(
+      toast.error(
         e?.response?.data?.message ||
           "Không tải được danh sách yêu cầu bảo hành"
       );
@@ -72,9 +78,22 @@ export default function WarrantyRequests() {
           ? payload
           : [];
         setDealers(list);
+
+        // Chọn mặc định một đại lý (ưu tiên đại lý Hà Nội nếu có)
+        if (!dealerId && list.length > 0) {
+          const defaultDealer =
+            list.find((d) =>
+              (d.name || "")
+                .toLowerCase()
+                .includes("hà nội".normalize("NFC").toLowerCase())
+            ) || list[0];
+          if (defaultDealer?.id) {
+            setDealerId(defaultDealer.id);
+          }
+        }
       } catch (e) {
         console.error("Fetch dealers failed", e);
-        message.error(
+        toast.error(
           e?.response?.data?.message || "Không tải được danh sách đại lý"
         );
       }
@@ -98,12 +117,12 @@ export default function WarrantyRequests() {
           payload?.message || "Phê duyệt yêu cầu bảo hành thất bại"
         );
       }
-      message.success(payload?.message || "Đã phê duyệt yêu cầu bảo hành");
+      toast.success(payload?.message || "Đã phê duyệt yêu cầu bảo hành");
       // cập nhật lại danh sách theo dealer hiện tại
       fetchData(dealerId);
     } catch (e) {
       console.error("Approve warranty request failed", e);
-      message.error(
+      toast.error(
         e?.response?.data?.message ||
           e.message ||
           "Không thể phê duyệt yêu cầu bảo hành"
@@ -128,11 +147,11 @@ export default function WarrantyRequests() {
           payload?.message || "Từ chối yêu cầu bảo hành thất bại"
         );
       }
-      message.success(payload?.message || "Đã từ chối yêu cầu bảo hành");
+      toast.success(payload?.message || "Đã từ chối yêu cầu bảo hành");
       fetchData(dealerId);
     } catch (e) {
       console.error("Reject warranty request failed", e);
-      message.error(
+      toast.error(
         e?.response?.data?.message ||
           e.message ||
           "Không thể từ chối yêu cầu bảo hành"
@@ -155,11 +174,11 @@ export default function WarrantyRequests() {
       if (payload?.success === false) {
         throw new Error(payload?.message || "Hoàn tất bảo hành thất bại");
       }
-      message.success(payload?.message || "Đã hoàn tất bảo hành");
+      toast.success(payload?.message || "Đã hoàn tất bảo hành");
       fetchData(dealerId, statusFilter);
     } catch (e) {
       console.error("Complete warranty request failed", e);
-      message.error(
+      toast.error(
         e?.response?.data?.message || e.message || "Không thể hoàn tất bảo hành"
       );
     } finally {
@@ -283,6 +302,10 @@ export default function WarrantyRequests() {
     },
   ];
 
+  const filteredData = statusFilter
+    ? data.filter((item) => item.status === statusFilter)
+    : data;
+
   return (
     <Card>
       <Space
@@ -323,7 +346,7 @@ export default function WarrantyRequests() {
       <Table
         rowKey={(r) => r.id ?? `${r.vehicleId}-${r.vin}`}
         columns={columns}
-        dataSource={data}
+        dataSource={filteredData}
         loading={loading}
         pagination={{ pageSize: 10, showSizeChanger: false }}
       />

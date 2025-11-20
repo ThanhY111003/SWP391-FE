@@ -39,25 +39,29 @@ function App() {
   return (
     <BrowserRouter>
       <Toaster
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
-            background: "#363636",
-            color: "#fff",
+            background: "#ffffff",
+            color: "#000000",
+            borderRadius: "999px",
+            padding: "10px 24px",
+            boxShadow: "0 4px 12px rgba(15, 23, 42, 0.15)",
+            border: "1px solid #e5e7eb",
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: "#4aed88",
-              secondary: "#fff",
+              primary: "#16a34a",
+              secondary: "#ffffff",
             },
           },
           error: {
             duration: 3000,
             iconTheme: {
-              primary: "#ff0000",
-              secondary: "#fff",
+              primary: "#dc2626",
+              secondary: "#ffffff",
             },
           },
         }}

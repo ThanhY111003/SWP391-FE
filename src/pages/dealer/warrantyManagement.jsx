@@ -42,12 +42,15 @@ export default function WarrantyManagement() {
       if (res.data.success) {
         setWarrantyRequests(res.data.data || []);
       } else {
-        message.error(res.data.message || "Không thể tải danh sách yêu cầu bảo hành!");
+        message.error(
+          res.data.message || "Không thể tải danh sách yêu cầu bảo hành!"
+        );
       }
     } catch (err) {
       console.error("Error fetching warranty requests:", err);
       const errorMsg =
-        err.response?.data?.message || "Không thể tải danh sách yêu cầu bảo hành!";
+        err.response?.data?.message ||
+        "Không thể tải danh sách yêu cầu bảo hành!";
       message.error(errorMsg);
     } finally {
       setLoading(false);
@@ -61,7 +64,7 @@ export default function WarrantyManagement() {
       const res = await apiClient.get("/api/vehicle-instances?activeOnly=true");
       if (res.data.success) {
         // Lấy tất cả các xe active để tạo yêu cầu bảo hành
-        setVehicles(res.data.data.filter(v => v.isActive) || []);
+        setVehicles(res.data.data.filter((v) => v.isActive) || []);
       } else {
         message.error(res.data.message || "Không thể tải danh sách xe!");
       }
@@ -96,26 +99,20 @@ export default function WarrantyManagement() {
         `/api/warranty/dealer/${values.vehicleId}/request?${params.toString()}`
       );
       if (res.data.success) {
-        const responseMessage = res.data.message || "Tạo yêu cầu bảo hành thành công!";
-        toast.success(responseMessage, {
-          position: 'top-right',
-          duration: 4000,
-        });
+        const responseMessage =
+          res.data.message || "Tạo yêu cầu bảo hành thành công!";
+        toast.success(responseMessage);
         setCreateModalOpen(false);
         createForm.resetFields();
         fetchWarrantyRequests();
       } else {
-        toast.error(res.data.message || "Không thể tạo yêu cầu bảo hành!", {
-          position: 'top-right',
-        });
+        toast.error(res.data.message || "Không thể tạo yêu cầu bảo hành!");
       }
     } catch (err) {
       console.error("Error creating warranty request:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể tạo yêu cầu bảo hành!";
-      toast.error(errorMsg, {
-        position: 'top-right',
-      });
+      toast.error(errorMsg);
     }
   };
 
@@ -124,16 +121,36 @@ export default function WarrantyManagement() {
     try {
       const res = await apiClient.patch(`/api/warranty/dealer/${id}/cancel`);
       if (res.data.success) {
-        message.success(res.data.message || "Hủy yêu cầu bảo hành thành công!");
+        toast.success(res.data.message || "Hủy yêu cầu bảo hành thành công!");
         fetchWarrantyRequests();
       } else {
-        message.error(res.data.message || "Không thể hủy yêu cầu bảo hành!");
+        toast.error(res.data.message || "Không thể hủy yêu cầu bảo hành!");
       }
     } catch (err) {
       console.error("Error canceling warranty request:", err);
       const errorMsg =
         err.response?.data?.message || "Không thể hủy yêu cầu bảo hành!";
-      message.error(errorMsg);
+      toast.error(errorMsg);
+    }
+  };
+
+  // 5. Xác nhận nhận lại xe sau bảo hành
+  const handleConfirmWarranty = async (id) => {
+    try {
+      const res = await apiClient.patch(`/api/warranty/dealer/${id}/confirm`);
+      if (res.data.success) {
+        const responseMessage =
+          res.data.message || "Xác nhận nhận xe sau bảo hành thành công!";
+        toast.success(responseMessage);
+        fetchWarrantyRequests();
+      } else {
+        toast.error(res.data.message || "Không thể xác nhận nhận xe!");
+      }
+    } catch (err) {
+      console.error("Error confirming warranty request:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể xác nhận nhận xe!";
+      toast.error(errorMsg);
     }
   };
 
@@ -188,7 +205,8 @@ export default function WarrantyManagement() {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm:ss") : "-"),
+      render: (date) =>
+        date ? dayjs(date).format("DD/MM/YYYY HH:mm:ss") : "-",
       sorter: (a, b) => {
         if (!a.createdAt || !b.createdAt) return 0;
         return dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix();
@@ -198,17 +216,21 @@ export default function WarrantyManagement() {
       title: "Ngày cập nhật",
       dataIndex: "updatedAt",
       key: "updatedAt",
-      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY HH:mm:ss") : "-"),
+      render: (date) =>
+        date ? dayjs(date).format("DD/MM/YYYY HH:mm:ss") : "-",
     },
     {
       title: "Thao tác",
       key: "actions",
-      width: 150,
+      width: 220,
       fixed: "right",
       render: (_, record) => {
         // Chỉ cho phép hủy khi trạng thái là PENDING hoặc APPROVED
-        const canCancel = record.status === "PENDING" || record.status === "APPROVED";
-        
+        const canCancel =
+          record.status === "PENDING" || record.status === "APPROVED";
+        // Chỉ cho phép dealer xác nhận khi trạng thái là COMPLETED
+        const canConfirm = record.status === "COMPLETED";
+
         return (
           <Space size="small">
             {canCancel && (
@@ -229,6 +251,19 @@ export default function WarrantyManagement() {
                 </Button>
               </Popconfirm>
             )}
+            {canConfirm && (
+              <Popconfirm
+                title="Xác nhận nhận xe"
+                description="Bạn đã nhận lại xe sau bảo hành?"
+                onConfirm={() => handleConfirmWarranty(record.id)}
+                okText="Xác nhận"
+                cancelText="Hủy"
+              >
+                <Button type="link" size="small">
+                  Xác nhận
+                </Button>
+              </Popconfirm>
+            )}
           </Space>
         );
       },
@@ -240,12 +275,11 @@ export default function WarrantyManagement() {
       <div className="p-3 sm:p-6">
         <Card>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold">Quản lý yêu cầu bảo hành</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">
+              Quản lý yêu cầu bảo hành
+            </h2>
             <Space>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={fetchWarrantyRequests}
-              >
+              <Button icon={<ReloadOutlined />} onClick={fetchWarrantyRequests}>
                 Làm mới
               </Button>
               <Button
@@ -264,7 +298,7 @@ export default function WarrantyManagement() {
             dataSource={warrantyRequests}
             loading={loading}
             bordered
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: "max-content" }}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
@@ -285,16 +319,14 @@ export default function WarrantyManagement() {
           onOk={handleCreateWarranty}
           okText="Tạo yêu cầu"
           cancelText="Hủy"
-          width={{ xs: '90%', sm: 600 }}
+          width={{ xs: "90%", sm: 600 }}
           destroyOnClose
         >
           <Form form={createForm} layout="vertical">
             <Form.Item
               label="Chọn xe"
               name="vehicleId"
-              rules={[
-                { required: true, message: "Vui lòng chọn xe!" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn xe!" }]}
             >
               <Select
                 placeholder="Chọn xe cần bảo hành/sửa chữa"
@@ -333,4 +365,3 @@ export default function WarrantyManagement() {
     </DealerLayout>
   );
 }
-
