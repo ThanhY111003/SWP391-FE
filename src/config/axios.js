@@ -1,8 +1,24 @@
 import axios from "axios";
 
-// Cho phép cấu hình baseURL qua biến môi trường. Mặc định dùng '/api/' để chạy qua proxy Vite (tránh CORS khi dev)
-const defaultBaseURL = "/api/";
-const baseURL = import.meta?.env?.VITE_API_BASE_URL || defaultBaseURL;
+// Cấu hình baseURL dựa trên môi trường
+// Development: dùng proxy Vite '/api/' để tránh CORS
+// Production: dùng trực tiếp URL Backend từ biến môi trường
+const getBaseURL = () => {
+  // Nếu có biến môi trường VITE_API_BASE_URL, dùng nó
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Nếu đang ở production (đã deploy), dùng URL Backend thật
+  if (import.meta.env.PROD) {
+    return "https://swp391-be-y3kc.onrender.com";
+  }
+  
+  // Development: dùng proxy '/api/'
+  return "/api/";
+};
+
+const baseURL = getBaseURL();
 
 // Set config defaults when creating the instance
 const api = axios.create({
@@ -39,8 +55,9 @@ api.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
+          // Sử dụng baseURL động cho refresh token endpoint
           const refreshResponse = await axios.post(
-            "http://localhost:8080/api/auth/refresh",
+            `${baseURL}/auth/refresh`,
             {
               refreshToken: refreshToken,
             }
