@@ -15,6 +15,7 @@ import {
   Spin,
   Image,
   Select,
+  Upload,
 } from "antd";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +24,7 @@ import {
   PlusOutlined,
   EyeOutlined,
   EditOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import api from "../../config/axios";
 
@@ -48,6 +50,9 @@ export default function VehicleModels() {
   const [editOpen, setEditOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  // State to hold file for upload modals
+  const [createFile, setCreateFile] = useState(null);
+  const [editFile, setEditFile] = useState(null);
   // Cache last known descriptions per model to workaround BE not returning description in response
   const [descriptionCache, setDescriptionCache] = useState({});
   const [messageApi, contextHolder] = message.useMessage();
@@ -207,6 +212,8 @@ export default function VehicleModels() {
           manufacturerPrice: data.manufacturerPrice ?? undefined,
           imageUrl: data.imageUrl ?? "",
         });
+        // Clear any stale file from previous edit sessions
+        setEditFile(null);
       } else {
         messageApi.error(
           res?.data?.message || "Không lấy được chi tiết model để cập nhật"
@@ -225,10 +232,45 @@ export default function VehicleModels() {
     }
   };
 
+  // Helper to upload image and return URL
+  const uploadImage = async (file) => {
+    if (!file) return null;
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await api.post("/images/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res.data?.success && res.data?.data) {
+        return res.data.data;
+      }
+      throw new Error(res.data?.message || "Lỗi khi tải ảnh lên");
+    } catch (err) {
+      messageApi.error(
+        err?.response?.data?.message || err.message || "Tải ảnh thất bại"
+      );
+      return null;
+    }
+  };
+
   const handleUpdateModel = async (values) => {
     if (!editingId) return;
     setEditLoading(true);
     try {
+      let imageUrl = values.imageUrl; // Keep existing URL by default
+
+      // If a new file was selected, upload it
+      if (editFile) {
+        const newImageUrl = await uploadImage(editFile);
+        if (newImageUrl) {
+          imageUrl = newImageUrl;
+        } else {
+          // Upload failed, stop the update process
+          setEditLoading(false);
+          return;
+        }
+      }
+
       // Build payload exactly as API schema
       const payload = {
         name: values.name,
@@ -244,7 +286,7 @@ export default function VehicleModels() {
         seatingCapacity: Number(values.seatingCapacity),
         cargoVolume: Number(values.cargoVolume),
         manufacturerPrice: Number(values.manufacturerPrice),
-        imageUrl: values.imageUrl,
+        imageUrl: imageUrl,
       };
 
       const res = await api.put(`vehicle-models/${editingId}`, payload);
@@ -257,25 +299,10 @@ export default function VehicleModels() {
         : ok;
       if (success) {
         messageApi.success("Cập nhật model thành công!");
-        // Optimistically update table data
-        setModels((prev) =>
-          (prev || []).map((m) =>
-            m.id === editingId ? { ...m, ...payload } : m
-          )
-        );
-        // If detail modal is open for the same model, update it too
-        setDetailRecord((prev) =>
-          prev && prev.id === editingId ? { ...prev, ...payload } : prev
-        );
-        // Cache description for detail view because BE response doesn't include it
-        setDescriptionCache((prev) => ({
-          ...prev,
-          [editingId]: payload.description || "",
-        }));
-
         setEditOpen(false);
         setEditingId(null);
         editForm.resetFields();
+        setEditFile(null); // Clear file state
         // Refresh from server to ensure consistency
         await fetchModels();
       } else {
@@ -295,13 +322,33 @@ export default function VehicleModels() {
   const handleCreateModel = async (values) => {
     setCreateLoading(true);
     try {
-      const res = await api.post("/vehicle-models/create", values);
+      let imageUrl = "";
+      // If a file was selected, upload it first
+      if (createFile) {
+        const newImageUrl = await uploadImage(createFile);
+        if (newImageUrl) {
+          imageUrl = newImageUrl;
+        } else {
+          // Upload failed, stop the creation process
+          setCreateLoading(false);
+          return;
+        }
+      } else {
+        message.error("Vui lòng tải lên một hình ảnh.");
+        setCreateLoading(false);
+        return;
+      }
+
+      const payload = { ...values, imageUrl };
+
+      const res = await api.post("/vehicle-models/create", payload);
       console.log("Create model response:", res.data);
 
       if (res.data && res.data.success) {
         message.success("Tạo model mới thành công!");
         setCreateModalVisible(false);
         form.resetFields();
+        setCreateFile(null); // Clear file state
         fetchModels(); // Reload list
       } else {
         message.error(res.data?.message || "Tạo model thất bại!");
@@ -496,6 +543,7 @@ export default function VehicleModels() {
         onCancel={() => {
           setCreateModalVisible(false);
           form.resetFields();
+          setCreateFile(null);
         }}
         footer={null}
         width={800}
@@ -653,11 +701,26 @@ export default function VehicleModels() {
             label="URL hình ảnh"
             name="imageUrl"
             rules={[
-              { required: true, message: "Vui lòng nhập URL hình ảnh!" },
-              { type: "url", message: "Vui lòng nhập URL hợp lệ!" },
+              {
+                required: !createFile,
+                message: "Vui lòng tải lên hình ảnh!",
+              },
             ]}
           >
-            <Input placeholder="https://example.com/image.jpg" />
+            <Upload
+              listType="picture"
+              maxCount={1}
+              beforeUpload={(file) => {
+                setCreateFile(file);
+                return false; // Prevent auto-upload
+              }}
+              onRemove={() => {
+                setCreateFile(null);
+              }}
+              fileList={createFile ? [createFile] : []}
+            >
+              <Button icon={<UploadOutlined />}>Chọn ảnh để tải lên</Button>
+            </Upload>
           </Form.Item>
 
           <div className="flex justify-end gap-2 mt-6">
@@ -665,6 +728,7 @@ export default function VehicleModels() {
               onClick={() => {
                 setCreateModalVisible(false);
                 form.resetFields();
+                setCreateFile(null);
               }}
             >
               Hủy
@@ -684,6 +748,7 @@ export default function VehicleModels() {
           setEditOpen(false);
           setEditingId(null);
           editForm.resetFields();
+          setEditFile(null);
         }}
         footer={null}
         width={800}
@@ -819,11 +884,38 @@ export default function VehicleModels() {
               label="URL hình ảnh"
               name="imageUrl"
               rules={[
-                { required: true, message: "Vui lòng nhập URL hình ảnh!" },
-                { type: "url", message: "Vui lòng nhập URL hợp lệ!" },
+                { required: true, message: "Vui lòng cung cấp hình ảnh!" },
               ]}
             >
-              <Input />
+              <>
+                {editForm.getFieldValue("imageUrl") && !editFile && (
+                  <div className="mb-2">
+                    <Image
+                      src={resolveImageUrl(editForm.getFieldValue("imageUrl"))}
+                      alt="Current"
+                      width={120}
+                      className="rounded"
+                    />
+                  </div>
+                )}
+                <Upload
+                  listType="picture"
+                  maxCount={1}
+                  beforeUpload={(file) => {
+                    setEditFile(file);
+                    editForm.setFieldsValue({ imageUrl: file.name });
+                    return false; // Prevent auto-upload
+                  }}
+                  onRemove={() => {
+                    setEditFile(null);
+                  }}
+                  fileList={editFile ? [editFile] : []}
+                >
+                  <Button icon={<UploadOutlined />}>
+                    Chọn ảnh mới (để thay thế)
+                  </Button>
+                </Upload>
+              </>
             </Form.Item>
             <div className="flex justify-end gap-2 mt-6">
               <Button
@@ -831,6 +923,7 @@ export default function VehicleModels() {
                   setEditOpen(false);
                   setEditingId(null);
                   editForm.resetFields();
+                  setEditFile(null);
                 }}
               >
                 Hủy
