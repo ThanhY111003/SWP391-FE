@@ -1,14 +1,6 @@
 // src/pages/components/DealerLayout.jsx
-import {
-  Layout,
-  Menu,
-  Space,
-  Button,
-  Modal,
-  Descriptions,
-  message,
-  Tag,
-} from "antd";
+import { Layout, Menu, Space, Button, Modal, Descriptions, Tag } from "antd";
+import toast from "react-hot-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
@@ -37,6 +29,7 @@ export default function DealerLayout({ children }) {
 
   // Thông tin tài khoản đại lý
   const [me, setMe] = useState(null);
+  const [dealer, setDealer] = useState(null);
   const [openProfileModal, setOpenProfileModal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingValues, setEditingValues] = useState({});
@@ -49,11 +42,25 @@ export default function DealerLayout({ children }) {
       const data = payload?.data ?? payload;
       setMe(data || null);
       setEditingValues(data || {});
+
+      // Nếu user có dealerId thì lấy thêm thông tin chi tiết dealer
+      if (data?.dealerId) {
+        try {
+          const dealerRes = await api.get(`/dealers/${data.dealerId}`);
+          const dealerPayload = dealerRes?.data;
+          const dealerData = dealerPayload?.data ?? dealerPayload;
+          setDealer(dealerData || null);
+        } catch (err) {
+          console.error("Fetch dealer detail failed", err);
+        }
+      } else {
+        setDealer(null);
+      }
     } catch (e) {
       console.error("Fetch /admin/users/me failed", e);
-      message.error(
-        e?.response?.data?.message || "Không tải được thông tin tài khoản"
-      );
+      const errorMsg =
+        e?.response?.data?.message || "Không tải được thông tin tài khoản";
+      toast.error(errorMsg);
       setMe(
         (prev) =>
           prev || {
@@ -63,6 +70,7 @@ export default function DealerLayout({ children }) {
               : [],
           }
       );
+      setDealer(null);
     }
   };
 
@@ -95,14 +103,15 @@ export default function DealerLayout({ children }) {
         address: editingValues.address,
       };
       await api.put("admin/users/me", payload);
-      message.success("Cập nhật thông tin thành công");
+      toast.success("Cập nhật thông tin tài khoản thành công!");
       setMe((prev) => ({ ...(prev || {}), ...editingValues }));
       setEditing(false);
     } catch (e) {
       console.error("Update /admin/users/me failed", e);
-      message.error(
-        e?.response?.data?.message || "Cập nhật thông tin thất bại"
-      );
+      const errorMsg =
+        e?.response?.data?.message ||
+        "Cập nhật thông tin tài khoản thất bại. Vui lòng thử lại!";
+      toast.error(errorMsg);
     }
   };
 
@@ -409,13 +418,47 @@ export default function DealerLayout({ children }) {
               me?.address || "-"
             )}
           </Descriptions.Item>
-          <Descriptions.Item label="Đại lý">
-            {me?.dealerName || me?.dealer?.name || "-"}
-          </Descriptions.Item>
+          {/* Thông tin đại lý (chỉ xem, không cho dealer chỉnh sửa) */}
           {me?.dealerId != null && (
-            <Descriptions.Item label="Dealer ID">
-              {me.dealerId}
-            </Descriptions.Item>
+            <>
+              <Descriptions.Item label="Dealer ID">
+                {me.dealerId}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tên đại lý">
+                {dealer?.name || me?.dealerName || me?.dealer?.name || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Mã đại lý">
+                {dealer?.code || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Địa chỉ đại lý">
+                {dealer?.address || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số điện thoại đại lý">
+                {dealer?.phoneNumber || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Email đại lý">
+                {dealer?.email || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Khu vực">
+                {dealer?.region || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Cấp đại lý">
+                {dealer?.dealerLevelName || "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Công nợ hiện tại (VNĐ)">
+                {typeof dealer?.currentDebt === "number"
+                  ? dealer.currentDebt.toLocaleString("vi-VN")
+                  : "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Hạn mức còn lại (VNĐ)">
+                {typeof dealer?.availableCredit === "number"
+                  ? dealer.availableCredit.toLocaleString("vi-VN")
+                  : "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số đơn tối đa mỗi đợt đặt">
+                {dealer?.maxOrderQuantity ?? "-"}
+              </Descriptions.Item>
+            </>
           )}
           <Descriptions.Item label="Vai trò">
             {Array.isArray(me?.roles) && me.roles.length ? (
