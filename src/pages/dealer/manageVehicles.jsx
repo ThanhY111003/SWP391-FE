@@ -401,36 +401,6 @@ export default function ManageVehicles() {
               Bán cho KH
             </Button>
           )}
-          {record.isActive ? (
-            <Popconfirm
-              title="Xác nhận vô hiệu hóa"
-              description="Bạn có chắc chắn muốn vô hiệu hóa xe này?"
-              onConfirm={() => handleDeactivate(record.id)}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <Button
-                type="link"
-                danger
-                icon={<CloseCircleOutlined />}
-                size="small"
-              >
-                Vô hiệu
-              </Button>
-            </Popconfirm>
-          ) : (
-            <Popconfirm
-              title="Xác nhận kích hoạt"
-              description="Bạn có chắc chắn muốn kích hoạt lại xe này?"
-              onConfirm={() => handleActivate(record.id)}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <Button type="link" icon={<CheckCircleOutlined />} size="small">
-                Kích hoạt
-              </Button>
-            </Popconfirm>
-          )}
         </Space>
       ),
     },

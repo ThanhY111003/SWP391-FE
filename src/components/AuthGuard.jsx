@@ -1,33 +1,42 @@
 // src/components/AuthGuard.jsx
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const AuthGuard = ({ children }) => {
+const AuthGuard = ({ children, allowedRoles }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const normalizedRoles = Array.isArray(allowedRoles) ? allowedRoles : [];
+  const roleListKey = normalizedRoles.join("|");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    
-    console.log("AuthGuard - Token:", token ? "Present" : "Missing");
-    console.log("AuthGuard - Role:", role || "Missing");
-    
+
     if (!token || !role) {
-      console.log("AuthGuard - Redirecting to login");
-      navigate("/login");
+      navigate("/login", { replace: true });
       return;
     }
-  }, [navigate]);
+
+    const hasRoleAccess =
+      !normalizedRoles.length || normalizedRoles.includes(role);
+
+    if (!hasRoleAccess) {
+      navigate("/forbidden", {
+        replace: true,
+        state: { from: location.pathname },
+      });
+    }
+  }, [navigate, allowedRoles, roleListKey, location.pathname]);
 
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
-  
-  if (!token || !role) {
-    console.log("AuthGuard - Not rendering children, redirecting...");
-    return null; // Don't render anything while redirecting
+  const hasRoleAccess =
+    !normalizedRoles.length || normalizedRoles.includes(role);
+
+  if (!token || !role || !hasRoleAccess) {
+    return null;
   }
 
-  console.log("AuthGuard - Rendering children");
   return children;
 };
 

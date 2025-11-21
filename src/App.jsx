@@ -34,6 +34,10 @@ import WarrantyRequests from "./pages/admin/WarrantyRequests";
 import ManufacturerLayout from "./pages/components/manufacturerLayout";
 import AuthGuard from "./components/AuthGuard";
 import DebugAuth from "./components/DebugAuth";
+import Forbidden from "./pages/Forbidden";
+
+const DEALER_ROLES = ["DEALER_MANAGER", "DEALER_STAFF"];
+const ADMIN_ROLES = ["ADMIN"];
 
 function App() {
   return (
@@ -70,39 +74,146 @@ function App() {
       <Routes>
         {/* Auth */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forbidden" element={<Forbidden />} />
 
         {/* Admin - Now part of Manufacturer */}
         {/* <Route path="/admin/ManageUsers" element={<ManageUsers />} /> */}
 
         {/* Dealer */}
-        <Route path="/dealer/dashboard" element={<DealerDashboard />} />
-        <Route path="/dealer/catalog" element={<VehicleCatalog />} />
-        <Route path="/dealer/vehicle-list" element={<VehicleList />} />
+        <Route
+          path="/dealer/dashboard"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <DealerDashboard />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/catalog"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <VehicleCatalog />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/vehicle-list"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <VehicleList />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/dealer/vehicle-detail/:modelId"
-          element={<VehicleDetail />}
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <VehicleDetail />
+            </AuthGuard>
+          }
         />
-        <Route path="/dealer/cart" element={<Cart />} />
-        <Route path="/dealer/create-order" element={<CreateOrder />} />
-        <Route path="/dealer/comparison" element={<VehicleComparison />} />
-        <Route path="/dealer/orders" element={<ManageOrders />} />
-        <Route path="/dealer/orders/:id" element={<OrderDetail />} />
-        <Route path="/dealer/inventory" element={<Inventory />} />
-        <Route path="/dealer/vehicles" element={<ManageVehicles />} />
-        <Route path="/dealer/customers" element={<ManageCustomers />} />
+        <Route
+          path="/dealer/cart"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <Cart />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/create-order"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <CreateOrder />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/comparison"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <VehicleComparison />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/orders"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <ManageOrders />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/orders/:id"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <OrderDetail />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/inventory"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <Inventory />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/vehicles"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <ManageVehicles />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/customers"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <ManageCustomers />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/dealer/vehicle-prices"
-          element={<VehiclePriceManagement />}
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <VehiclePriceManagement />
+            </AuthGuard>
+          }
         />
-        <Route path="/dealer/warranty" element={<WarrantyManagement />} />
-        <Route path="/dealer/customer-history" element={<CustomerHistory />} />
-        <Route path="/dealer/sales-report" element={<SalesReport />} />
+        <Route
+          path="/dealer/warranty"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <WarrantyManagement />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/customer-history"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <CustomerHistory />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dealer/sales-report"
+          element={
+            <AuthGuard allowedRoles={DEALER_ROLES}>
+              <SalesReport />
+            </AuthGuard>
+          }
+        />
 
         {/* EVM */}
         <Route
           path="/evm/ManageDealers"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManageDealers />
             </AuthGuard>
           }
@@ -112,7 +223,7 @@ function App() {
         <Route
           path="/manufacturer/reports"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <Reports />
               </ManufacturerLayout>
@@ -122,7 +233,7 @@ function App() {
         <Route
           path="/manufacturer/dealerManagement"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <DealerManagement />
               </ManufacturerLayout>
@@ -132,7 +243,7 @@ function App() {
         <Route
           path="/manufacturer/priceTable"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <PriceTable />
               </ManufacturerLayout>
@@ -142,7 +253,7 @@ function App() {
         <Route
           path="/manufacturer/permissions"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <PermissionManagement />
               </ManufacturerLayout>
@@ -152,7 +263,7 @@ function App() {
         <Route
           path="/manufacturer/dealer-levels"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <DealerLevels />
               </ManufacturerLayout>
@@ -162,7 +273,7 @@ function App() {
         <Route
           path="/manufacturer/users"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <ManageUsers />
               </ManufacturerLayout>
@@ -172,7 +283,7 @@ function App() {
         <Route
           path="/manufacturer/orders"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <OrderManagement />
               </ManufacturerLayout>
@@ -182,7 +293,7 @@ function App() {
         <Route
           path="/manufacturer/warranty-requests"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <WarrantyRequests />
               </ManufacturerLayout>
@@ -192,7 +303,7 @@ function App() {
         <Route
           path="/manufacturer/colors"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <AdminColorManagement />
               </ManufacturerLayout>
@@ -202,7 +313,7 @@ function App() {
         <Route
           path="/manufacturer/vehicle-models"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <VehicleModels />
               </ManufacturerLayout>
@@ -212,7 +323,7 @@ function App() {
         <Route
           path="/manufacturer/vehicle-instances"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <VehicleInstances />
               </ManufacturerLayout>
@@ -222,7 +333,7 @@ function App() {
         <Route
           path="/manufacturer/inventories"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <Inventories />
               </ManufacturerLayout>
@@ -232,7 +343,7 @@ function App() {
         <Route
           path="/manufacturer/vehicle-models/:modelId/colors"
           element={
-            <AuthGuard>
+            <AuthGuard allowedRoles={ADMIN_ROLES}>
               <ManufacturerLayout>
                 <VehicleModelColors />
               </ManufacturerLayout>

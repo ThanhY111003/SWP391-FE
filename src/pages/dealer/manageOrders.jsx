@@ -42,10 +42,8 @@ export default function ManageOrders() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [warrantyModalOpen, setWarrantyModalOpen] = useState(false);
   const [defects, setDefects] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
   const [warrantyVehicles, setWarrantyVehicles] = useState([]);
   const [loadingDefects, setLoadingDefects] = useState(false);
-  const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [loadingWarrantyVehicles, setLoadingWarrantyVehicles] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [reportForm] = Form.useForm();
@@ -174,28 +172,10 @@ export default function ManageOrders() {
   };
 
   //  6. Mở modal báo cáo xe lỗi
-  const handleOpenReportModal = async (orderId) => {
+  const handleOpenReportModal = (orderId) => {
     setSelectedOrderId(orderId);
-    setLoadingVehicles(true);
     setReportModalOpen(true);
     reportForm.resetFields();
-    try {
-      const res = await apiClient.get(`/api/dealer/orders/${orderId}/vehicles`);
-      if (res.data.success) {
-        setVehicles(res.data.data || []);
-      } else {
-        message.error(res.data.message || "Không thể tải danh sách xe!");
-        setVehicles([]);
-      }
-    } catch (err) {
-      console.error("Error fetching vehicles:", err);
-      const errorMsg =
-        err.response?.data?.message || "Không thể tải danh sách xe!";
-      message.error(errorMsg);
-      setVehicles([]);
-    } finally {
-      setLoadingVehicles(false);
-    }
   };
 
   //  7. Báo cáo xe lỗi
@@ -206,7 +186,7 @@ export default function ManageOrders() {
       params.append("reason", values.reason);
 
       const res = await apiClient.post(
-        `/api/defects/dealer/orders/${selectedOrderId}/vehicles/${values.vehicleId}/report?${params.toString()}`
+        `/api/defects/dealer/orders/${selectedOrderId}/report?${params.toString()}`
       );
       if (res.data.success) {
         const responseMessage = res.data.message || "Báo cáo xe lỗi thành công!";
@@ -724,7 +704,6 @@ export default function ManageOrders() {
           onCancel={() => {
             setReportModalOpen(false);
             reportForm.resetFields();
-            setVehicles([]);
             setSelectedOrderId(null);
           }}
           title="Báo cáo xe lỗi"
@@ -735,29 +714,9 @@ export default function ManageOrders() {
           destroyOnClose
         >
           <Form form={reportForm} layout="vertical">
-            <Form.Item
-              label="Chọn xe"
-              name="vehicleId"
-              rules={[
-                { required: true, message: "Vui lòng chọn xe!" },
-              ]}
-            >
-              <Select
-                placeholder="Chọn xe cần báo cáo lỗi"
-                loading={loadingVehicles}
-                showSearch
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                options={vehicles.map((vehicle) => ({
-                  value: vehicle.id,
-                  label: `${vehicle.vin} - ${vehicle.modelName} (${vehicle.colorName})`,
-                }))}
-              />
+            <Form.Item label="Mã đơn hàng">
+              <Input value={selectedOrderId || ""} disabled />
             </Form.Item>
-
             <Form.Item
               label="Lý do"
               name="reason"
