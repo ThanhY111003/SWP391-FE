@@ -128,7 +128,7 @@ export default function ManageOrders() {
       COMPLETED: "cyan",
       CANCELLED: "red",
     };
-    
+
     const labelMap = {
       PENDING: "Chờ duyệt",
       CONFIRMED: "Đã xác nhận",
@@ -139,7 +139,7 @@ export default function ManageOrders() {
       COMPLETED: "Hoàn tất",
       CANCELLED: "Đã hủy",
     };
-    
+
     return (
       <Tag color={colorMap[status] || "default"}>
         {labelMap[status] || status}
@@ -153,7 +153,7 @@ export default function ManageOrders() {
     setLoadingDefects(true);
     setDefectsModalOpen(true);
     try {
-      const res = await apiClient.get(`/api/defects/dealer/order/${orderId}`);
+      const res = await apiClient.get(`/api/defects/dealer/orders/${orderId}`);
       if (res.data.success) {
         setDefects(res.data.data || []);
       } else {
@@ -189,9 +189,10 @@ export default function ManageOrders() {
         `/api/defects/dealer/orders/${selectedOrderId}/report?${params.toString()}`
       );
       if (res.data.success) {
-        const responseMessage = res.data.message || "Báo cáo xe lỗi thành công!";
+        const responseMessage =
+          res.data.message || "Báo cáo xe lỗi thành công!";
         toast.success(responseMessage, {
-          position: 'top-right',
+          position: "top-right",
           duration: 4000,
         });
         setReportModalOpen(false);
@@ -200,7 +201,7 @@ export default function ManageOrders() {
         fetchOrders();
       } else {
         toast.error(res.data.message || "Không thể báo cáo xe lỗi!", {
-          position: 'top-right',
+          position: "top-right",
         });
       }
     } catch (err) {
@@ -208,7 +209,7 @@ export default function ManageOrders() {
       const errorMsg =
         err.response?.data?.message || "Không thể báo cáo xe lỗi!";
       toast.error(errorMsg, {
-        position: 'top-right',
+        position: "top-right",
       });
     }
   };
@@ -228,9 +229,11 @@ export default function ManageOrders() {
         // Lấy tất cả các xe trong đơn hàng (không filter)
         // Vì yêu cầu bảo hành có thể áp dụng cho các xe đã được giao
         setWarrantyVehicles(vehiclesData);
-        
+
         if (vehiclesData.length === 0) {
-          message.warning("Không có xe nào trong đơn hàng này để tạo yêu cầu bảo hành!");
+          message.warning(
+            "Không có xe nào trong đơn hàng này để tạo yêu cầu bảo hành!"
+          );
         }
       } else {
         message.error(res.data.message || "Không thể tải danh sách xe!");
@@ -259,9 +262,10 @@ export default function ManageOrders() {
         `/api/warranty/dealer/${values.vehicleId}/request?${params.toString()}`
       );
       if (res.data.success) {
-        const responseMessage = res.data.message || "Tạo yêu cầu bảo hành thành công!";
+        const responseMessage =
+          res.data.message || "Tạo yêu cầu bảo hành thành công!";
         toast.success(responseMessage, {
-          position: 'top-right',
+          position: "top-right",
           duration: 4000,
         });
         setWarrantyModalOpen(false);
@@ -270,7 +274,7 @@ export default function ManageOrders() {
         fetchOrders();
       } else {
         toast.error(res.data.message || "Không thể tạo yêu cầu bảo hành!", {
-          position: 'top-right',
+          position: "top-right",
         });
       }
     } catch (err) {
@@ -278,7 +282,7 @@ export default function ManageOrders() {
       const errorMsg =
         err.response?.data?.message || "Không thể tạo yêu cầu bảo hành!";
       toast.error(errorMsg, {
-        position: 'top-right',
+        position: "top-right",
       });
     }
   };
@@ -286,23 +290,25 @@ export default function ManageOrders() {
   // 9. Xác nhận nhận hàng
   const handleConfirmReceived = async (orderId) => {
     try {
-      const res = await apiClient.patch(`/api/dealer/orders/${orderId}/confirm-received`);
-      
+      const res = await apiClient.patch(
+        `/api/dealer/orders/${orderId}/confirm-received`
+      );
+
       if (res.data && res.data.success) {
         const orderData = res.data.data;
         toast.success(
           `Xác nhận nhận hàng thành công! Đơn hàng ${orderData.orderCode} đã được cập nhật trạng thái.`,
           {
-            position: 'top-right',
+            position: "top-right",
             duration: 5000,
           }
         );
-        
+
         // Refresh danh sách đơn hàng
         await fetchOrders();
       } else {
         toast.error(res.data.message || "Không thể xác nhận nhận hàng!", {
-          position: 'top-right',
+          position: "top-right",
         });
       }
     } catch (err) {
@@ -310,7 +316,7 @@ export default function ManageOrders() {
       const errorMsg =
         err.response?.data?.message || "Có lỗi xảy ra khi xác nhận nhận hàng!";
       toast.error(errorMsg, {
-        position: 'top-right',
+        position: "top-right",
       });
     }
   };
@@ -354,7 +360,9 @@ export default function ManageOrders() {
               Màu: {requestedModel?.colorName || "N/A"}
             </div>
             {record.assignedVehicle && (
-              <div style={{ color: "#1890ff", fontSize: "12px", marginTop: "4px" }}>
+              <div
+                style={{ color: "#1890ff", fontSize: "12px", marginTop: "4px" }}
+              >
                 <div>Xe đã gán: {record.assignedVehicle.vin}</div>
                 <div>Trạng thái xe: {record.assignedVehicle.status}</div>
               </div>
@@ -380,9 +388,7 @@ export default function ManageOrders() {
           <Progress
             percent={record.paymentProgress || 0}
             size="small"
-            strokeColor={
-              record.paymentProgress === 100 ? "#52c41a" : "#1890ff"
-            }
+            strokeColor={record.paymentProgress === 100 ? "#52c41a" : "#1890ff"}
           />
           <div style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}>
             Đã trả: {formatCurrency(record.paidAmount || 0)}
@@ -419,11 +425,15 @@ export default function ManageOrders() {
           <Tag color={record.isInstallment ? "blue" : "green"}>
             {record.isInstallment ? "Trả góp" : "Thanh toán đủ"}
           </Tag>
-          {record.isInstallment && record.installmentPlans && record.installmentPlans.length > 0 && (
-            <div style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}>
-              {record.installmentPlans.length} kỳ thanh toán
-            </div>
-          )}
+          {record.isInstallment &&
+            record.installmentPlans &&
+            record.installmentPlans.length > 0 && (
+              <div
+                style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}
+              >
+                {record.installmentPlans.length} kỳ thanh toán
+              </div>
+            )}
         </div>
       ),
       width: 140,
@@ -506,7 +516,7 @@ export default function ManageOrders() {
               cancelText="Hủy"
               okButtonProps={{
                 type: "primary",
-                style: { backgroundColor: "#52c41a", borderColor: "#52c41a" }
+                style: { backgroundColor: "#52c41a", borderColor: "#52c41a" },
               }}
             >
               <Button
@@ -588,7 +598,7 @@ export default function ManageOrders() {
                 dataSource={orders}
                 loading={loading}
                 bordered
-                scroll={{ x: 'max-content' }}
+                scroll={{ x: "max-content" }}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,
@@ -755,9 +765,7 @@ export default function ManageOrders() {
             <Form.Item
               label="Chọn xe"
               name="vehicleId"
-              rules={[
-                { required: true, message: "Vui lòng chọn xe!" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng chọn xe!" }]}
             >
               <Select
                 placeholder="Chọn xe cần bảo hành/sửa chữa"
@@ -791,7 +799,14 @@ export default function ManageOrders() {
               />
             </Form.Item>
             {warrantyVehicles.length === 0 && !loadingWarrantyVehicles && (
-              <div style={{ color: "#999", fontSize: "12px", marginTop: "-16px", marginBottom: "16px" }}>
+              <div
+                style={{
+                  color: "#999",
+                  fontSize: "12px",
+                  marginTop: "-16px",
+                  marginBottom: "16px",
+                }}
+              >
                 Không có xe nào trong đơn hàng này để tạo yêu cầu bảo hành.
               </div>
             )}
