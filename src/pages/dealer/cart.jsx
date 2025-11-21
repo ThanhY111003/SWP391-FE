@@ -53,8 +53,7 @@ export default function Cart() {
     } catch (err) {
       console.error("Error fetching cart:", err);
       // Nếu giỏ hàng trống, API có thể trả về lỗi
-      const errorMsg =
-        err.response?.data?.message || "Không thể tải giỏ hàng!";
+      const errorMsg = err.response?.data?.message || "Không thể tải giỏ hàng!";
       if (err.response?.status !== 404) {
         message.error(errorMsg);
       }
@@ -91,7 +90,8 @@ export default function Cart() {
       console.error("Error response:", err.response);
       let errorMsg = "Không thể cập nhật số lượng!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -115,7 +115,8 @@ export default function Cart() {
       console.error("Error response:", err.response);
       let errorMsg = "Không thể xóa khỏi giỏ hàng!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -138,7 +139,8 @@ export default function Cart() {
       console.error("Error response:", err.response);
       let errorMsg = "Không thể xóa giỏ hàng!";
       if (err.response?.data) {
-        errorMsg = err.response.data.message || err.response.data.error || errorMsg;
+        errorMsg =
+          err.response.data.message || err.response.data.error || errorMsg;
       } else if (err.message) {
         errorMsg = err.message;
       }
@@ -150,19 +152,21 @@ export default function Cart() {
   const handleCreateOrder = async () => {
     try {
       const values = await createOrderForm.validateFields();
-      
+
       // Với API mới, chỉ có thể tạo đơn hàng cho 1 sản phẩm tại một thời điểm
       // Vì vậy, tạo nhiều đơn hàng cho từng item trong giỏ hàng
       const createdOrders = [];
       const failedOrders = [];
-      
+
       for (const item of cart.items) {
         try {
           const orderData = {
             isInstallment: values.isInstallment || false,
-            installmentMonths: values.isInstallment ? values.installmentMonths || 12 : 12,
+            installmentMonths: values.isInstallment
+              ? values.installmentMonths || 12
+              : 12,
             notes: values.notes || "",
-            vehicleModelColorId: item.vehicleModelColorId
+            vehicleModelColorId: item.vehicleModelColorId,
           };
 
           const res = await apiClient.post("/api/dealer/orders", orderData);
@@ -170,54 +174,98 @@ export default function Cart() {
             createdOrders.push({
               item: item,
               order: res.data.data,
-              message: res.data.message
+              message: res.data.message,
             });
           } else {
             failedOrders.push({
               item: item,
-              error: res.data.message || "Không xác định"
+              error: res.data.message || "Không xác định",
             });
           }
         } catch (err) {
           failedOrders.push({
             item: item,
-            error: err.response?.data?.message || err.message || "Không xác định"
+            error:
+              err.response?.data?.message || err.message || "Không xác định",
           });
         }
       }
 
       // Hiển thị kết quả
       if (createdOrders.length > 0) {
-        const totalAmount = createdOrders.reduce((sum, order) => sum + (order.order.totalAmount || 0), 0);
-        
+        const totalAmount = createdOrders.reduce(
+          (sum, order) => sum + (order.order.totalAmount || 0),
+          0
+        );
+
         // Thông báo thành công
         toast.success(
           (t) => (
-            <div style={{ maxWidth: '450px' }}>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px', color: '#fff' }}>
+            <div style={{ maxWidth: "450px" }}>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  fontSize: "16px",
+                  color: "#fff",
+                }}
+              >
                 ✅ Tạo thành công {createdOrders.length} đơn hàng
               </div>
-              <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#e0e0e0' }}>
-                <div style={{ marginBottom: '6px' }}>
-                  <span style={{ color: '#b0b0b0' }}>Tổng giá trị:</span>{' '}
-                  <strong style={{ color: '#4caf50', fontSize: '15px' }}>
+              <div
+                style={{
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                  color: "#e0e0e0",
+                }}
+              >
+                <div style={{ marginBottom: "6px" }}>
+                  <span style={{ color: "#b0b0b0" }}>Tổng giá trị:</span>{" "}
+                  <strong style={{ color: "#4caf50", fontSize: "15px" }}>
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
                     }).format(totalAmount)}
                   </strong>
                 </div>
-                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-                  <div style={{ color: '#b0b0b0', fontSize: '13px', marginBottom: '4px' }}>
+                <div
+                  style={{
+                    marginTop: "8px",
+                    paddingTop: "8px",
+                    borderTop: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#b0b0b0",
+                      fontSize: "13px",
+                      marginBottom: "4px",
+                    }}
+                  >
                     Đơn hàng đã tạo:
                   </div>
                   {createdOrders.slice(0, 3).map((order, index) => (
-                    <div key={index} style={{ fontSize: '13px', marginLeft: '8px', color: '#e0e0e0', marginBottom: '2px' }}>
-                      • {order.order.orderCode} - {order.item.modelName} ({order.item.colorName})
+                    <div
+                      key={index}
+                      style={{
+                        fontSize: "13px",
+                        marginLeft: "8px",
+                        color: "#e0e0e0",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      • {order.order.orderCode} - {order.item.modelName} (
+                      {order.item.colorName})
                     </div>
                   ))}
                   {createdOrders.length > 3 && (
-                    <div style={{ fontSize: '13px', marginLeft: '8px', color: '#b0b0b0' }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        marginLeft: "8px",
+                        color: "#b0b0b0",
+                      }}
+                    >
                       ... và {createdOrders.length - 3} đơn hàng khác
                     </div>
                   )}
@@ -227,55 +275,54 @@ export default function Cart() {
           ),
           {
             duration: 6000,
-            position: 'top-right',
+            position: "top-right",
             style: {
-              background: '#363636',
-              color: '#fff',
-              padding: '16px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              background: "#363636",
+              color: "#fff",
+              padding: "16px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
             },
             iconTheme: {
-              primary: '#4caf50',
-              secondary: '#fff',
+              primary: "#4caf50",
+              secondary: "#fff",
             },
           }
         );
-        
+
         setCreateOrderModalOpen(false);
         createOrderForm.resetFields();
-        
+
         // Xóa giỏ hàng sau khi tạo đơn thành công
         try {
           await apiClient.delete("/api/cart/clear");
         } catch (clearError) {
           console.warn("Error clearing cart:", clearError);
         }
-        
+
         fetchCart();
-        
+
         // Chuyển đến trang quản lý đơn hàng sau 1.5 giây
         setTimeout(() => {
           navigate("/dealer/orders");
         }, 1500);
       }
-      
+
       // Hiển thị lỗi nếu có đơn hàng thất bại
       if (failedOrders.length > 0) {
         toast.error(
           `Có ${failedOrders.length} đơn hàng tạo thất bại. Vui lòng thử lại.`,
           {
             duration: 4000,
-            position: 'top-right',
+            position: "top-right",
           }
         );
       }
-      
+
       // Nếu tất cả đều thất bại
       if (createdOrders.length === 0) {
         message.error("Không thể tạo đơn hàng nào. Vui lòng thử lại!");
       }
-      
     } catch (err) {
       console.error("Error creating orders:", err);
       message.error("Có lỗi xảy ra khi tạo đơn hàng!");
@@ -309,31 +356,9 @@ export default function Cart() {
     {
       title: "Số lượng",
       key: "quantity",
-      width: 200,
+      width: 100,
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<MinusOutlined />}
-            size="small"
-            onClick={() => handleUpdateQuantity(record.id, record.quantity - 1)}
-            disabled={record.quantity <= 1}
-          />
-          <InputNumber
-            min={1}
-            value={record.quantity}
-            onChange={(value) => {
-              if (value && value > 0) {
-                handleUpdateQuantity(record.id, value);
-              }
-            }}
-            style={{ width: 80 }}
-          />
-          <Button
-            icon={<PlusOutlined />}
-            size="small"
-            onClick={() => handleUpdateQuantity(record.id, record.quantity + 1)}
-          />
-        </Space>
+        <span className="font-semibold">{record.quantity}</span>
       ),
     },
     {
@@ -360,12 +385,7 @@ export default function Cart() {
           okText="Xóa"
           cancelText="Hủy"
         >
-          <Button
-            type="primary"
-            danger
-            icon={<DeleteOutlined />}
-            size="small"
-          >
+          <Button type="primary" danger icon={<DeleteOutlined />} size="small">
             Xóa
           </Button>
         </Popconfirm>
@@ -417,7 +437,12 @@ export default function Cart() {
                 okText="Xóa"
                 cancelText="Hủy"
               >
-                <Button type="primary" danger icon={<DeleteOutlined />} className="w-full sm:w-auto">
+                <Button
+                  type="primary"
+                  danger
+                  icon={<DeleteOutlined />}
+                  className="w-full sm:w-auto"
+                >
                   Xóa toàn bộ
                 </Button>
               </Popconfirm>
@@ -451,7 +476,7 @@ export default function Cart() {
             columns={columns}
             dataSource={cart.items}
             pagination={false}
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: "max-content" }}
             summary={(pageData) => {
               const total = cart.cartTotal || 0;
               return (
@@ -489,7 +514,11 @@ export default function Cart() {
                 setCreateOrderModalOpen(true);
               }}
               className="w-full sm:w-auto"
-              style={{ height: "48px", paddingLeft: "32px", paddingRight: "32px" }}
+              style={{
+                height: "48px",
+                paddingLeft: "32px",
+                paddingRight: "32px",
+              }}
             >
               Tạo đơn hàng
             </Button>
@@ -507,15 +536,16 @@ export default function Cart() {
           onOk={handleCreateOrder}
           okText="Tạo đơn hàng"
           cancelText="Hủy"
-          width={{ xs: '90%', sm: 600 }}
+          width={{ xs: "90%", sm: 600 }}
         >
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="text-sm text-blue-800">
-              <strong>Lưu ý:</strong> Hệ thống sẽ tạo riêng biệt {cart.items.length} đơn hàng cho từng sản phẩm trong giỏ hàng. 
-              Cấu hình thanh toán sẽ được áp dụng cho tất cả các đơn hàng.
+              <strong>Lưu ý:</strong> Hệ thống sẽ tạo riêng biệt{" "}
+              {cart.items.length} đơn hàng cho từng sản phẩm trong giỏ hàng. Cấu
+              hình thanh toán sẽ được áp dụng cho tất cả các đơn hàng.
             </div>
           </div>
-          
+
           <Form form={createOrderForm} layout="vertical">
             <Form.Item
               label="Hình thức thanh toán"
@@ -555,9 +585,6 @@ export default function Cart() {
                       <Select.Option value={3}>3 tháng</Select.Option>
                       <Select.Option value={6}>6 tháng</Select.Option>
                       <Select.Option value={12}>12 tháng</Select.Option>
-                      <Select.Option value={18}>18 tháng</Select.Option>
-                      <Select.Option value={24}>24 tháng</Select.Option>
-                      <Select.Option value={36}>36 tháng</Select.Option>
                     </Select>
                   </Form.Item>
                 ) : null
@@ -580,7 +607,10 @@ export default function Cart() {
                   Sẽ tạo {cart.items.length} đơn hàng:
                 </div>
                 {cart.items.map((item, index) => (
-                  <div key={item.id} className="flex justify-between items-center border-b border-gray-200 pb-1">
+                  <div
+                    key={item.id}
+                    className="flex justify-between items-center border-b border-gray-200 pb-1"
+                  >
                     <span className="text-xs text-gray-500">#{index + 1}</span>
                     <span className="flex-1 mx-2">
                       {item.modelName} - {item.colorName} (x{item.quantity})
@@ -610,4 +640,3 @@ export default function Cart() {
     </DealerLayout>
   );
 }
-

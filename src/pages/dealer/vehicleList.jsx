@@ -114,31 +114,47 @@ export default function VehicleList() {
       const res = await apiClient.post("/api/cart/items", payload);
       if (res.data.success) {
         const cartData = res.data.data;
-        const responseMessage = res.data.message || "Đã thêm vào giỏ hàng thành công!";
+        const responseMessage =
+          res.data.message || "Đã thêm vào giỏ hàng thành công!";
         const addedItem = cartData?.items?.[cartData.items.length - 1]; // Lấy item vừa thêm (item cuối cùng)
-        
+
         // Thông báo thành công với thông tin chi tiết bằng toast
         toast.success(
           (t) => (
-            <div style={{ maxWidth: '400px' }}>
-              <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '16px', color: '#fff' }}>
+            <div style={{ maxWidth: "400px" }}>
+              <div
+                style={{
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                  fontSize: "16px",
+                  color: "#fff",
+                }}
+              >
                 ✅ {responseMessage}
               </div>
               {addedItem && (
-                <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#e0e0e0' }}>
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ color: '#b0b0b0' }}>Sản phẩm:</span>{' '}
-                    <strong style={{ color: '#4fc3f7' }}>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    lineHeight: "1.6",
+                    color: "#e0e0e0",
+                  }}
+                >
+                  <div style={{ marginBottom: "6px" }}>
+                    <span style={{ color: "#b0b0b0" }}>Sản phẩm:</span>{" "}
+                    <strong style={{ color: "#4fc3f7" }}>
                       {addedItem.modelName} - {addedItem.colorName}
                     </strong>
                   </div>
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ color: '#b0b0b0' }}>Số lượng:</span>{' '}
-                    <strong style={{ color: '#fff' }}>{addedItem.quantity}</strong>
+                  <div style={{ marginBottom: "6px" }}>
+                    <span style={{ color: "#b0b0b0" }}>Số lượng:</span>{" "}
+                    <strong style={{ color: "#fff" }}>
+                      {addedItem.quantity}
+                    </strong>
                   </div>
-                  <div style={{ marginBottom: '6px' }}>
-                    <span style={{ color: '#b0b0b0' }}>Giá:</span>{' '}
-                    <strong style={{ color: '#4caf50' }}>
+                  <div style={{ marginBottom: "6px" }}>
+                    <span style={{ color: "#b0b0b0" }}>Giá:</span>{" "}
+                    <strong style={{ color: "#4caf50" }}>
                       {new Intl.NumberFormat("vi-VN", {
                         style: "currency",
                         currency: "VND",
@@ -146,9 +162,15 @@ export default function VehicleList() {
                     </strong>
                   </div>
                   {cartData?.cartTotal && (
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-                      <span style={{ color: '#b0b0b0' }}>Tổng giỏ hàng:</span>{' '}
-                      <strong style={{ color: '#4caf50', fontSize: '15px' }}>
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        paddingTop: "8px",
+                        borderTop: "1px solid rgba(255,255,255,0.2)",
+                      }}
+                    >
+                      <span style={{ color: "#b0b0b0" }}>Tổng giỏ hàng:</span>{" "}
+                      <strong style={{ color: "#4caf50", fontSize: "15px" }}>
                         {new Intl.NumberFormat("vi-VN", {
                           style: "currency",
                           currency: "VND",
@@ -162,26 +184,26 @@ export default function VehicleList() {
           ),
           {
             duration: 5000,
-            position: 'top-right',
+            position: "top-right",
             style: {
-              background: '#363636',
-              color: '#fff',
-              padding: '16px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              background: "#363636",
+              color: "#fff",
+              padding: "16px",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
             },
             iconTheme: {
-              primary: '#4caf50',
-              secondary: '#fff',
+              primary: "#4caf50",
+              secondary: "#fff",
             },
           }
         );
-        
+
         setAddToCartModalOpen(false);
         addToCartForm.resetFields();
       } else {
         toast.error(res.data.message || "Không thể thêm vào giỏ hàng!", {
-          position: 'top-right',
+          position: "top-right",
         });
       }
     } catch (err) {
@@ -195,7 +217,7 @@ export default function VehicleList() {
         errorMsg = err.message;
       }
       toast.error(errorMsg, {
-        position: 'top-right',
+        position: "top-right",
       });
     }
   };
@@ -571,6 +593,7 @@ export default function VehicleList() {
             </Form.Item>
 
             <Form.Item
+              hidden
               label="Số lượng"
               name="quantity"
               rules={[

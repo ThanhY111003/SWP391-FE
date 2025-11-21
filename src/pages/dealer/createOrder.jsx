@@ -48,16 +48,34 @@ export default function CreateOrder() {
   const fetchVehicleModelColors = async () => {
     setLoadingVehicles(true);
     try {
-      const res = await apiClient.get("/api/vehicle-model-colors");
-      if (res.data.success) {
-        setVehicleModelColors(res.data.data || []);
-      } else {
-        message.error(res.data.message || "Không thể tải danh sách xe!");
-        setVehicleModelColors([]);
+      // 1. Lấy tất cả các mẫu xe (vehicle models) đang active
+      const modelsRes = await apiClient.get("/api/vehicle-models");
+      if (!modelsRes.data.success) {
+        throw new Error(modelsRes.data.message || "Không thể tải danh sách mẫu xe!");
       }
+      const activeModels = modelsRes.data.data.filter(m => m.isActive);
+
+      // 2. Lấy danh sách màu cho từng mẫu xe và gộp lại
+      const colorPromises = activeModels.map(model => 
+        apiClient.get(`/api/vehicle-models/${model.id}/colors`).then(colorRes => ({
+          modelName: model.name, // Lấy tên model
+          colors: colorRes.data.success ? colorRes.data.data.filter(c => c.isActive) : []
+        }))
+      );
+      const results = await Promise.all(colorPromises);
+
+      const allColors = results.flatMap(result => 
+        result.colors.map(color => ({
+          ...color,
+          modelName: result.modelName // Gán tên model vào từng object màu
+        }))
+      );
+      
+      setVehicleModelColors(allColors);
+
     } catch (err) {
       console.error("Error fetching vehicle model colors:", err);
-      message.error("Không thể tải danh sách xe!");
+      message.error(err.message || "Không thể tải danh sách xe!");
       setVehicleModelColors([]);
     } finally {
       setLoadingVehicles(false);
@@ -258,9 +276,6 @@ export default function CreateOrder() {
                       <Select.Option value={3}>3 tháng</Select.Option>
                       <Select.Option value={6}>6 tháng</Select.Option>
                       <Select.Option value={12}>12 tháng</Select.Option>
-                      <Select.Option value={18}>18 tháng</Select.Option>
-                      <Select.Option value={24}>24 tháng</Select.Option>
-                      <Select.Option value={36}>36 tháng</Select.Option>
                     </Select>
                   </Form.Item>
                 ) : null
