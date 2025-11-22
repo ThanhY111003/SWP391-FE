@@ -2,12 +2,12 @@
 import axios from "axios";
 
 const getBaseURL = () => {
-  // Production: domain gốc, KHÔNG có /api
+  // Production (deploy) → dùng backend thật
   if (import.meta.env.PROD) {
     return "https://swp391-be-y3kc.onrender.com";
   }
 
-  // Development: domain local, KHÔNG có /api
+  // Development (local) → dùng local backend
   return "http://localhost:8080";
 };
 
@@ -16,17 +16,17 @@ const apiClient = axios.create({
   timeout: 10000,
 });
 
-// Add token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// 401 → logout
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
