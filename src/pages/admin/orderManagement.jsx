@@ -535,7 +535,7 @@ export default function OrderManagement() {
   const handleApproveDefectReport = async (orderId) => {
     setApproveDefectLoading((prev) => ({ ...prev, [orderId]: true }));
     try {
-      const res = await api.patch(`/api/defects/admin/${orderId}/approve`);
+      const res = await api.patch(`defects/admin/order/${orderId}/approve`);
       if (res.data.success) {
         message.success(
           res.data.message || "Phê duyệt báo cáo xe lỗi thành công!",
@@ -567,7 +567,7 @@ export default function OrderManagement() {
     setCompleteRepairLoading((prev) => ({ ...prev, [orderId]: true }));
     try {
       const res = await api.patch(
-        `/api/defects/admin/${orderId}/complete-repair`
+        `defects/admin/order/${orderId}/complete-repair`
       );
       if (res.data.success) {
         message.success(
