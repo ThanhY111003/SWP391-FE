@@ -37,9 +37,6 @@ export default function Login() {
       // Gọi API login thật
       const res = await api.post("auth/login", values);
 
-      // Ghi log để dễ debug khi BE thay đổi cấu trúc
-      console.log("[Login] raw response:", res);
-
       // Linh hoạt với nhiều định dạng trả về khác nhau của BE
       const raw = res?.data ?? {};
       const payload = raw?.data ?? raw; // một số BE bọc data bên trong 'data'
@@ -83,13 +80,6 @@ export default function Login() {
         if (roleName) localStorage.setItem("role", roleName);
         localStorage.setItem("username", responseUsername || username);
 
-        // Debug: Log saved values
-        console.log("Login - Saved to localStorage:");
-        console.log("Token:", token ? "Present" : "Missing");
-        console.log("Role:", roleName);
-        console.log("Username:", responseUsername || username);
-        console.log("Must Change Password:", mustChangePassword);
-
         // Kiểm tra nếu user vừa reset password thành công
         const passwordResetSuccess = localStorage.getItem(
           "passwordResetSuccess"
@@ -104,10 +94,6 @@ export default function Login() {
           // Xóa flag reset password
           localStorage.removeItem("passwordResetSuccess");
           localStorage.removeItem("resetEmail");
-
-          console.log(
-            "Skipping password change requirement - user just reset password"
-          );
           // Bỏ qua mustChangePassword và tiếp tục redirect
         } else if (mustChangePassword === true) {
           // Lưu thông tin đăng nhập để sử dụng sau khi đổi mật khẩu
@@ -154,7 +140,6 @@ export default function Login() {
         message.success(raw?.message || "Login successfully!");
       } else {
         // Không có token trong response
-        console.error("[Login] No token found in response:", raw);
         message.error(
           raw?.message ||
             "Login failed! Backend did not return a token. Please check API response."
@@ -165,7 +150,6 @@ export default function Login() {
       const errorMessage =
         err.response?.data?.message || "Invalid username or password!";
       message.error(errorMessage);
-      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }
