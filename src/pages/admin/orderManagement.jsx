@@ -20,6 +20,8 @@ import {
   Typography,
   Popconfirm,
   InputNumber,
+  Empty,
+  Spin,
 } from "antd";
 import {
   EyeOutlined,
@@ -72,6 +74,12 @@ export default function OrderManagement() {
     {}
   );
   const [selectedInstallmentId, setSelectedInstallmentId] = useState(null);
+
+  // Defects states
+  const [defectsModalVisible, setDefectsModalVisible] = useState(false);
+  const [defects, setDefects] = useState([]);
+  const [loadingDefects, setLoadingDefects] = useState(false);
+  const [rejectDefectLoading, setRejectDefectLoading] = useState({});
 
   const [filters, setFilters] = useState({
     status: "",
@@ -467,6 +475,60 @@ export default function OrderManagement() {
   const handleViewDetail = (order) => {
     setSelectedOrder(order);
     setDetailModalVisible(true);
+  };
+
+  // Handle view defects
+  const handleViewDefects = async (orderId) => {
+    setLoadingDefects(true);
+    setDefectsModalVisible(true);
+    try {
+      const res = await api.get(`/api/defects/admin/order/${orderId}`);
+      if (res.data.success) {
+        setDefects(res.data.data || []);
+      } else {
+        message.error(res.data.message || "Không thể tải danh sách xe lỗi!");
+        setDefects([]);
+      }
+    } catch (err) {
+      console.error("Error fetching defects:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể tải danh sách xe lỗi!";
+      message.error(errorMsg);
+      setDefects([]);
+    } finally {
+      setLoadingDefects(false);
+    }
+  };
+
+  // Handle reject defect report
+  const handleRejectDefectReport = async (orderId) => {
+    setRejectDefectLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await api.patch(
+        `/api/defects/admin/orders/${orderId}/defect/reject`
+      );
+      if (res.data.success) {
+        message.success(
+          res.data.message || "Từ chối báo cáo xe lỗi thành công!",
+          { duration: 4000 }
+        );
+        // Refresh defects list
+        await handleViewDefects(orderId);
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        message.error(
+          res.data.message || "Không thể từ chối báo cáo xe lỗi!"
+        );
+      }
+    } catch (err) {
+      console.error("Error rejecting defect report:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể từ chối báo cáo xe lỗi!";
+      message.error(errorMsg);
+    } finally {
+      setRejectDefectLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
   };
 
   // Handle order approval
@@ -1516,6 +1578,13 @@ export default function OrderManagement() {
           selectedOrder ? (
             <Space>
               <Button onClick={() => setDetailModalVisible(false)}>Đóng</Button>
+
+              <Button
+                icon={<FileTextOutlined />}
+                onClick={() => handleViewDefects(selectedOrder.id)}
+              >
+                Xem xe lỗi
+              </Button>
 
               {canApproveOrder(selectedOrder.status) && (
                 <Space>
@@ -2875,6 +2944,130 @@ export default function OrderManagement() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Defects Modal */}
+      <Modal
+        open={defectsModalVisible}
+        onCancel={() => {
+          setDefectsModalVisible(false);
+          setDefects([]);
+        }}
+        title="Danh sách báo cáo xe lỗi"
+        footer={[
+          <Button key="close" onClick={() => setDefectsModalVisible(false)}>
+            Đóng
+          </Button>,
+        ]}
+        width={1000}
+      >
+        <Spin spinning={loadingDefects}>
+          {defects.length === 0 ? (
+            <Empty
+              description="Không có báo cáo xe lỗi nào trong đơn hàng này"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          ) : (
+            <Table
+              rowKey="id"
+              columns={[
+                {
+                  title: "ID",
+                  dataIndex: "id",
+                  key: "id",
+                  width: 80,
+                },
+                {
+                  title: "VIN",
+                  dataIndex: "vin",
+                  key: "vin",
+                },
+                {
+                  title: "Số máy",
+                  dataIndex: "engineNumber",
+                  key: "engineNumber",
+                },
+                {
+                  title: "Model",
+                  dataIndex: "modelName",
+                  key: "modelName",
+                },
+                {
+                  title: "Màu",
+                  dataIndex: "colorName",
+                  key: "colorName",
+                },
+                {
+                  title: "Lý do",
+                  dataIndex: "reason",
+                  key: "reason",
+                  ellipsis: true,
+                },
+                {
+                  title: "Đã phê duyệt",
+                  dataIndex: "isApproved",
+                  key: "isApproved",
+                  render: (isApproved) => (
+                    <Tag color={isApproved ? "green" : "orange"}>
+                      {isApproved ? "Đã phê duyệt" : "Chờ phê duyệt"}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: "Đã sửa xong",
+                  dataIndex: "isRepairCompleted",
+                  key: "isRepairCompleted",
+                  render: (isRepairCompleted) => (
+                    <Tag color={isRepairCompleted ? "green" : "default"}>
+                      {isRepairCompleted ? "Đã sửa xong" : "Chưa sửa"}
+                    </Tag>
+                  ),
+                },
+                {
+                  title: "Ngày báo cáo",
+                  dataIndex: "reportedAt",
+                  key: "reportedAt",
+                  render: (date) => (date ? formatDateTime(date) : "-"),
+                },
+                {
+                  title: "Thao tác",
+                  key: "action",
+                  width: 150,
+                  render: (_, record) => {
+                    const orderId = selectedOrder?.id;
+                    return (
+                      <Popconfirm
+                        title="Từ chối báo cáo xe lỗi"
+                        description="Bạn có chắc chắn muốn từ chối báo cáo này? Xe không lỗi?"
+                        onConfirm={() => handleRejectDefectReport(orderId)}
+                        okText="Xác nhận"
+                        cancelText="Hủy"
+                        okButtonProps={{ danger: true }}
+                      >
+                        <Button
+                          type="link"
+                          danger
+                          size="small"
+                          loading={rejectDefectLoading[orderId]}
+                          disabled={
+                            record.isApproved ||
+                            record.isRepairCompleted ||
+                            rejectDefectLoading[orderId]
+                          }
+                        >
+                          Từ chối
+                        </Button>
+                      </Popconfirm>
+                    );
+                  },
+                },
+              ]}
+              dataSource={defects}
+              pagination={false}
+              size="small"
+            />
+          )}
+        </Spin>
       </Modal>
     </div>
   );

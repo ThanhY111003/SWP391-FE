@@ -26,6 +26,7 @@ import {
   FileTextOutlined,
   SafetyOutlined,
   CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import DealerLayout from "../components/dealerlayout";
@@ -45,6 +46,8 @@ export default function ManageOrders() {
   const [warrantyVehicles, setWarrantyVehicles] = useState([]);
   const [loadingDefects, setLoadingDefects] = useState(false);
   const [loadingWarrantyVehicles, setLoadingWarrantyVehicles] = useState(false);
+  const [confirmReceivedLoading, setConfirmReceivedLoading] = useState({});
+  const [cancelOrderLoading, setCancelOrderLoading] = useState({});
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [reportForm] = Form.useForm();
   const [warrantyForm] = Form.useForm();
@@ -214,6 +217,38 @@ export default function ManageOrders() {
     }
   };
 
+  //  7b. Hủy báo cáo xe lỗi
+  const handleCancelDefectReport = async (orderId) => {
+    try {
+      const res = await apiClient.delete(
+        `/api/defects/dealer/orders/${orderId}/defect/cancel`
+      );
+      if (res.data.success) {
+        const responseMessage =
+          res.data.message || "Hủy báo cáo xe lỗi thành công!";
+        toast.success(responseMessage, {
+          position: "top-right",
+          duration: 4000,
+        });
+        // Refresh danh sách defects
+        await handleViewDefects(orderId);
+        // Refresh danh sách đơn hàng
+        fetchOrders();
+      } else {
+        toast.error(res.data.message || "Không thể hủy báo cáo xe lỗi!", {
+          position: "top-right",
+        });
+      }
+    } catch (err) {
+      console.error("Error canceling defect report:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể hủy báo cáo xe lỗi!";
+      toast.error(errorMsg, {
+        position: "top-right",
+      });
+    }
+  };
+
   //  8. Mở modal tạo yêu cầu bảo hành
   const handleOpenWarrantyModal = async (orderId) => {
     setSelectedOrderId(orderId);
@@ -289,6 +324,7 @@ export default function ManageOrders() {
 
   // 9. Xác nhận nhận hàng
   const handleConfirmReceived = async (orderId) => {
+    setConfirmReceivedLoading((prev) => ({ ...prev, [orderId]: true }));
     try {
       const res = await apiClient.patch(
         `/api/dealer/orders/${orderId}/confirm-received`
@@ -318,6 +354,42 @@ export default function ManageOrders() {
       toast.error(errorMsg, {
         position: "top-right",
       });
+    } finally {
+      setConfirmReceivedLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // 10. Hủy đơn hàng
+  const handleCancelOrder = async (orderId) => {
+    setCancelOrderLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await apiClient.delete(`/api/dealer/orders/${orderId}/cancel`);
+
+      if (res.data && res.data.success) {
+        toast.success(
+          res.data.message || "Hủy đơn hàng thành công!",
+          {
+            position: "top-right",
+            duration: 4000,
+          }
+        );
+
+        // Refresh danh sách đơn hàng
+        await fetchOrders();
+      } else {
+        toast.error(res.data.message || "Không thể hủy đơn hàng!", {
+          position: "top-right",
+        });
+      }
+    } catch (err) {
+      console.error("Error canceling order:", err);
+      const errorMsg =
+        err.response?.data?.message || "Có lỗi xảy ra khi hủy đơn hàng!";
+      toast.error(errorMsg, {
+        position: "top-right",
+      });
+    } finally {
+      setCancelOrderLoading((prev) => ({ ...prev, [orderId]: false }));
     }
   };
 
@@ -400,6 +472,7 @@ export default function ManageOrders() {
       ),
       width: 180,
     },
+    
     {
       title: "Trạng thái",
       dataIndex: "status",
@@ -473,14 +546,6 @@ export default function ManageOrders() {
             Chi tiết
           </Button>
           <Button
-            icon={<FileTextOutlined />}
-            onClick={() => handleViewDefects(record.id)}
-            size="small"
-            block
-          >
-            Xem xe lỗi
-          </Button>
-          <Button
             icon={<WarningOutlined />}
             onClick={() => handleOpenReportModal(record.id)}
             size="small"
@@ -488,6 +553,14 @@ export default function ManageOrders() {
             block
           >
             Báo cáo xe lỗi
+          </Button>
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => handleViewDefects(record.id)}
+            size="small"
+            block
+          >
+            Xem xe lỗi
           </Button>
           <Button
             icon={<SafetyOutlined />}
@@ -516,7 +589,11 @@ export default function ManageOrders() {
               cancelText="Hủy"
               okButtonProps={{
                 type: "primary",
+                loading: confirmReceivedLoading[record.id],
                 style: { backgroundColor: "#52c41a", borderColor: "#52c41a" },
+                disabled: Object.values(confirmReceivedLoading).some(
+                  (loading) => loading
+                ),
               }}
             >
               <Button
@@ -524,9 +601,50 @@ export default function ManageOrders() {
                 icon={<CheckCircleOutlined />}
                 size="small"
                 block
+                loading={confirmReceivedLoading[record.id]}
+                disabled={Object.values(confirmReceivedLoading).some(
+                  (loading) => loading
+                )}
                 style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
               >
                 Xác nhận nhận hàng
+              </Button>
+            </Popconfirm>
+          )}
+          {record.status === "PENDING" && (
+            <Popconfirm
+              title="Hủy đơn hàng"
+              description={
+                <div>
+                  <div>Bạn có chắc chắn muốn hủy đơn hàng này?</div>
+                  <div className="mt-2 text-sm text-red-600">
+                    • Chỉ có thể hủy đơn hàng đang ở trạng thái "Chờ duyệt"
+                    <br />• Hành động này không thể hoàn tác
+                  </div>
+                </div>
+              }
+              onConfirm={() => handleCancelOrder(record.id)}
+              okText="Hủy đơn"
+              cancelText="Không"
+              okButtonProps={{
+                danger: true,
+                loading: cancelOrderLoading[record.id],
+                disabled: Object.values(cancelOrderLoading).some(
+                  (loading) => loading
+                ),
+              }}
+            >
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                size="small"
+                block
+                loading={cancelOrderLoading[record.id]}
+                disabled={Object.values(cancelOrderLoading).some(
+                  (loading) => loading
+                )}
+              >
+                Hủy đơn hàng
               </Button>
             </Popconfirm>
           )}
@@ -698,6 +816,30 @@ export default function ManageOrders() {
                     dataIndex: "reportedAt",
                     key: "reportedAt",
                     render: (date) => (date ? formatDateTime(date) : "-"),
+                  },
+                  {
+                    title: "Thao tác",
+                    key: "action",
+                    width: 120,
+                    render: (_, record) => (
+                      <Popconfirm
+                        title="Hủy báo cáo xe lỗi"
+                        description="Bạn có chắc chắn muốn hủy báo cáo này? Xe không còn lỗi?"
+                        onConfirm={() => handleCancelDefectReport(selectedOrderId)}
+                        okText="Xác nhận"
+                        cancelText="Hủy"
+                        okButtonProps={{ danger: true }}
+                      >
+                        <Button
+                          type="link"
+                          danger
+                          size="small"
+                          disabled={record.isApproved || record.isRepairCompleted}
+                        >
+                          Hủy báo cáo
+                        </Button>
+                      </Popconfirm>
+                    ),
                   },
                 ]}
                 dataSource={defects}

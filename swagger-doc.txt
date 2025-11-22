@@ -16,6 +16,10 @@
   },
   "servers": [
     {
+      "url": "https://swp391-be-y3kc.onrender.com",
+      "description": "Production Server (Render)"
+    },
+    {
       "url": "https://deflexed-burdenedly-clemente.ngrok-free.dev",
       "description": "Public API for Teacher Test (Ngrok)"
     },
@@ -57,6 +61,10 @@
     {
       "name": "Quản lý vai trò & phân quyền (Role/Permission)",
       "description": "Các API phục vụ quản trị vai trò, quyền và gán quyền cho người dùng"
+    },
+    {
+      "name": "Image Upload",
+      "description": "Upload & quản lý hình ảnh bằng Cloudinary"
     },
     {
       "name": "Cart",
@@ -277,7 +285,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceResponse"
+                  "$ref": "#/components/schemas/ApiResponseVehicleInstanceWithCustomerResponse"
                 }
               }
             }
@@ -426,7 +434,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseDealerResponse"
+                  "$ref": "#/components/schemas/ApiResponseDealerDetailResponse"
                 }
               }
             }
@@ -1150,7 +1158,8 @@
                 "RESERVED",
                 "REPAIRING",
                 "SHIPPING",
-                "SOLD"
+                "SOLD",
+                "PARTIALLY_DELIVERED"
               ]
             }
           },
@@ -1170,7 +1179,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceResponse"
+                  "$ref": "#/components/schemas/ApiResponseListVehicleInstanceWithCustomerResponse"
                 }
               }
             }
@@ -1429,6 +1438,45 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/images/upload": {
+      "post": {
+        "tags": [
+          "Image Upload"
+        ],
+        "summary": "Upload hình ảnh lên Cloudinary",
+        "operationId": "uploadImage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
                 }
               }
             }
@@ -2654,6 +2702,39 @@
         "parameters": [
           {
             "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/defects/admin/orders/{orderId}/defect/reject": {
+      "patch": {
+        "tags": [
+          "Xe lỗi (Admin/EVM)"
+        ],
+        "summary": "Từ chối báo cáo xe lỗi",
+        "description": "Admin từ chối báo cáo lỗi xe khi xác định xe không lỗi",
+        "operationId": "rejectReport",
+        "parameters": [
+          {
+            "name": "orderId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4081,6 +4162,39 @@
         }
       }
     },
+    "/api/defects/dealer/orders/{orderId}/defect/cancel": {
+      "delete": {
+        "tags": [
+          "Xe lỗi (Dealer)"
+        ],
+        "summary": "Hủy báo cáo xe lỗi",
+        "description": "Dealer hủy báo cáo khi xe không còn lỗi",
+        "operationId": "cancelReport",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDefectiveVehicleReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dealer/orders/{orderId}/cancel": {
       "delete": {
         "tags": [
@@ -5446,6 +5560,23 @@
           }
         }
       },
+      "ApiResponseString": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      },
       "ApiResponseDefectiveVehicleReportResponse": {
         "type": "object",
         "properties": {
@@ -6246,7 +6377,7 @@
           }
         }
       },
-      "ApiResponseListVehicleInstanceResponse": {
+      "ApiResponseListVehicleInstanceWithCustomerResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -6261,8 +6392,73 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/VehicleInstanceResponse"
+              "$ref": "#/components/schemas/VehicleInstanceWithCustomerResponse"
             }
+          }
+        }
+      },
+      "VehicleInstanceWithCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "vin": {
+            "type": "string"
+          },
+          "engineNumber": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "colorName": {
+            "type": "string"
+          },
+          "dealerName": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "currentValue": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "customerName": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponseVehicleInstanceWithCustomerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/VehicleInstanceWithCustomerResponse"
           }
         }
       },
@@ -6663,6 +6859,26 @@
           }
         }
       },
+      "ApiResponseListVehicleInstanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleInstanceResponse"
+            }
+          }
+        }
+      },
       "ApiResponseListDefectiveVehicleReportResponse": {
         "type": "object",
         "properties": {
@@ -6700,6 +6916,78 @@
             "items": {
               "$ref": "#/components/schemas/DealerResponse"
             }
+          }
+        }
+      },
+      "ApiResponseDealerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DealerDetailResponse"
+          }
+        }
+      },
+      "DealerDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "region": {
+            "type": "string"
+          },
+          "dealerLevelId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dealerLevelName": {
+            "type": "string"
+          },
+          "currentDebt": {
+            "type": "number"
+          },
+          "availableCredit": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "maxOrderQuantity": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -6913,3 +7201,7 @@
     }
   }
 }
+Beta
+0 / 0
+used queries
+1
