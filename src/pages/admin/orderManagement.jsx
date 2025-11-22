@@ -517,9 +517,7 @@ export default function OrderManagement() {
         // Refresh orders list
         fetchOrders();
       } else {
-        message.error(
-          res.data.message || "Không thể từ chối báo cáo xe lỗi!"
-        );
+        message.error(res.data.message || "Không thể từ chối báo cáo xe lỗi!");
       }
     } catch (err) {
       console.error("Error rejecting defect report:", err);
@@ -556,8 +554,12 @@ export default function OrderManagement() {
           duration: 5,
         });
 
-        // Refresh orders list
-        fetchOrders();
+        // Refresh orders list and close detail modal
+        await fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setDetailModalVisible(false);
+          setSelectedOrder(null);
+        }
       } else {
         message.error(response.data?.message || "Phê duyệt đơn hàng thất bại!");
       }
@@ -567,6 +569,47 @@ export default function OrderManagement() {
       const errorMessage =
         error.response?.data?.message ||
         "Có lỗi xảy ra khi phê duyệt đơn hàng!";
+      message.error(errorMessage);
+    } finally {
+      setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle order rejection
+  const handleRejectOrder = async (orderId) => {
+    setApproveLoading((prev) => ({ ...prev, [orderId]: true }));
+
+    try {
+      const response = await api.patch(`/admin/orders/${orderId}/reject`);
+
+      if (response.data && response.data.success) {
+        const orderData = response.data.data;
+
+        message.success({
+          content: (
+            <div>
+              <div>
+                <strong>Đơn hàng đã bị từ chối!</strong>
+              </div>
+              <div>Order Code: {orderData.orderCode}</div>
+              <div>Status: {orderData.status}</div>
+            </div>
+          ),
+          duration: 5,
+        });
+
+        await fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setDetailModalVisible(false);
+          setSelectedOrder(null);
+        }
+      } else {
+        message.error(response.data?.message || "Từ chối đơn hàng thất bại!");
+      }
+    } catch (error) {
+      console.error("Error rejecting order:", error);
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi từ chối đơn hàng!";
       message.error(errorMessage);
     } finally {
       setApproveLoading((prev) => ({ ...prev, [orderId]: false }));
@@ -596,8 +639,12 @@ export default function OrderManagement() {
           duration: 5,
         });
 
-        // Refresh orders list
-        fetchOrders();
+        // Refresh orders list and close detail modal
+        await fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setDetailModalVisible(false);
+          setSelectedOrder(null);
+        }
       } else {
         message.error(response.data?.message || "Hủy đơn hàng thất bại!");
       }
@@ -868,18 +915,59 @@ export default function OrderManagement() {
         hasNoVehicle
       );
     } else {
-      // For straight payment: must be confirmed/paid and fully paid
+      // For straight payment: must be confirmed/paid and paid over 50%
       const allowedStatuses = ["CONFIRMED", "PAID", "APPROVED"];
 
-      // FIX: Sửa lỗi nghiêm trọng ở đây.
-      // Cũ: const isFullyPaid = (record.paymentProgress || 0) >= 100; -> Sai vì PAID = 100% progress
-      // Mới: Tính toán trực tiếp từ số tiền
       const paid = record.paidAmount || 0;
       const total = record.totalAmount || 0;
-      const isFullyPaid = total > 0 && total - paid < 1000;
+      const isOverFiftyPercent = total > 0 && paid / total >= 0.5;
 
       return (
-        allowedStatuses.includes(record.status) && hasNoVehicle && isFullyPaid
+        allowedStatuses.includes(record.status) &&
+        hasNoVehicle &&
+        isOverFiftyPercent
+      );
+    }
+  };
+
+  // Check if order can detach assigned vehicle (only when not delivered/completed)
+  const canDetachVehicle = (record) => {
+    if (!record?.assignedVehicle?.id) return false;
+    // Không được gỡ khi đơn đã giao hoặc hoàn tất / hủy
+    if (["DELIVERED", "COMPLETED", "CANCELLED"].includes(record.status)) {
+      return false;
+    }
+    return true;
+  };
+
+  const handleDetachVehicle = async (orderId, vehicleId) => {
+    if (!orderId || !vehicleId) return;
+    try {
+      const res = await api.patch(
+        `/admin/orders/${orderId}/detach-vehicle/${vehicleId}`
+      );
+      const payload = res?.data;
+      const success =
+        payload?.success ?? (res.status >= 200 && res.status < 300);
+
+      if (success) {
+        const updatedOrder = payload?.data || payload;
+        message.success(payload?.message || "Gỡ xe khỏi đơn hàng thành công");
+        // Cập nhật danh sách và chi tiết đang mở
+        await fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId && updatedOrder) {
+          setSelectedOrder(updatedOrder);
+        }
+      } else {
+        message.error(
+          payload?.message || "Gỡ xe khỏi đơn hàng thất bại, vui lòng thử lại"
+        );
+      }
+    } catch (error) {
+      console.error("Detach vehicle failed", error);
+      message.error(
+        error?.response?.data?.message ||
+          "Không thể gỡ xe khỏi đơn hàng, vui lòng thử lại"
       );
     }
   };
@@ -2030,31 +2118,53 @@ export default function OrderManagement() {
               className="mb-4"
             >
               {selectedOrder.assignedVehicle ? (
-                <Descriptions bordered>
-                  <Descriptions.Item label="VIN" span={2}>
-                    <Text strong>{selectedOrder.assignedVehicle.vin}</Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Engine Number">
-                    <Text strong>
-                      {selectedOrder.assignedVehicle.engineNumber}
-                    </Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Model">
-                    {selectedOrder.assignedVehicle.modelName}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Màu">
-                    <Tag>{selectedOrder.assignedVehicle.colorName}</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Trạng thái">
-                    <Tag
-                      color={getStatusColor(
-                        selectedOrder.assignedVehicle.status
-                      )}
-                    >
-                      {selectedOrder.assignedVehicle.status}
-                    </Tag>
-                  </Descriptions.Item>
-                </Descriptions>
+                <>
+                  <Descriptions bordered>
+                    <Descriptions.Item label="VIN" span={2}>
+                      <Text strong>{selectedOrder.assignedVehicle.vin}</Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Engine Number">
+                      <Text strong>
+                        {selectedOrder.assignedVehicle.engineNumber}
+                      </Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Model">
+                      {selectedOrder.assignedVehicle.modelName}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Màu">
+                      <Tag>{selectedOrder.assignedVehicle.colorName}</Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Trạng thái">
+                      <Tag
+                        color={getStatusColor(
+                          selectedOrder.assignedVehicle.status
+                        )}
+                      >
+                        {selectedOrder.assignedVehicle.status}
+                      </Tag>
+                    </Descriptions.Item>
+                  </Descriptions>
+                  {canDetachVehicle(selectedOrder) && (
+                    <div className="mt-3 text-right">
+                      <Popconfirm
+                        title="Gỡ xe khỏi đơn hàng"
+                        description="Bạn có chắc chắn muốn gỡ xe này khỏi đơn hàng?"
+                        okText="Gỡ xe"
+                        cancelText="Hủy"
+                        onConfirm={() =>
+                          handleDetachVehicle(
+                            selectedOrder.id,
+                            selectedOrder.assignedVehicle.id
+                          )
+                        }
+                      >
+                        <Button danger type="default" icon={<CarOutlined />}>
+                          Gỡ xe khỏi đơn
+                        </Button>
+                      </Popconfirm>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-4">
                   <Text type="secondary">
