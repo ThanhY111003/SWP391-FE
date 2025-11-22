@@ -48,6 +48,7 @@ export default function ManageOrders() {
   const [loadingWarrantyVehicles, setLoadingWarrantyVehicles] = useState(false);
   const [confirmReceivedLoading, setConfirmReceivedLoading] = useState({});
   const [cancelOrderLoading, setCancelOrderLoading] = useState({});
+  const [confirmRepairedLoading, setConfirmRepairedLoading] = useState({});
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [reportForm] = Form.useForm();
   const [warrantyForm] = Form.useForm();
@@ -246,6 +247,41 @@ export default function ManageOrders() {
       toast.error(errorMsg, {
         position: "top-right",
       });
+    }
+  };
+
+  //  7c. Xác nhận xe sửa xong
+  const handleConfirmRepaired = async (orderId) => {
+    setConfirmRepairedLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await apiClient.patch(
+        `/api/defects/dealer/orders/${orderId}/confirm-repaired`
+      );
+      if (res.data.success) {
+        const responseMessage =
+          res.data.message || "Xác nhận xe sửa xong thành công!";
+        toast.success(responseMessage, {
+          position: "top-right",
+          duration: 4000,
+        });
+        // Refresh danh sách defects
+        await handleViewDefects(orderId);
+        // Refresh danh sách đơn hàng
+        fetchOrders();
+      } else {
+        toast.error(res.data.message || "Không thể xác nhận xe sửa xong!", {
+          position: "top-right",
+        });
+      }
+    } catch (err) {
+      console.error("Error confirming repaired vehicle:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể xác nhận xe sửa xong!";
+      toast.error(errorMsg, {
+        position: "top-right",
+      });
+    } finally {
+      setConfirmRepairedLoading((prev) => ({ ...prev, [orderId]: false }));
     }
   };
 
@@ -820,25 +856,59 @@ export default function ManageOrders() {
                   {
                     title: "Thao tác",
                     key: "action",
-                    width: 120,
+                    width: 180,
                     render: (_, record) => (
-                      <Popconfirm
-                        title="Hủy báo cáo xe lỗi"
-                        description="Bạn có chắc chắn muốn hủy báo cáo này? Xe không còn lỗi?"
-                        onConfirm={() => handleCancelDefectReport(selectedOrderId)}
-                        okText="Xác nhận"
-                        cancelText="Hủy"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <Button
-                          type="link"
-                          danger
-                          size="small"
-                          disabled={record.isApproved || record.isRepairCompleted}
-                        >
-                          Hủy báo cáo
-                        </Button>
-                      </Popconfirm>
+                      <Space size="small" direction="vertical">
+                        {!record.isApproved && !record.isRepairCompleted && (
+                          <Popconfirm
+                            title="Hủy báo cáo xe lỗi"
+                            description="Bạn có chắc chắn muốn hủy báo cáo này? Xe không còn lỗi?"
+                            onConfirm={() =>
+                              handleCancelDefectReport(selectedOrderId)
+                            }
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Button
+                              type="link"
+                              danger
+                              size="small"
+                              disabled={
+                                record.isApproved ||
+                                record.isRepairCompleted ||
+                                confirmRepairedLoading[selectedOrderId]
+                              }
+                            >
+                              Hủy báo cáo
+                            </Button>
+                          </Popconfirm>
+                        )}
+                        {record.isRepairCompleted && (
+                          <Popconfirm
+                            title="Xác nhận xe sửa xong"
+                            description="Bạn có chắc chắn đã nhận lại xe sửa xong từ hãng?"
+                            onConfirm={() =>
+                              handleConfirmRepaired(selectedOrderId)
+                            }
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{
+                              type: "primary",
+                              loading: confirmRepairedLoading[selectedOrderId],
+                            }}
+                          >
+                            <Button
+                              type="link"
+                              size="small"
+                              loading={confirmRepairedLoading[selectedOrderId]}
+                              disabled={confirmRepairedLoading[selectedOrderId]}
+                            >
+                              Xác nhận đã nhận xe
+                            </Button>
+                          </Popconfirm>
+                        )}
+                      </Space>
                     ),
                   },
                 ]}

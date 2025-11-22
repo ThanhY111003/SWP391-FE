@@ -80,6 +80,8 @@ export default function OrderManagement() {
   const [defects, setDefects] = useState([]);
   const [loadingDefects, setLoadingDefects] = useState(false);
   const [rejectDefectLoading, setRejectDefectLoading] = useState({});
+  const [approveDefectLoading, setApproveDefectLoading] = useState({});
+  const [completeRepairLoading, setCompleteRepairLoading] = useState({});
 
   const [filters, setFilters] = useState({
     status: "",
@@ -505,7 +507,7 @@ export default function OrderManagement() {
     setRejectDefectLoading((prev) => ({ ...prev, [orderId]: true }));
     try {
       const res = await api.patch(
-        `/defects/admin/orders/${orderId}/defect/reject`
+        `defects/admin/orders/${orderId}/defect/reject`
       );
       if (res.data.success) {
         message.success(
@@ -526,6 +528,71 @@ export default function OrderManagement() {
       message.error(errorMsg);
     } finally {
       setRejectDefectLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle approve defect report
+  const handleApproveDefectReport = async (orderId) => {
+    setApproveDefectLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await api.patch(`/api/defects/admin/${orderId}/approve`);
+      if (res.data.success) {
+        message.success(
+          res.data.message || "Phê duyệt báo cáo xe lỗi thành công!",
+          { duration: 4000 }
+        );
+        // Refresh defects list
+        if (orderId) {
+          await handleViewDefects(orderId);
+        }
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        message.error(
+          res.data.message || "Không thể phê duyệt báo cáo xe lỗi!"
+        );
+      }
+    } catch (err) {
+      console.error("Error approving defect report:", err);
+      const errorMsg =
+        err.response?.data?.message || "Không thể phê duyệt báo cáo xe lỗi!";
+      message.error(errorMsg);
+    } finally {
+      setApproveDefectLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Handle complete repair
+  const handleCompleteRepair = async (orderId) => {
+    setCompleteRepairLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await api.patch(
+        `/api/defects/admin/${orderId}/complete-repair`
+      );
+      if (res.data.success) {
+        message.success(
+          res.data.message || "Xác nhận sửa xe lỗi hoàn tất thành công!",
+          { duration: 4000 }
+        );
+        // Refresh defects list
+        if (orderId) {
+          await handleViewDefects(orderId);
+        }
+        // Refresh orders list
+        fetchOrders();
+      } else {
+        message.error(
+          res.data.message || "Không thể xác nhận sửa xe lỗi hoàn tất!"
+        );
+      }
+    } catch (err) {
+      console.error("Error completing repair:", err);
+      const errorMsg =
+        err.response?.data?.message ||
+        "Không thể xác nhận sửa xe lỗi hoàn tất!";
+      message.error(errorMsg);
+    } finally {
+      setCompleteRepairLoading((prev) => ({ ...prev, [orderId]: false }));
     }
   };
 
@@ -3147,32 +3214,90 @@ export default function OrderManagement() {
                 {
                   title: "Thao tác",
                   key: "action",
-                  width: 150,
+                  width: 250,
                   render: (_, record) => {
                     const orderId = selectedOrder?.id;
                     return (
-                      <Popconfirm
-                        title="Từ chối báo cáo xe lỗi"
-                        description="Bạn có chắc chắn muốn từ chối báo cáo này? Xe không lỗi?"
-                        onConfirm={() => handleRejectDefectReport(orderId)}
-                        okText="Xác nhận"
-                        cancelText="Hủy"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <Button
-                          type="link"
-                          danger
-                          size="small"
-                          loading={rejectDefectLoading[orderId]}
-                          disabled={
-                            record.isApproved ||
-                            record.isRepairCompleted ||
-                            rejectDefectLoading[orderId]
-                          }
-                        >
-                          Từ chối
-                        </Button>
-                      </Popconfirm>
+                      <Space size="small" direction="vertical">
+                        {!record.isApproved && (
+                          <Popconfirm
+                            title="Phê duyệt báo cáo xe lỗi"
+                            description="Bạn có chắc chắn muốn phê duyệt báo cáo này? Xe lỗi hợp lệ và sẽ tiến hành sửa chữa?"
+                            onConfirm={() => handleApproveDefectReport(orderId)}
+                            okText="Phê duyệt"
+                            cancelText="Hủy"
+                            okButtonProps={{
+                              type: "primary",
+                              loading: approveDefectLoading[orderId],
+                            }}
+                          >
+                            <Button
+                              type="link"
+                              size="small"
+                              loading={approveDefectLoading[orderId]}
+                              disabled={
+                                approveDefectLoading[orderId] ||
+                                completeRepairLoading[orderId] ||
+                                rejectDefectLoading[orderId]
+                              }
+                            >
+                              Phê duyệt
+                            </Button>
+                          </Popconfirm>
+                        )}
+                        {record.isApproved && !record.isRepairCompleted && (
+                          <Popconfirm
+                            title="Xác nhận sửa xe lỗi hoàn tất"
+                            description="Bạn có chắc chắn xe lỗi đã được sửa xong và chuẩn bị gửi lại dealer?"
+                            onConfirm={() => handleCompleteRepair(orderId)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{
+                              type: "primary",
+                              loading: completeRepairLoading[orderId],
+                            }}
+                          >
+                            <Button
+                              type="link"
+                              size="small"
+                              loading={completeRepairLoading[orderId]}
+                              disabled={
+                                approveDefectLoading[orderId] ||
+                                completeRepairLoading[orderId] ||
+                                rejectDefectLoading[orderId]
+                              }
+                            >
+                              Hoàn tất sửa chữa
+                            </Button>
+                          </Popconfirm>
+                        )}
+                        {!record.isApproved && (
+                          <Popconfirm
+                            title="Từ chối báo cáo xe lỗi"
+                            description="Bạn có chắc chắn muốn từ chối báo cáo này? Xe không lỗi?"
+                            onConfirm={() => handleRejectDefectReport(orderId)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Button
+                              type="link"
+                              danger
+                              size="small"
+                              loading={rejectDefectLoading[orderId]}
+                              disabled={
+                                record.isApproved ||
+                                record.isRepairCompleted ||
+                                approveDefectLoading[orderId] ||
+                                completeRepairLoading[orderId] ||
+                                rejectDefectLoading[orderId]
+                              }
+                            >
+                              Từ chối
+                            </Button>
+                          </Popconfirm>
+                        )}
+                      </Space>
                     );
                   },
                 },
