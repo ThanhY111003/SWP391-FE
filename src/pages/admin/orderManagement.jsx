@@ -482,7 +482,7 @@ export default function OrderManagement() {
     setLoadingDefects(true);
     setDefectsModalVisible(true);
     try {
-      const res = await api.get(`/api/defects/admin/order/${orderId}`);
+      const res = await api.get(`/defects/admin/order/${orderId}`);
       if (res.data.success) {
         setDefects(res.data.data || []);
       } else {
@@ -505,7 +505,7 @@ export default function OrderManagement() {
     setRejectDefectLoading((prev) => ({ ...prev, [orderId]: true }));
     try {
       const res = await api.patch(
-        `/api/defects/admin/orders/${orderId}/defect/reject`
+        `/defects/admin/orders/${orderId}/defect/reject`
       );
       if (res.data.success) {
         message.success(
