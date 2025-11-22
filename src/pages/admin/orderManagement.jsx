@@ -883,6 +883,11 @@ export default function OrderManagement() {
     const paid = record.paidAmount || 0;
     const total = record.totalAmount || 0;
 
+    // Nếu đã thanh toán đủ 100% (hoặc dư) thì không cho nhập thêm
+    if (total > 0 && paid >= total) {
+      return false;
+    }
+
     // WORKAROUND: Nếu là đơn trả thẳng và trạng thái là PAID, có khả năng cao
     // backend đang trả về paidAmount = totalAmount dù chưa trả đủ.
     // Trong trường hợp này, ta vẫn cho phép thanh toán tiếp.
