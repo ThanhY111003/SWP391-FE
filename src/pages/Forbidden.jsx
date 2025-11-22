@@ -6,17 +6,20 @@ const Forbidden = () => {
   const location = useLocation();
 
   const previousPath = location.state?.from;
-  const role = typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  const role =
+    typeof window !== "undefined" ? localStorage.getItem("role") : null;
 
   const primaryRoute = useMemo(() => {
-    if (role === "ROLE_ADMIN") return "/manufacturer/reports";
-    if (role === "ROLE_DEALER_MANAGER" || role === "ROLE_DEALER_STAFF") {
+    if (role === "ADMIN") return "/manufacturer/reports";
+    if (role === "DEALER_MANAGER" || role === "DEALER_STAFF") {
       return "/dealer/dashboard";
     }
     return "/login";
   }, [role]);
 
-  const highlight = previousPath ? `Bạn không có quyền truy cập ${previousPath}` : "Bạn không có quyền truy cập trang này";
+  const highlight = previousPath
+    ? `Bạn không có quyền truy cập ${previousPath}`
+    : "Bạn không có quyền truy cập trang này";
 
   const handleGoBack = () => {
     navigate(primaryRoute, { replace: true });
@@ -36,12 +39,16 @@ const Forbidden = () => {
           </div>
         </div>
         <div className="pt-8 text-center space-y-6">
-          <p className="uppercase tracking-[0.4em] text-sm text-red-300">forbidden access</p>
+          <p className="uppercase tracking-[0.4em] text-sm text-red-300">
+            forbidden access
+          </p>
           <h1 className="text-4xl font-extrabold text-white leading-tight">
-            Oops! Bạn không đủ quyền <br className="hidden md:block" /> để vào khu vực này
+            Oops! Bạn không đủ quyền <br className="hidden md:block" /> để vào
+            khu vực này
           </h1>
           <p className="text-slate-200 text-lg max-w-2xl mx-auto">
-            {highlight}. Nếu bạn tin rằng đây là một sự nhầm lẫn, hãy liên hệ quản trị viên để được cấp quyền phù hợp.
+            {highlight}. Nếu bạn tin rằng đây là một sự nhầm lẫn, hãy liên hệ
+            quản trị viên để được cấp quyền phù hợp.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
             <button
@@ -64,4 +71,3 @@ const Forbidden = () => {
 };
 
 export default Forbidden;
-
