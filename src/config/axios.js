@@ -10,7 +10,7 @@ const getBaseURL = () => {
   }
   
   // Nếu đang ở production (đã deploy), dùng URL Backend thật
-  if (import.meta.env.PROD) {
+  if (import.meta.env.PROD) {gi
     return "https://swp391-be-y3kc.onrender.com";
   }
   

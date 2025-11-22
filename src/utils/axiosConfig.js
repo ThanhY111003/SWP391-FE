@@ -1,13 +1,21 @@
 // src/utils/axiosConfig.js
 import axios from "axios";
 
-// Create axios instance
+const getBaseURL = () => {
+  // Production (deploy) → dùng backend thật
+  if (import.meta.env.PROD) {
+    return "https://swp391-be-y3kc.onrender.com";
+  }
+
+  // Development (local) → dùng local backend
+  return "http://localhost:8080";
+};
+
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: getBaseURL(),
   timeout: 10000,
 });
 
-// Request interceptor to add Bearer token
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -16,19 +24,13 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle authentication errors
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.clear();
       window.location.href = "/login";
     }
