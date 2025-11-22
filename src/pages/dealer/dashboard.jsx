@@ -140,8 +140,7 @@ export default function DealerDashboard() {
     (sum, item) => sum + (item.soldCount || 0),
     0
   );
-  const avgOrderValue =
-    totalSold > 0 ? totalRevenue / totalSold : 0;
+  const avgOrderValue = totalSold > 0 ? totalRevenue / totalSold : 0;
 
   // Tính tổng tồn kho
   const totalStock = inventory.reduce(
@@ -185,9 +184,7 @@ export default function DealerDashboard() {
       key: "totalRevenue",
       align: "right",
       render: (revenue) =>
-        revenue
-          ? `${revenue.toLocaleString("vi-VN")} VNĐ`
-          : "0 VNĐ",
+        revenue ? `${revenue.toLocaleString("vi-VN")} VNĐ` : "0 VNĐ",
     },
   ];
 
@@ -223,8 +220,7 @@ export default function DealerDashboard() {
       title: "Lần mua cuối",
       dataIndex: "lastPurchase",
       key: "lastPurchase",
-      render: (date) =>
-        date ? dayjs(date).format("DD/MM/YYYY") : "N/A",
+      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "N/A"),
     },
   ];
 
@@ -283,7 +279,7 @@ export default function DealerDashboard() {
           {/* Header */}
           <div>
             <Title level={2}>
-              <BarChartOutlined /> Dashboard
+              <BarChartOutlined /> Thống kê
             </Title>
             <Typography.Text type="secondary">
               Tổng quan hoạt động kinh doanh của đại lý
@@ -476,18 +472,21 @@ export default function DealerDashboard() {
                         </Pie>
                         <Tooltip
                           formatter={(value, name, props) => {
-                            return [
-                              `${value} xe`,
-                              "Số lượng bán"
-                            ];
+                            return [`${value} xe`, "Số lượng bán"];
                           }}
                           labelFormatter={(label, payload) => {
                             if (payload && payload.length > 0) {
                               const data = payload[0].payload;
                               return (
                                 <div>
-                                  <div><strong>modelName:</strong> {data.modelName || "N/A"}</div>
-                                  <div><strong>colorName:</strong> {data.colorName || "N/A"}</div>
+                                  <div>
+                                    <strong>modelName:</strong>{" "}
+                                    {data.modelName || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>colorName:</strong>{" "}
+                                    {data.colorName || "N/A"}
+                                  </div>
                                 </div>
                               );
                             }
@@ -583,4 +582,3 @@ export default function DealerDashboard() {
     </DealerLayout>
   );
 }
-

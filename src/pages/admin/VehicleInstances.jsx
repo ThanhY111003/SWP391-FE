@@ -36,6 +36,8 @@ export default function VehicleInstances() {
   const [dealersLoading, setDealersLoading] = useState(false);
   const [rowToggling, setRowToggling] = useState({}); // id -> boolean
   const [statusFilter, setStatusFilter] = useState("all"); // all | specific status
+  const [modelFilter, setModelFilter] = useState();
+  const [colorFilter, setColorFilter] = useState();
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailRecord, setDetailRecord] = useState(null);
@@ -162,6 +164,37 @@ export default function VehicleInstances() {
     }
   };
 
+  // Bộ lọc model riêng (không dính form): chọn model rồi mới lọc được màu
+  const handleFilterModelChange = async (modelId) => {
+    setModelFilter(modelId || undefined);
+    setColorFilter(undefined); // đổi model thì reset màu
+
+    if (!modelId) {
+      setColorOptions([]);
+      return;
+    }
+
+    setLoadingColors(true);
+    try {
+      const res = await api.get(`vehicle-models/${modelId}/colors`);
+      const payload = res?.data;
+      let data = [];
+      if (Array.isArray(payload)) data = payload;
+      else if (Array.isArray(payload?.data)) data = payload.data;
+      setColorOptions(
+        (data || []).map((c) => ({
+          label: `${c.colorName}`,
+          value: c.id,
+        }))
+      );
+    } catch (e) {
+      console.error("Fetch model colors for filter failed", e);
+      setColorOptions([]);
+    } finally {
+      setLoadingColors(false);
+    }
+  };
+
   const dealerOptions = useMemo(() => {
     return (dealers || []).map((d) => ({
       label: d?.name || `Đại lý #${d?.id}`,
@@ -187,6 +220,43 @@ export default function VehicleInstances() {
       if (statusFilter !== "all" && String(x.status) !== String(statusFilter)) {
         return false;
       }
+
+      // Lọc theo model (ưu tiên theo id nếu backend trả)
+      if (modelFilter) {
+        if (x.vehicleModelId != null) {
+          if (String(x.vehicleModelId) !== String(modelFilter)) return false;
+        } else if (x.modelName) {
+          const selectedModel = modelOptions.find(
+            (m) => String(m.value) === String(modelFilter)
+          );
+          if (
+            selectedModel &&
+            String(x.modelName).toLowerCase() !==
+              String(selectedModel.label).toLowerCase()
+          ) {
+            return false;
+          }
+        }
+      }
+
+      // Lọc theo màu – chỉ áp dụng khi đã chọn model
+      if (colorFilter && modelFilter) {
+        if (x.vehicleModelColorId != null) {
+          if (String(x.vehicleModelColorId) !== String(colorFilter))
+            return false;
+        } else if (x.colorName) {
+          const selectedColor = colorOptions.find(
+            (c) => String(c.value) === String(colorFilter)
+          );
+          if (
+            selectedColor &&
+            String(x.colorName).toLowerCase() !==
+              String(selectedColor.label).toLowerCase()
+          ) {
+            return false;
+          }
+        }
+      }
       if (!q) return true;
       const hay = [
         x.vin,
@@ -201,7 +271,17 @@ export default function VehicleInstances() {
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [list, dealers, dealerIdFilter, statusFilter, search]);
+  }, [
+    list,
+    dealers,
+    dealerIdFilter,
+    statusFilter,
+    search,
+    modelFilter,
+    colorFilter,
+    modelOptions,
+    colorOptions,
+  ]);
 
   const statusOptions = useMemo(() => {
     const uniq = new Map();
@@ -564,6 +644,25 @@ export default function VehicleInstances() {
           style={{ width: 180 }}
           options={statusOptions}
           onChange={setStatusFilter}
+        />
+        <Select
+          allowClear
+          placeholder="Lọc theo model xe"
+          style={{ width: 220 }}
+          options={modelOptions}
+          value={modelFilter}
+          onChange={handleFilterModelChange}
+          loading={loadingModels}
+        />
+        <Select
+          allowClear
+          placeholder="Lọc theo màu (chọn model trước)"
+          style={{ width: 240 }}
+          options={colorOptions}
+          value={colorFilter}
+          onChange={setColorFilter}
+          loading={loadingColors}
+          disabled={!modelFilter}
         />
         <Input.Search
           allowClear
